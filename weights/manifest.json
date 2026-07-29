@@ -11,9 +11,9 @@
       "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
     },
     {
-      "bytes": 8310,
+      "bytes": 8790,
       "path": "README.md",
-      "sha256": "252e90880c2d29d57a2a03fc375d109928842456dda82f5c1c2969a1c2924d79"
+      "sha256": "9f5132bc05b750ec23d0878c01129b6768a6fa70d603476e7c493683200a82c1"
     },
     {
       "bytes": 83,
@@ -114,6 +114,11 @@
       "bytes": 2110,
       "path": "docs/ARCHITECTURE.md",
       "sha256": "c0a5470fa5dc6cb3a24d7714b2f17c9b8932f92b6d8ef6c66dfe24c1cb15af7c"
+    },
+    {
+      "bytes": 5313,
+      "path": "docs/FRONTIER_PLAYBOOK.md",
+      "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
     },
     {
       "bytes": 1706,
