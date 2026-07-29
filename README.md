@@ -19,6 +19,17 @@ The block above is the required Wave 34 disclosure and must remain verbatim.
 - Local receipts form an append-only SHA-256 chain and are described honestly as local and unsigned.
 - A one-command verifier proves the local metrics, logs, traces, dashboard, and alert paths before writing a `VERIFIED` integration artifact.
 
+## New Frontier operating doctrine
+
+The [New Frontier operating playbook](docs/FRONTIER_PLAYBOOK.md) turns current
+leadership, design-thinking, circular-fashion, systems, reliability, and AI
+risk-management patterns into an original seven-stage loop:
+
+`Sense -> Frame -> Diverge -> Prototype -> Prove -> Circulate -> Govern`
+
+It adds an explicit originality boundary: learn from public methods, but do not
+copy another brand, designer, implementation, or distinctive expression.
+
 ## Signal path
 
 ```text
@@ -112,7 +123,7 @@ Generated reports live under `output/` and are ignored by Git. CI uploads them a
 
 The controlled two-worker Compose run produced the following **MEASURED local** evidence:
 
-- 12 Python/API tests passed;
+- 14 Python/API and manifest-portability tests passed;
 - three Newman API assertions passed;
 - 15 Grafana panels rendered with no browser-console errors;
 - four Prometheus rules and four Terraform-managed Grafana alert rules were healthy;
