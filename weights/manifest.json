@@ -1,9 +1,9 @@
 {
   "artifacts": [
     {
-      "bytes": 2927,
+      "bytes": 3340,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "162a842fbffa741cd52973025ecda722bf5cf49745bbfbfda7c7695be2bf77a2"
+      "sha256": "5d5a1350571f4ba02391dd1a3376e9bc92a34797a63dbe320aaaf7ddc09789e5"
     },
     {
       "bytes": 847,
@@ -11,9 +11,9 @@
       "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
     },
     {
-      "bytes": 8790,
+      "bytes": 8952,
       "path": "README.md",
-      "sha256": "9f5132bc05b750ec23d0878c01129b6768a6fa70d603476e7c493683200a82c1"
+      "sha256": "c17ca6e178f51d0910b305db63cde70a5d249e4877d3a0f1723ba41e022494b2"
     },
     {
       "bytes": 83,
@@ -116,9 +116,9 @@
       "sha256": "c0a5470fa5dc6cb3a24d7714b2f17c9b8932f92b6d8ef6c66dfe24c1cb15af7c"
     },
     {
-      "bytes": 5313,
+      "bytes": 5445,
       "path": "docs/FRONTIER_PLAYBOOK.md",
-      "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
+      "sha256": "8e1901bb4f809e02379b7802a8669059ced0e4ff7484968a67294c1f6f8082f3"
     },
     {
       "bytes": 1706,
