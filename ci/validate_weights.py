@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from update_weight_manifest import MANIFEST_PATH, ROOT, tracked_paths
+from update_weight_manifest import MANIFEST_PATH, ROOT, governed_bytes, tracked_paths
 
 
 def main() -> int:
@@ -28,7 +28,7 @@ def main() -> int:
         if not path.is_file():
             findings.append(f"missing artifact: {relative}")
             continue
-        content = path.read_bytes()
+        content = governed_bytes(path)
         total += len(content)
         digest = hashlib.sha256(content).hexdigest()
         if digest != entry["sha256"]:

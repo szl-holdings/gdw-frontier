@@ -9,6 +9,7 @@ from typing import Iterable
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "weights" / "manifest.json"
 INCLUDE_PATTERNS = (
+    ".gitattributes",
     ".github/workflows/*.yml",
     "app/*.py",
     "ci/*.py",
@@ -34,6 +35,21 @@ LIMITS = {
 }
 
 
+def canonical_artifact_bytes(content: bytes) -> bytes:
+    """Normalize governed UTF-8 text while leaving binary content untouched."""
+    if b"\x00" in content:
+        return content
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        return content
+    return text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+
+
+def governed_bytes(path: Path) -> bytes:
+    return canonical_artifact_bytes(path.read_bytes())
+
+
 def tracked_paths() -> list[Path]:
     paths: set[Path] = set()
     for pattern in INCLUDE_PATTERNS:
@@ -44,7 +60,7 @@ def tracked_paths() -> list[Path]:
 def build_manifest() -> dict:
     artifacts = []
     for path in tracked_paths():
-        content = path.read_bytes()
+        content = governed_bytes(path)
         artifacts.append(
             {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -55,6 +71,10 @@ def build_manifest() -> dict:
     return {
         "schema_version": 1,
         "generated_by": "python ci/update_weight_manifest.py --write",
+        "content_policy": {
+            "binary": "raw bytes",
+            "text": "UTF-8 with LF line endings",
+        },
         "limits": LIMITS,
         "artifacts": artifacts,
     }

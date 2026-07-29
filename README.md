@@ -123,7 +123,7 @@ Generated reports live under `output/` and are ignored by Git. CI uploads them a
 
 The controlled two-worker Compose run produced the following **MEASURED local** evidence:
 
-- 12 Python/API tests passed;
+- 14 Python/API and manifest-portability tests passed;
 - three Newman API assertions passed;
 - 15 Grafana panels rendered with no browser-console errors;
 - four Prometheus rules and four Terraform-managed Grafana alert rules were healthy;
