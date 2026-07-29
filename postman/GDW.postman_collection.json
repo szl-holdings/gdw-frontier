@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "8ca6158e-e118-4a2f-8758-bb7ddba9ad7a",
+    "name": "GDW Self-Defending Observability Core",
+    "description": "MODELED local verification collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/healthz",
+          "host": ["{{base_url}}"],
+          "path": ["healthz"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('healthy and truth-labeled', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql('ready');",
+              "  pm.expect(body.model_status).to.eql('MODELED');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Modeled step",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session_id\":\"newman-session\",\"proposal_id\":\"newman-proposal\",\"objective\":\"exercise governed telemetry\",\"confidence\":0.9,\"receipt_present\":true,\"scheduler_mode\":\"balanced\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/gdw/step",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "gdw", "step"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('modeled decision has receipt and correlation', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql('MODELED');",
+              "  pm.expect(body.receipt_status).to.eql('valid');",
+              "  pm.expect(body.receipt_hash).to.match(/^[a-f0-9]{64}$/);",
+              "  pm.expect(body.trace_id).to.match(/^[a-f0-9]{32}$/);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/metrics",
+          "host": ["{{base_url}}"],
+          "path": ["metrics"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('OpenMetrics is exported without identity labels', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('gdw_request_total');",
+              "  pm.expect(pm.response.text()).not.to.include('session_id=');",
+              "  pm.expect(pm.response.text()).not.to.include('request_id=');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
+

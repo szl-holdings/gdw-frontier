@@ -1,0 +1,112 @@
+name: gdw-verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gdw-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e ".[test]"
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: Governed source gate
+        run: python ci/gdw_gate.py --with-docker
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.15.8
+
+      - name: Terraform format and schema
+        run: |
+          terraform -chdir=terraform fmt -check
+          terraform -chdir=terraform init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=terraform validate
+
+      - name: Prometheus config and rules
+        run: |
+          docker run --rm \
+            -v "$PWD/monitoring:/etc/prometheus:ro" \
+            --entrypoint promtool \
+            prom/prometheus:v3.13.1 \
+            check config /etc/prometheus/prometheus.yml
+          docker run --rm \
+            -v "$PWD/monitoring:/etc/prometheus:ro" \
+            --entrypoint promtool \
+            prom/prometheus:v3.13.1 \
+            check rules /etc/prometheus/alerting-rules.yml
+
+  integration:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e ".[test]"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - name: Install Newman
+        run: npm install --global newman@6.2.1
+
+      - name: Start complete stack
+        run: docker compose -f monitoring/docker-compose.yml up -d --build
+
+      - name: Verify metrics, logs, traces, dashboard, and alerts
+        run: python ci/verify_stack.py
+
+      - name: Live cardinality budget
+        run: >-
+          python ci/audit_cardinality.py
+          --metrics-url http://localhost:8080/metrics
+          --baseline weights/cardinality-baseline.json
+
+      - name: Postman contract smoke
+        run: bash ci/newman_run.sh
+
+      - name: Capture stack logs
+        if: always()
+        run: docker compose -f monitoring/docker-compose.yml logs --no-color > output/proofs/compose.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gdw-verification-${{ github.run_id }}
+          path: output/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f monitoring/docker-compose.yml down --volumes --remove-orphans

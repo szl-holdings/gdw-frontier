@@ -1,0 +1,48 @@
+groups:
+  - name: gdw-alerts
+    interval: 15s
+    rules:
+      - alert: GDWHighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(gdw_request_latency_seconds_bucket[1m]))) > 1.5
+        for: 2m
+        labels:
+          severity: warning
+          service: gdw
+        annotations:
+          summary: GDW p95 latency spike
+          description: p95 latency exceeded 1.5 seconds for 2 minutes.
+          runbook: docs/RUNBOOKS.md#gdwhighp95latency
+
+      - alert: GDWHighErrorRate
+        expr: sum(rate(gdw_request_total{status_class!="2xx"}[1m])) / clamp_min(sum(rate(gdw_request_total[1m])), 1e-9) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: gdw
+        annotations:
+          summary: GDW error ratio too high
+          description: Non-2xx responses exceeded 5 percent for 2 minutes.
+          runbook: docs/RUNBOOKS.md#gdwhigherrorrate
+
+      - alert: GDWMissingReceipts
+        expr: increase(gdw_receipt_total{status="missing"}[1m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: gdw
+        annotations:
+          summary: GDW missing receipt detected
+          description: A modeled decision completed without a local receipt.
+          runbook: docs/RUNBOOKS.md#gdwmissingreceipts
+
+      - alert: GDWTelemetryAbsent
+        expr: absent(gdw_build_info) or up{job="gdw"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: gdw
+        annotations:
+          summary: GDW telemetry is absent
+          description: The GDW target is down or its build marker is missing.
+          runbook: docs/RUNBOOKS.md#gdwtelemetryabsent
+

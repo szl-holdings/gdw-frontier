@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: GDW
+    orgId: 1
+    folder: GDW
+    folderUid: gdw-observability
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+

@@ -1,0 +1,162 @@
+name: gdw
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: gdw-frontier:local
+    command:
+      - python
+      - -m
+      - app
+    environment:
+      GDW_DATA_DIR: /var/lib/gdw
+      GDW_LOG_DIR: /var/log/gdw
+      GDW_WORKERS: "${GDW_WORKERS:-2}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: gdw
+      PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus-multiproc
+    ports:
+      - "8080:8080"
+    volumes:
+      - gdw-data:/var/lib/gdw
+      - gdw-logs:/var/log/gdw
+    depends_on:
+      - tempo
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --storage.tsdb.wal-compression
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerting-rules.yml:/etc/prometheus/alerting-rules.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  loki:
+    image: grafana/loki:3.7.4
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  alloy:
+    image: grafana/alloy:v1.18.0
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/tmp/alloy
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    volumes:
+      - ./alloy.config:/etc/alloy/config.alloy:ro
+      - gdw-logs:/var/log/gdw:ro
+    depends_on:
+      - loki
+      - app
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  tempo:
+    image: grafana/tempo:3.0.2
+    command:
+      - -config.file=/etc/tempo.yml
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./tempo.yml:/etc/tempo.yml:ro
+      - tempo-data:/var/tempo
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  grafana:
+    image: grafana/grafana:13.1.1
+    environment:
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-gdw-local-admin}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  terraform-provision:
+    image: hashicorp/terraform:1.15.8
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - >-
+        until wget -q -O - http://grafana:3000/api/health >/dev/null; do sleep 2; done;
+        terraform -chdir=/workspace/terraform init -input=false -lockfile=readonly;
+        terraform -chdir=/workspace/terraform apply
+        -auto-approve -input=false -state=/state/terraform.tfstate
+    environment:
+      TF_DATA_DIR: /tmp/terraform-data
+      TF_VAR_grafana_auth: "admin:${GRAFANA_ADMIN_PASSWORD:-gdw-local-admin}"
+      TF_VAR_grafana_url: http://grafana:3000
+    volumes:
+      - ..:/workspace:ro
+      - terraform-state:/state
+    depends_on:
+      - grafana
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  gdw-data:
+  gdw-logs:
+  grafana-data:
+  loki-data:
+  prometheus-data:
+  tempo-data:
+  terraform-state:

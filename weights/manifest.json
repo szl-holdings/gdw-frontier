@@ -1,0 +1,265 @@
+{
+  "artifacts": [
+    {
+      "bytes": 2927,
+      "path": ".github/workflows/gdw-verify.yml",
+      "sha256": "162a842fbffa741cd52973025ecda722bf5cf49745bbfbfda7c7695be2bf77a2"
+    },
+    {
+      "bytes": 847,
+      "path": "Dockerfile",
+      "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
+    },
+    {
+      "bytes": 8310,
+      "path": "README.md",
+      "sha256": "252e90880c2d29d57a2a03fc375d109928842456dda82f5c1c2969a1c2924d79"
+    },
+    {
+      "bytes": 83,
+      "path": "app/__init__.py",
+      "sha256": "3b491a1f71d9415a6e1e327ca72ebf87be8cc49002c1f4163f414727da8d2c79"
+    },
+    {
+      "bytes": 744,
+      "path": "app/__main__.py",
+      "sha256": "4204318676931acf986c25c768b8171ec986bc599ac95382c1cc0622e98154cf"
+    },
+    {
+      "bytes": 7382,
+      "path": "app/api.py",
+      "sha256": "b7cddfd6639148efc989edd180471d00025e5288faeb14dbadbc5f5ea4031d8e"
+    },
+    {
+      "bytes": 350,
+      "path": "app/hybrid_scheduler.py",
+      "sha256": "f4179ffc9489d9fb65352d7b01c7725d106c9580c7a4548bbfe55c9404e2093a"
+    },
+    {
+      "bytes": 435,
+      "path": "app/kernel.py",
+      "sha256": "61b61002560bcd8b1e373a03925ea2db2de89be25515ad9504efac256f0d72cd"
+    },
+    {
+      "bytes": 2389,
+      "path": "app/logging_setup.py",
+      "sha256": "5f476be0b0a43d58272b0a69b3cdbbb453a95fd96d39e8aff78b2dfaa13ee338"
+    },
+    {
+      "bytes": 1160,
+      "path": "app/models.py",
+      "sha256": "ca774624a0a2b3b9d035524ba4eebe26c41f7966ea6da884ff1a0a48059c701a"
+    },
+    {
+      "bytes": 3466,
+      "path": "app/persistence.py",
+      "sha256": "0a1f9db108aabde6191149f6208c4d9a147054e805aef87e6d896eeded771cd9"
+    },
+    {
+      "bytes": 1441,
+      "path": "app/telemetry.py",
+      "sha256": "2454ee4fb9a0350423f7059a0b6407f7d2ec2524af9941ec04411064a6b5476d"
+    },
+    {
+      "bytes": 2024,
+      "path": "app/tracing.py",
+      "sha256": "9ea97b35bcdbae6e93317a5ec7eefbcd971c84f65a34ebd7302f6f3926d7dc71"
+    },
+    {
+      "bytes": 896,
+      "path": "app/workspace.py",
+      "sha256": "97c1a893210b33f14bcd1a1ce87b9f35f4a82b1fb063976fb175662edb186208"
+    },
+    {
+      "bytes": 60,
+      "path": "ci/__init__.py",
+      "sha256": "d8f6b58075a1782ffe24eff9493c2c8a5c05ca2ecaf92da10c0b670042de2b6e"
+    },
+    {
+      "bytes": 10004,
+      "path": "ci/audit_cardinality.py",
+      "sha256": "a3813bf651e75d458298cf04caf27de3a0c8e5271ed34a63e055db20a652373c"
+    },
+    {
+      "bytes": 4136,
+      "path": "ci/gdw_gate.py",
+      "sha256": "d1d1b8c5be6653967372a200e62081cd92ff10fbd47692000810e8ec9d0e1207"
+    },
+    {
+      "bytes": 249,
+      "path": "ci/newman_run.sh",
+      "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
+    },
+    {
+      "bytes": 2823,
+      "path": "ci/update_weight_manifest.py",
+      "sha256": "33fe59ea873d8893b3f00608e7fcbbb7ca39c0c6728ab732b0780b28b2531538"
+    },
+    {
+      "bytes": 1992,
+      "path": "ci/validate_weights.py",
+      "sha256": "b0f84e789dd3c876328651158a6d84277d5ef72b309dd034da2ac1c8e9340e6e"
+    },
+    {
+      "bytes": 9760,
+      "path": "ci/verify_stack.py",
+      "sha256": "432d66536679f15ec77a03ab3188734d602f97cdfad29eb8fc41ce80623cbddf"
+    },
+    {
+      "bytes": 3981,
+      "path": "ci/worker_calc.py",
+      "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
+    },
+    {
+      "bytes": 2110,
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "c0a5470fa5dc6cb3a24d7714b2f17c9b8932f92b6d8ef6c66dfe24c1cb15af7c"
+    },
+    {
+      "bytes": 1706,
+      "path": "docs/RUNBOOKS.md",
+      "sha256": "bee89cfaac072df4aebf469b32f5dbe18425673deb9b8afcabee1f6c0d3fb6de"
+    },
+    {
+      "bytes": 1939,
+      "path": "docs/SCALING.md",
+      "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
+    },
+    {
+      "bytes": 1667,
+      "path": "monitoring/alerting-rules.yml",
+      "sha256": "a51047c2491b3a5aebbfba93e91a394b342fed6bad54ecca3746593d3260c039"
+    },
+    {
+      "bytes": 618,
+      "path": "monitoring/alloy.config",
+      "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
+    },
+    {
+      "bytes": 3915,
+      "path": "monitoring/docker-compose.yml",
+      "sha256": "7cd729c7ad2553e617ab719b0f44e7f3feff1c6df1ff9b8ffad85736d7e3c5e2"
+    },
+    {
+      "bytes": 15917,
+      "path": "monitoring/grafana/dashboards/gdw_live_ops_dashboard.json",
+      "sha256": "10a60b4279a9d37092c84bbb14f2d3a001a714c9b1ba568b1974fd6144a822e7"
+    },
+    {
+      "bytes": 253,
+      "path": "monitoring/grafana/provisioning/dashboards/dashboard.yml",
+      "sha256": "0c519acd55d4b77c25ac8b6dfe0bc391139dfe8ff23df4da959b6c38f2d88821"
+    },
+    {
+      "bytes": 1253,
+      "path": "monitoring/grafana/provisioning/datasources/datasource.yml",
+      "sha256": "57d1034e37a549c6739f776a9a4dbc5a8ee8aa7b9c9dfb1f14bd63209528af40"
+    },
+    {
+      "bytes": 795,
+      "path": "monitoring/loki.yml",
+      "sha256": "0cc8f5a4e5f552ebf50dc85f865e714718181bf063e6fea3b032e0ac8c6c91c5"
+    },
+    {
+      "bytes": 2603,
+      "path": "monitoring/metric-policy.json",
+      "sha256": "e6f7411c7e3525cec8ad17f75a109f8a5a666c47924dea817c0a684352271d3f"
+    },
+    {
+      "bytes": 505,
+      "path": "monitoring/prometheus.yml",
+      "sha256": "07eeccfa8052ee177cdb6f1aa8365680318a6b92897154040c3c1ff912e541a3"
+    },
+    {
+      "bytes": 379,
+      "path": "monitoring/tempo.yml",
+      "sha256": "7f1c2d2050f31dd3809f55ce607d5a328b3543a0d7d7a7616b882e566f078a26"
+    },
+    {
+      "bytes": 300,
+      "path": "postman/GDW.local.postman_environment.json",
+      "sha256": "12ad4de3db50e557a8d84e16647dc6fbc399015dbb20339ffa4723cedae571fb"
+    },
+    {
+      "bytes": 3185,
+      "path": "postman/GDW.postman_collection.json",
+      "sha256": "fce716991ac3e61570c3ead8fff4201c0d49cd08aa52bab13636de6f61f94ba4"
+    },
+    {
+      "bytes": 844,
+      "path": "pyproject.toml",
+      "sha256": "8fb0b52128b1387f6dc5c1096089d16206ca981ea578583a846c6c52d5d34f63"
+    },
+    {
+      "bytes": 1708,
+      "path": "terraform/.terraform.lock.hcl",
+      "sha256": "ede324f67bef297122245bd6002e634cb1bc83c8270a4b9b1b04612fcb41221e"
+    },
+    {
+      "bytes": 3394,
+      "path": "terraform/alerts.tf",
+      "sha256": "1c43f33a2dbfb15870bca9f8be5cabb15bbd367f9778903dfd06559a1fd01f03"
+    },
+    {
+      "bytes": 411,
+      "path": "terraform/dashboards.tf",
+      "sha256": "e47dacdabe3f0bfbfcc419e0066bb6936a75dc0c408d64027a56b03d5178f204"
+    },
+    {
+      "bytes": 1356,
+      "path": "terraform/datasources.tf",
+      "sha256": "5222ac03c16c60a67976ba7388f43202782b1145f8e0daa81f5a57f71fe29597"
+    },
+    {
+      "bytes": 75,
+      "path": "terraform/main.tf",
+      "sha256": "7153993f74db977a4333b355d4e3035ce1795f0bdee674aae8a75aa189a80e6f"
+    },
+    {
+      "bytes": 131,
+      "path": "terraform/outputs.tf",
+      "sha256": "d50acd0c0972f9ac24f97ca39bc5af51ead3b2139a52ff6f98181bfd835d14e1"
+    },
+    {
+      "bytes": 235,
+      "path": "terraform/variables.tf",
+      "sha256": "4f9d84d1dff203b6f4bad6a2dca361f178528cb62627544e5266bab073b8dc97"
+    },
+    {
+      "bytes": 157,
+      "path": "terraform/versions.tf",
+      "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
+    },
+    {
+      "bytes": 2717,
+      "path": "tests/test_api.py",
+      "sha256": "bbd2924ba80fbc85b79ed5d6dc58af97130aa9eb7abbafaf833ee217201bb0c7"
+    },
+    {
+      "bytes": 1980,
+      "path": "tests/test_cardinality_audit.py",
+      "sha256": "7a88c9c4bc7c9912181f41d2259eea0b074f591ca9cb737fc9694101b814cc6f"
+    },
+    {
+      "bytes": 1473,
+      "path": "tests/test_persistence.py",
+      "sha256": "8ea7315519afe9c061dba49a1cc32a8ec7216a7cfdfc29d7b77bc516c55796bb"
+    },
+    {
+      "bytes": 820,
+      "path": "tests/test_worker_calc.py",
+      "sha256": "3c41e485a3c93cf5bb218fa353624b1a0dc801652fa95097c98ee1a9883adb08"
+    },
+    {
+      "bytes": 483,
+      "path": "weights/cardinality-baseline.json",
+      "sha256": "e0b32bb742833e126b580ed9e235bbc8dd4fa895c7e009aac32ab40bdf298301"
+    }
+  ],
+  "generated_by": "python ci/update_weight_manifest.py --write",
+  "limits": {
+    "max_file_bytes": 512000,
+    "max_total_bytes": 2500000
+  },
+  "schema_version": 1
+}

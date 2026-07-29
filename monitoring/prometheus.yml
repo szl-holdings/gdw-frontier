@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+  external_labels:
+    environment: local
+    service: gdw
+
+rule_files:
+  - /etc/prometheus/alerting-rules.yml
+
+scrape_configs:
+  - job_name: gdw
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - app:8080
+    sample_limit: 2500
+    label_limit: 20
+    label_name_length_limit: 64
+    label_value_length_limit: 256
+
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+

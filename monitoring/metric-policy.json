@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "metric_prefix": "gdw_",
+  "banned_label_tokens": [
+    "hash",
+    "proposal_id",
+    "request_id",
+    "session_id",
+    "span_id",
+    "trace_id",
+    "user_id",
+    "uuid"
+  ],
+  "metrics": {
+    "gdw_build_info": {
+      "allowed_values": {
+        "model_status": [
+          "MODELED"
+        ],
+        "version": [
+          "0.1.0"
+        ]
+      },
+      "labels": [
+        "version",
+        "model_status"
+      ],
+      "max_series": 4
+    },
+    "gdw_decision_total": {
+      "allowed_values": {
+        "decision": [
+          "allow",
+          "review",
+          "withhold"
+        ]
+      },
+      "labels": [
+        "decision"
+      ],
+      "max_series": 12
+    },
+    "gdw_inflight_requests": {
+      "labels": [],
+      "max_series": 2
+    },
+    "gdw_log_lines_total": {
+      "allowed_values": {
+        "level": [
+          "critical",
+          "error",
+          "info",
+          "warning"
+        ]
+      },
+      "labels": [
+        "level"
+      ],
+      "max_series": 16
+    },
+    "gdw_receipt_total": {
+      "allowed_values": {
+        "status": [
+          "invalid",
+          "missing",
+          "valid"
+        ]
+      },
+      "labels": [
+        "status"
+      ],
+      "max_series": 12
+    },
+    "gdw_request_latency_seconds": {
+      "allowed_values": {
+        "method": [
+          "GET",
+          "POST"
+        ],
+        "route": [
+          "/healthz",
+          "/readyz",
+          "/v1/gdw/state",
+          "/v1/gdw/step",
+          "unmatched"
+        ]
+      },
+      "labels": [
+        "method",
+        "route"
+      ],
+      "max_series": 180
+    },
+    "gdw_request_total": {
+      "allowed_values": {
+        "method": [
+          "GET",
+          "POST"
+        ],
+        "route": [
+          "/healthz",
+          "/readyz",
+          "/v1/gdw/state",
+          "/v1/gdw/step",
+          "unmatched"
+        ],
+        "status_class": [
+          "2xx",
+          "4xx",
+          "5xx"
+        ]
+      },
+      "labels": [
+        "method",
+        "route",
+        "status_class"
+      ],
+      "max_series": 80
+    },
+    "gdw_scheduler_mode_total": {
+      "allowed_values": {
+        "mode": [
+          "balanced",
+          "interactive",
+          "throughput"
+        ]
+      },
+      "labels": [
+        "mode"
+      ],
+      "max_series": 12
+    },
+    "gdw_trace_span_latency_seconds": {
+      "allowed_values": {
+        "span_name": [
+          "http.server"
+        ]
+      },
+      "labels": [
+        "span_name"
+      ],
+      "max_series": 32
+    }
+  },
+  "total_series_budget": 350
+}
