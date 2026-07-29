@@ -1,6 +1,11 @@
 {
   "artifacts": [
     {
+      "bytes": 102,
+      "path": ".gitattributes",
+      "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
+    },
+    {
       "bytes": 3228,
       "path": ".github/workflows/gdw-verify.yml",
       "sha256": "c2337b58a64fda5d4667c316fbef7df2b4801c415ea453c82994621b8faf850d"
@@ -11,9 +16,9 @@
       "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
     },
     {
-      "bytes": 8461,
+      "bytes": 8335,
       "path": "README.md",
-      "sha256": "a40d12b37a212e10caa9d56f9e21dac36266423761fc795f47965e5c609c644f"
+      "sha256": "c18f44afeefd3fc72cb972bc0b39b756a11f9f1746899e1c4d0ab97499e93bd4"
     },
     {
       "bytes": 83,
@@ -91,14 +96,14 @@
       "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
     },
     {
-      "bytes": 2823,
+      "bytes": 3433,
       "path": "ci/update_weight_manifest.py",
-      "sha256": "33fe59ea873d8893b3f00608e7fcbbb7ca39c0c6728ab732b0780b28b2531538"
+      "sha256": "328b15ceddada888cebe220e25ec1a4283ceef4ec272a313f67caeb0d88ba4e3"
     },
     {
-      "bytes": 1992,
+      "bytes": 2011,
       "path": "ci/validate_weights.py",
-      "sha256": "b0f84e789dd3c876328651158a6d84277d5ef72b309dd034da2ac1c8e9340e6e"
+      "sha256": "d208f60506a748a942ba0d8b0cb3e16c0afd6870f1420376ede881c157ed478d"
     },
     {
       "bytes": 9760,
@@ -246,6 +251,11 @@
       "sha256": "8ea7315519afe9c061dba49a1cc32a8ec7216a7cfdfc29d7b77bc516c55796bb"
     },
     {
+      "bytes": 420,
+      "path": "tests/test_weight_manifest.py",
+      "sha256": "3ab88f83bf53a50e1496d00c7133668c8b2eb9c44e7b2b6f0f85bad1328db95e"
+    },
+    {
       "bytes": 820,
       "path": "tests/test_worker_calc.py",
       "sha256": "3c41e485a3c93cf5bb218fa353624b1a0dc801652fa95097c98ee1a9883adb08"
@@ -256,6 +266,10 @@
       "sha256": "e0b32bb742833e126b580ed9e235bbc8dd4fa895c7e009aac32ab40bdf298301"
     }
   ],
+  "content_policy": {
+    "binary": "raw bytes",
+    "text": "UTF-8 with LF line endings"
+  },
   "generated_by": "python ci/update_weight_manifest.py --write",
   "limits": {
     "max_file_bytes": 512000,
