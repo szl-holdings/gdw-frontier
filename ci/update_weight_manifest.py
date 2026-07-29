@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
+import shlex
 from pathlib import Path
 from typing import Iterable
 
@@ -35,9 +37,33 @@ LIMITS = {
 }
 
 
-def canonical_artifact_bytes(content: bytes) -> bytes:
+def binary_attribute_patterns() -> tuple[str, ...]:
+    patterns: list[str] = []
+    attributes_path = ROOT / ".gitattributes"
+    if not attributes_path.is_file():
+        return ()
+    for raw_line in attributes_path.read_text(encoding="utf-8").splitlines():
+        fields = shlex.split(raw_line, comments=True)
+        if len(fields) < 2:
+            continue
+        pattern, *attributes = fields
+        if "binary" in attributes or "-text" in attributes:
+            patterns.append(pattern)
+    return tuple(patterns)
+
+
+def path_is_binary(path: Path) -> bool:
+    relative = path.resolve().relative_to(ROOT.resolve()).as_posix()
+    return any(
+        fnmatch.fnmatchcase(relative, pattern)
+        or ("/" not in pattern and fnmatch.fnmatchcase(path.name, pattern))
+        for pattern in binary_attribute_patterns()
+    )
+
+
+def canonical_artifact_bytes(path: Path, content: bytes) -> bytes:
     """Normalize governed UTF-8 text while leaving binary content untouched."""
-    if b"\x00" in content:
+    if path_is_binary(path) or b"\x00" in content:
         return content
     try:
         text = content.decode("utf-8")
@@ -47,7 +73,7 @@ def canonical_artifact_bytes(content: bytes) -> bytes:
 
 
 def governed_bytes(path: Path) -> bytes:
-    return canonical_artifact_bytes(path.read_bytes())
+    return canonical_artifact_bytes(path, path.read_bytes())
 
 
 def tracked_paths() -> list[Path]:

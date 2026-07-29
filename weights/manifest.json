@@ -96,9 +96,9 @@
       "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
     },
     {
-      "bytes": 3447,
+      "bytes": 4352,
       "path": "ci/update_weight_manifest.py",
-      "sha256": "e4bbb64c48449e6b3c30d84860b32427efe89898a283909f805e3237dd117af9"
+      "sha256": "b6c12f2b7338c9a0a04191022209d44fb580fceb21dfbfdd9152651777182d14"
     },
     {
       "bytes": 2011,
@@ -256,9 +256,9 @@
       "sha256": "8ea7315519afe9c061dba49a1cc32a8ec7216a7cfdfc29d7b77bc516c55796bb"
     },
     {
-      "bytes": 420,
+      "bytes": 480,
       "path": "tests/test_weight_manifest.py",
-      "sha256": "3ab88f83bf53a50e1496d00c7133668c8b2eb9c44e7b2b6f0f85bad1328db95e"
+      "sha256": "12d6230ea535acca5aa2d470f44896e23585513ab69a13b32c695e97714dfe9e"
     },
     {
       "bytes": 820,
