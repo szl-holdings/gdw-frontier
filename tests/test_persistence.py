@@ -122,7 +122,12 @@ def test_legacy_unsigned_migration_requires_explicit_one_time_approval(
         use_configured_signing_key=False,
     ).append({"decision": "allow"})
     key_path = _signing_key(tmp_path / "signing-key.pem")
-    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=False,
+    )
 
     with pytest.raises(RuntimeError, match="GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1"):
         signed.ensure_signed_head({"source_sha": "a" * 40})
@@ -156,6 +161,7 @@ def test_empty_signed_initialization_is_explicit_and_cannot_be_replayed(
         path,
         signing_key_path=key_path,
         signing_required=True,
+        allow_unsigned_migration=False,
     )
     with pytest.raises(RuntimeError, match="initialization or legacy migration"):
         unapproved.ensure_signed_head({"source_sha": "a" * 40})

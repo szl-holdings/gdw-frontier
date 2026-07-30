@@ -11,7 +11,6 @@ permissions:
   contents: read
 
 env:
-  GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "1"
   GDW_API_TOKEN: gdw-ci-only-token-with-at-least-32-characters
   GDW_API_TOKEN_SOURCE_FILE: /tmp/gdw-ci-api-token
   GDW_RECEIPT_SIGNING_KEY_FILE: /tmp/gdw-ci-signing-key.pem
@@ -89,6 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "1"
       GDW_REQUIRE_AUTH: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
