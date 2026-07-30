@@ -11,6 +11,7 @@ permissions:
   contents: read
 
 env:
+  GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "1"
   GDW_API_TOKEN: gdw-ci-only-token-with-at-least-32-characters
   GDW_API_TOKEN_SOURCE_FILE: /tmp/gdw-ci-api-token
   GDW_RECEIPT_SIGNING_KEY_FILE: /tmp/gdw-ci-signing-key.pem

@@ -44,11 +44,12 @@ each entry to the preceding SHA-256 digest. When
 `GDW_RECEIPT_SIGNING_REQUIRED=1`, every new schema-v2 record is signed with a
 file-backed ECDSA P-256 key, the trusted public-key fingerprint is checked on
 read, and readiness fails if the required key, hash chain, signature sequence,
-or signed head is invalid. Migrating a non-empty legacy unsigned prefix
-requires `GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1` for one startup. That startup
-writes a signed runtime-activation boundary and separate signed continuity
-state without rewriting historical bytes. Subsequent loss of the recorded
-transition fails closed instead of creating a replacement anchor.
+or signed head is invalid. Initializing a new signed ledger or migrating a
+non-empty legacy unsigned prefix requires
+`GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1` for one startup. That startup writes a
+signed runtime-activation boundary and separate signed continuity state
+without rewriting historical bytes. Subsequent loss of the recorded state
+fails closed instead of creating a replacement anchor.
 
 The authenticated receipt surface returns the signed head plus its public key
 for offline verification. Every decision receipt binds exact source, image,

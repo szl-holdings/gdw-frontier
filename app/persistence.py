@@ -116,7 +116,7 @@ class ReceiptLedger:
         return SIGNATURE_ALGORITHM, self._key_id()
 
     def ensure_signed_head(self, runtime_identity: dict[str, Any]) -> str | None:
-        if not self.signing_required:
+        if self.signing_key_path is None:
             return None
         activation = {
             "event": "runtime_activation",
@@ -140,12 +140,9 @@ class ReceiptLedger:
                     migration_audit = self._audit_locked(allow_unsigned_head=True)
                     if not migration_audit.valid:
                         raise RuntimeError("cannot anchor an invalid receipt ledger")
-                    if (
-                        migration_audit.legacy_unsigned_records
-                        and not self.allow_unsigned_migration
-                    ):
+                    if not self.allow_unsigned_migration:
                         raise RuntimeError(
-                            "legacy unsigned receipt migration requires "
+                            "signed receipt initialization or legacy migration requires "
                             "GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1 for one startup"
                         )
                     receipt_hash = self._append_locked(activation)
@@ -341,7 +338,13 @@ class ReceiptLedger:
             return None
         try:
             return dict(json.loads(self.signing_state_path.read_text(encoding="utf-8")))
-        except (json.JSONDecodeError, UnicodeDecodeError, OSError, TypeError) as error:
+        except (
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+            OSError,
+            TypeError,
+            ValueError,
+        ) as error:
             raise RuntimeError("receipt signing continuity state is unreadable or invalid") from error
 
     def _write_signing_state(self, signing_state: dict[str, Any]) -> None:
@@ -502,7 +505,7 @@ class ReceiptLedger:
 
     def _audit_with_signing_state_locked(self) -> LedgerAudit:
         audit = self._audit_locked()
-        if not self.signing_required or not audit.valid:
+        if not audit.valid or not audit.signed_records:
             return audit
         try:
             signing_state = self._read_signing_state()

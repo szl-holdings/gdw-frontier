@@ -193,6 +193,7 @@ def test_signed_receipt_and_backup_surfaces_are_cryptographically_bound(
         tmp_path / "receipts.jsonl",
         signing_key_path=key_path,
         signing_required=True,
+        allow_unsigned_migration=True,
     )
     monkeypatch.setattr(api, "ledger", signed_ledger)
     monkeypatch.setenv("GDW_BACKUP_DIR", str(tmp_path / "backups"))

@@ -16,7 +16,7 @@ The block above is the required Wave 34 disclosure and must remain verbatim.
 - Grafana data sources, the 15-panel live-operations dashboard, and four Grafana-managed alert rules are reproducible through Terraform.
 - Grafana Alloy replaces Promtail. Promtail reached end of life and was removed from current Loki releases, so a new deployment should not depend on it.
 - Error-ratio queries use a defended denominator. Alerts include telemetry absence, not only service symptoms.
-- Receipts can use a durable file-backed ECDSA P-256 signing root. An explicitly approved one-start migration anchors a legacy unsigned prefix and writes signed continuity state; later loss of that transition fails closed instead of silently re-anchoring.
+- Receipts can use a durable file-backed ECDSA P-256 signing root. Explicit one-start approval initializes a new signed ledger or anchors a legacy unsigned prefix and writes signed continuity state; later total state loss fails closed instead of silently reinitializing.
 - Signed backup manifests bind the ledger digest, signed continuity state, record count, head hash, runtime identity, and signing key. The proof profile restores the latest backup into isolated tmpfs before reporting `VERIFIED`.
 - A bounded authenticated load harness measures successful writes, throughput, latency percentiles, unique receipt hashes, and the exact signed-ledger delta.
 - A one-command verifier proves the local metrics, logs, traces, dashboard, and alert paths before writing a `VERIFIED` integration artifact.
@@ -58,9 +58,12 @@ export GDW_API_TOKEN_SOURCE_FILE="/secure/gdw-api-token"
 export GRAFANA_ADMIN_PASSWORD_SOURCE_FILE="/secure/gdw-grafana-password"
 export GDW_SIGNING_KEY_SOURCE_FILE="/secure/gdw-receipt-signing-key.pem"
 export GDW_RECEIPT_SIGNING_REQUIRED=1
+export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1
 python ci/worker_calc.py
 docker compose -f monitoring/docker-compose.yml up -d --build
 python ci/verify_stack.py
+export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=0
+docker compose -f monitoring/docker-compose.yml up -d --no-build --force-recreate app
 python ci/audit_cardinality.py \
   --metrics-url http://localhost:8080/metrics \
   --baseline weights/cardinality-baseline.json

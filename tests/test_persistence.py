@@ -101,6 +101,15 @@ def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path
         signed.ensure_signed_head({"source_sha": "a" * 40})
     assert signed.audit().valid is False
     assert signed.audit().signature_status == "INVALID"
+    signed.signing_state_path.unlink()
+    restarted = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=False,
+    )
+    with pytest.raises(RuntimeError, match="initialization or legacy migration"):
+        restarted.ensure_signed_head({"source_sha": "a" * 40})
 
 
 def test_legacy_unsigned_migration_requires_explicit_one_time_approval(
@@ -122,7 +131,12 @@ def test_legacy_unsigned_migration_requires_explicit_one_time_approval(
 def test_signed_only_ledger_deletion_cannot_be_silently_reinitialized(tmp_path: Path) -> None:
     path = tmp_path / "ledger.jsonl"
     key_path = _signing_key(tmp_path / "signing-key.pem")
-    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
     signed.ensure_signed_head({"source_sha": "a" * 40})
     state_path = signed.signing_state_path
     assert state_path.exists()
@@ -133,10 +147,53 @@ def test_signed_only_ledger_deletion_cannot_be_silently_reinitialized(tmp_path: 
     assert not path.exists()
 
 
+def test_empty_signed_initialization_is_explicit_and_cannot_be_replayed(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "ledger.jsonl"
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    unapproved = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+    )
+    with pytest.raises(RuntimeError, match="initialization or legacy migration"):
+        unapproved.ensure_signed_head({"source_sha": "a" * 40})
+
+    approved = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
+    approved.ensure_signed_head({"source_sha": "a" * 40})
+    state_path = approved.signing_state_path
+    assert path.exists()
+    assert state_path.exists()
+
+    path.unlink()
+    state_path.unlink()
+    restarted = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=False,
+    )
+    with pytest.raises(RuntimeError, match="initialization or legacy migration"):
+        restarted.ensure_signed_head({"source_sha": "a" * 40})
+    assert not path.exists()
+    assert not state_path.exists()
+
+
 def test_every_audit_rejects_removed_anchor_signature(tmp_path: Path) -> None:
     path = tmp_path / "ledger.jsonl"
     key_path = _signing_key(tmp_path / "signing-key.pem")
-    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
     signed.ensure_signed_head({"source_sha": "a" * 40})
     signed.append({"decision": "allow"})
 
@@ -160,12 +217,55 @@ def test_every_audit_rejects_removed_anchor_signature(tmp_path: Path) -> None:
         signed.create_backup(tmp_path / "backups", {"source_sha": "a" * 40})
 
 
+def test_optional_signing_creates_continuity_state_and_backup(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.jsonl"
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    optional = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=False,
+        allow_unsigned_migration=True,
+    )
+    optional.ensure_signed_head({"source_sha": "a" * 40})
+    optional.append({"decision": "allow"})
+
+    assert optional.audit().signature_status == "SIGNED"
+    assert optional.signing_state_path.exists()
+    manifest = optional.create_backup(
+        tmp_path / "backups",
+        {"source_sha": "a" * 40},
+    )
+    assert manifest["payload"]["ledger"]["records"] == 2
+
+
+@pytest.mark.parametrize("malformed_state", ["42\n", "\"invalid\"\n"])
+def test_malformed_continuity_state_returns_invalid_audit(
+    tmp_path: Path,
+    malformed_state: str,
+) -> None:
+    path = tmp_path / "ledger.jsonl"
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    signed = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
+    signed.ensure_signed_head({"source_sha": "a" * 40})
+    signed.signing_state_path.write_text(malformed_state, encoding="utf-8")
+
+    audit = signed.audit()
+    assert audit.valid is False
+    assert audit.signature_status == "INVALID"
+
+
 def test_signed_backup_restores_exact_head_and_rejects_tampering(tmp_path: Path) -> None:
     key_path = _signing_key(tmp_path / "signing-key.pem")
     ledger = ReceiptLedger(
         tmp_path / "ledger.jsonl",
         signing_key_path=key_path,
         signing_required=True,
+        allow_unsigned_migration=True,
     )
     ledger.ensure_signed_head({"source_sha": "b" * 40})
     ledger.append({"decision": "review"})
