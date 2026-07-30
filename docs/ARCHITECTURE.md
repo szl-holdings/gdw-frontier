@@ -44,18 +44,17 @@ each entry to the preceding SHA-256 digest. When
 `GDW_RECEIPT_SIGNING_REQUIRED=1`, every new schema-v2 record is signed with a
 file-backed ECDSA P-256 key, the trusted public-key fingerprint is checked on
 read, and readiness fails if the required key, hash chain, signature sequence,
-or signed head is invalid. A signed runtime-activation record anchors an
-existing legacy unsigned prefix without rewriting historical bytes. The first
-signed record is also bound into a separately signed transition marker beside
-the ledger. Once that marker exists, startup refuses a ledger that has been
-deleted or truncated back to its unsigned prefix instead of silently creating
-a replacement anchor.
+or signed head is invalid. Migrating a non-empty legacy unsigned prefix
+requires `GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1` for one startup. That startup
+writes a signed runtime-activation boundary and separate signed continuity
+state without rewriting historical bytes. Subsequent loss of the recorded
+transition fails closed instead of creating a replacement anchor.
 
 The authenticated receipt surface returns the signed head plus its public key
 for offline verification. Every decision receipt binds exact source, image,
 and deployment mode. Signed backup manifests bind a byte-exact ledger copy,
-its signed transition marker, record count, head, runtime identity, and signing key; the proof profile
-restores into isolated tmpfs and verifies the result.
+its signing continuity state, record count, head, runtime identity, and signing
+key; the proof profile restores into isolated tmpfs and verifies the result.
 
 These controls do not supply an independent witness, hardware monotonic
 counter, off-host copy, replication, high availability, or multi-node

@@ -16,8 +16,8 @@ The block above is the required Wave 34 disclosure and must remain verbatim.
 - Grafana data sources, the 15-panel live-operations dashboard, and four Grafana-managed alert rules are reproducible through Terraform.
 - Grafana Alloy replaces Promtail. Promtail reached end of life and was removed from current Loki releases, so a new deployment should not depend on it.
 - Error-ratio queries use a defended denominator. Alerts include telemetry absence, not only service symptoms.
-- Receipts can use a durable file-backed ECDSA P-256 signing root. Signed schema-v2 heads anchor any legacy unsigned prefix, bind exact runtime identity, and fail readiness if signature verification or required-key loading fails.
-- Signed backup manifests bind the ledger digest, signed transition marker, record count, head hash, runtime identity, and signing key. The proof profile restores the latest backup into isolated tmpfs before reporting `VERIFIED`.
+- Receipts can use a durable file-backed ECDSA P-256 signing root. An explicitly approved one-start migration anchors a legacy unsigned prefix and writes signed continuity state; later loss of that transition fails closed instead of silently re-anchoring.
+- Signed backup manifests bind the ledger digest, signed continuity state, record count, head hash, runtime identity, and signing key. The proof profile restores the latest backup into isolated tmpfs before reporting `VERIFIED`.
 - A bounded authenticated load harness measures successful writes, throughput, latency percentiles, unique receipt hashes, and the exact signed-ledger delta.
 - A one-command verifier proves the local metrics, logs, traces, dashboard, and alert paths before writing a `VERIFIED` integration artifact.
 - The single-node live profile binds every published port to loopback, disables anonymous Grafana access, requires a strong bearer token for operator endpoints, publishes exact source/image identity, and can verify receipt-ledger recovery across a container restart.

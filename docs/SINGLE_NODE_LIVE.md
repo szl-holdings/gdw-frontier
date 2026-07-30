@@ -28,6 +28,13 @@ environment variable. A one-shot password-sync container applies the mounted
 Grafana secret to new and existing Grafana databases before Terraform
 provisioning runs.
 
+For an existing non-empty unsigned receipt ledger, set
+`GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1` for the first signed startup only.
+After readiness confirms a signed head and continuity state, set it back to
+`0` and recreate the application container. A new empty signed deployment does
+not need this flag. Leaving it at `0` after migration prevents a deleted or
+truncated signed transition from being silently replaced.
+
 On Linux, assign all three files to the deployment account and a dedicated numeric
 group, set mode `0440`, and set `GDW_SECRETS_GID` to that group ID. Compose adds
 that supplemental group to each container that must read a secret. On Windows,

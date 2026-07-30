@@ -14,6 +14,7 @@ services:
       - app
     environment:
       GDW_DATA_DIR: /var/lib/gdw
+      GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "${GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION:-0}"
       GDW_BACKUP_DIR: "${GDW_BACKUP_DIR:-/var/backups/gdw}"
       GDW_API_TOKEN_FILE: /run/secrets/gdw_api_token
       GDW_DEPLOYMENT_MODE: "${GDW_DEPLOYMENT_MODE:-MODELED_LOCAL}"

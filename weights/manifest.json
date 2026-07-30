@@ -16,9 +16,9 @@
       "sha256": "37d07ef2daec397474a5922edb379c6d408540b94d9e053eae3f4e5cf138fb49"
     },
     {
-      "bytes": 11884,
+      "bytes": 11909,
       "path": "README.md",
-      "sha256": "de563c069e71c54912e0c4c9146156ad3488dff6026fc03d3376ff6425703bf0"
+      "sha256": "e37122d5f8599c7d8f1c5e04261faa536fc033644fa027673c01aa0406c4a4ee"
     },
     {
       "bytes": 83,
@@ -56,9 +56,9 @@
       "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
     },
     {
-      "bytes": 25009,
+      "bytes": 28947,
       "path": "app/persistence.py",
-      "sha256": "77a5476845742de8e0f686ec70785808129f4d2049e36a6a304bda2c2e9b7081"
+      "sha256": "56a007f345da5fb90f546dfd39df6326fccb9823a26280e758d7901498b02fdc"
     },
     {
       "bytes": 643,
@@ -151,9 +151,9 @@
       "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
     },
     {
-      "bytes": 728,
+      "bytes": 766,
       "path": "deployment/.env.live.example",
-      "sha256": "8907a5804951c3c7c27ac13ca675df48577b81c0584a718ee1a648929e733e97"
+      "sha256": "46754ae47202dde2fb1579c08fa018277466a4708746a02e907ca19b06bef4a8"
     },
     {
       "bytes": 270,
@@ -161,9 +161,9 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 3194,
+      "bytes": 3155,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "60cd2a3a35628b5a4df5fb429119d7df2eaa4a197489a01f0c9fd1fdc63d5128"
+      "sha256": "485083d736b47c6c68c5a884e55c28a769ec3446ea9b15b2a520fe630f6b84a2"
     },
     {
       "bytes": 5313,
@@ -171,9 +171,9 @@
       "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
     },
     {
-      "bytes": 2340,
+      "bytes": 2339,
       "path": "docs/RUNBOOKS.md",
-      "sha256": "1117c66501cff156709933bdcf24fc845a6626efbf3304d374fd757f93bdbbbd"
+      "sha256": "44049244ea469615d2fc19ea1547e85e7d2948597cf1b816b580427aff3bbdcc"
     },
     {
       "bytes": 1939,
@@ -181,9 +181,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 5655,
+      "bytes": 6075,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "1a53faa50098d666c2746e2360951dfb9825c3b9aacf4573906f5c84344bf368"
+      "sha256": "54d8134e3992aacf4e930e37a6abef84da1ca1ae7a73b48421adfb06407e71a0"
     },
     {
       "bytes": 1667,
@@ -196,9 +196,9 @@
       "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
     },
     {
-      "bytes": 7171,
+      "bytes": 7258,
       "path": "monitoring/docker-compose.yml",
-      "sha256": "5b359f225325bc50da823d1c68f19fd35b49fb3fe07051dd81dfd63bba34d219"
+      "sha256": "98dffc6e378f358988dea7f2676f741d5ee4857fa4976c5ded4dc02205b305a2"
     },
     {
       "bytes": 15917,
@@ -306,9 +306,9 @@
       "sha256": "3463539f9ab048fb8d9eeff7d09874837722845803916f1a5856db1d01e94c48"
     },
     {
-      "bytes": 6120,
+      "bytes": 7190,
       "path": "tests/test_persistence.py",
-      "sha256": "ad5554be60ba389bae282f82db2d29314b1a67676682e6660d0dcc6c612ae0ef"
+      "sha256": "493c87b6dc3a6b550f7c42e07a5e23cb47e1db19b443c78373cb587f0150077a"
     },
     {
       "bytes": 480,

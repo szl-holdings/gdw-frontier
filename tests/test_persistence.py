@@ -81,7 +81,12 @@ def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path
     legacy.append({"decision": "allow"})
 
     key_path = _signing_key(tmp_path / "signing-key.pem")
-    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed = ReceiptLedger(
+        path,
+        signing_key_path=key_path,
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
     signed.ensure_signed_head({"source_sha": "a" * 40})
     audit = signed.audit()
     assert audit.valid is True
@@ -92,24 +97,40 @@ def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path
 
     records = path.read_text(encoding="utf-8").splitlines()
     path.write_text(records[0] + "\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="lost the signed transition"):
+        signed.ensure_signed_head({"source_sha": "a" * 40})
     assert signed.audit().valid is False
     assert signed.audit().signature_status == "INVALID"
-    with pytest.raises(RuntimeError, match="cannot anchor an invalid receipt ledger"):
+
+
+def test_legacy_unsigned_migration_requires_explicit_one_time_approval(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "ledger.jsonl"
+    ReceiptLedger(
+        path,
+        signing_required=False,
+        use_configured_signing_key=False,
+    ).append({"decision": "allow"})
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+
+    with pytest.raises(RuntimeError, match="GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1"):
         signed.ensure_signed_head({"source_sha": "a" * 40})
 
 
-def test_signed_transition_rejects_deleted_signed_only_ledger(tmp_path: Path) -> None:
+def test_signed_only_ledger_deletion_cannot_be_silently_reinitialized(tmp_path: Path) -> None:
     path = tmp_path / "ledger.jsonl"
     key_path = _signing_key(tmp_path / "signing-key.pem")
     signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
     signed.ensure_signed_head({"source_sha": "a" * 40})
+    state_path = signed.signing_state_path
+    assert state_path.exists()
 
-    assert signed.signing_transition_path.is_file()
     path.unlink()
-
-    restarted = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
-    with pytest.raises(RuntimeError, match="cannot anchor an invalid receipt ledger"):
-        restarted.ensure_signed_head({"source_sha": "a" * 40})
+    with pytest.raises(RuntimeError, match="lost the signed transition"):
+        signed.ensure_signed_head({"source_sha": "a" * 40})
+    assert not path.exists()
 
 
 def test_every_audit_rejects_removed_anchor_signature(tmp_path: Path) -> None:
@@ -162,6 +183,17 @@ def test_signed_backup_restores_exact_head_and_rejects_tampering(tmp_path: Path)
     assert proof["status"] == "VERIFIED"
     assert proof["records"] == original.records
     assert proof["head_hash"] == original.head_hash
+    assert (tmp_path / "restore" / "receipt-signing-state.json").exists()
+
+    backup_state = backup_path / "receipt-signing-state.json"
+    state_bytes = backup_state.read_bytes()
+    backup_state.write_bytes(state_bytes + b"{}")
+    with pytest.raises(ValueError, match="signing-state digest mismatch"):
+        ledger.verify_and_restore_backup(
+            backup_path,
+            tmp_path / "tampered-state" / "receipts.jsonl",
+        )
+    backup_state.write_bytes(state_bytes)
 
     backup_ledger = backup_path / "receipts.jsonl"
     backup_ledger.write_bytes(backup_ledger.read_bytes() + b"{}\n")
