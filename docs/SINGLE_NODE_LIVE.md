@@ -24,11 +24,15 @@ use an ACL limited to the deployment account and `SYSTEM`.
 Build and capture the immutable Docker image ID:
 
 ```bash
-docker build --pull -t "gdw-frontier:${SOURCE_SHA}" .
+test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+test -z "$(git status --porcelain)"
+docker build --pull \
+  --build-arg "GDW_SOURCE_SHA=${SOURCE_SHA}" \
+  -t "gdw-frontier:${SOURCE_SHA}" .
 docker image inspect "gdw-frontier:${SOURCE_SHA}" --format '{{.Id}}'
 ```
 
-Set `GDW_SOURCE_SHA`, `GDW_IMAGE_REF`, and `GDW_IMAGE_DIGEST` in the protected environment file to those exact observed values.
+Set `GDW_SOURCE_SHA`, `GDW_IMAGE_REF`, and `GDW_IMAGE_DIGEST` in the protected environment file to those exact observed values. The live verifier independently requires the clean checkout, the image's OCI revision label, the running container image ID, the source-tree digest recomputed inside that container, and `/build-info` to agree.
 
 ## 2. Start and verify the complete stack
 
@@ -71,7 +75,7 @@ python ci/verify_live_deployment.py \
   --env-file /secure/gdw-live.env
 ```
 
-The verifier checks TLS through the system trust store, exact `/build-info` identity, a `401 Bearer` challenge without credentials, authenticated receipt creation, ledger recovery across `docker compose restart app`, and the container's health, read-only root, dropped capabilities, and restart policy. It never writes the bearer token into the receipt.
+The verifier checks TLS through the system trust store, rejects public `/metrics` unless the edge returns the configured `404`, cross-checks the clean checkout, the image revision label, and an independently recomputed in-container source-tree digest against `/build-info`, requires a `401 Bearer` challenge without credentials, creates an authenticated receipt, verifies ledger recovery across `docker compose restart app`, and checks the container's health, read-only root, dropped capabilities, and restart policy. It never writes the bearer token into the receipt.
 
 ## Rollback
 

@@ -1,5 +1,9 @@
 FROM python:3.13.11-slim-bookworm
 
+ARG GDW_SOURCE_SHA=UNAVAILABLE
+LABEL org.opencontainers.image.revision="${GDW_SOURCE_SHA}" \
+      org.opencontainers.image.source="https://github.com/szl-holdings/gdw-frontier"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \

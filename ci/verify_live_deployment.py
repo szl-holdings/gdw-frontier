@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import time
 import urllib.error
@@ -12,10 +13,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
+from app.source_identity import source_tree_digest
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_COMPOSE_FILE = ROOT / "monitoring" / "docker-compose.yml"
 DEFAULT_OUTPUT = ROOT / "output" / "proofs" / "live-deployment.json"
 VERIFIER_USER_AGENT = "GDW-Deployment-Verifier/0.1"
+OCI_REVISION_LABEL = "org.opencontainers.image.revision"
 
 
 def request_json(
@@ -65,6 +69,49 @@ def expect_unauthorized(url: str) -> dict[str, Any]:
     raise AssertionError(f"{url} unexpectedly allowed an unauthenticated request")
 
 
+def expect_http_status(url: str, expected_status: int) -> dict[str, Any]:
+    request = urllib.request.Request(
+        url,
+        headers={"Accept": "*/*", "User-Agent": VERIFIER_USER_AGENT},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            observed_status = response.status
+    except urllib.error.HTTPError as error:
+        observed_status = error.code
+    assert observed_status == expected_status, (
+        f"{url} returned {observed_status}; expected {expected_status}"
+    )
+    return {"status": observed_status}
+
+
+def assert_checkout_source(source_sha: str) -> dict[str, Any]:
+    assert re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", source_sha), (
+        "--expected-source must be a full lowercase Git object ID"
+    )
+    checkout_sha = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    checkout_status = subprocess.check_output(
+        ["git", "status", "--porcelain=v1"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    assert checkout_sha == source_sha, (
+        f"checked-out source is {checkout_sha}, not expected source {source_sha}"
+    )
+    assert not checkout_status, (
+        "the deployment checkout has tracked or untracked changes"
+    )
+    return {
+        "commit": checkout_sha,
+        "clean": True,
+        "source_tree_sha256": source_tree_digest(ROOT),
+    }
+
+
 def assert_identity(payload: dict[str, Any], source_sha: str, image_digest: str) -> dict[str, Any]:
     assert payload["service"] == "gdw"
     assert payload["source_sha"] == source_sha
@@ -72,6 +119,27 @@ def assert_identity(payload: dict[str, Any], source_sha: str, image_digest: str)
     assert payload["deployment_mode"] == "SINGLE_NODE_LIVE"
     assert payload["model_status"] == "MODELED"
     return payload
+
+
+def assert_image_source(
+    container: dict[str, Any],
+    source_sha: str,
+    checkout_source_tree: str,
+    image_source_tree: str,
+) -> dict[str, Any]:
+    labels = container.get("Config", {}).get("Labels") or {}
+    image_source_sha = labels.get(OCI_REVISION_LABEL)
+    assert image_source_sha == source_sha, (
+        f"container image revision is {image_source_sha!r}, not expected source {source_sha}"
+    )
+    assert image_source_tree == checkout_source_tree, (
+        "the running image source tree does not match the clean deployment checkout"
+    )
+    return {
+        "label": OCI_REVISION_LABEL,
+        "commit": image_source_sha,
+        "source_tree_sha256": image_source_tree,
+    }
 
 
 def assert_ready(payload: dict[str, Any]) -> dict[str, Any]:
@@ -144,6 +212,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         "checks": {},
     }
 
+    checkout_source = assert_checkout_source(args.expected_source)
+    proof["checks"]["checkout_source"] = checkout_source
     proof["checks"]["public_health"] = wait_for(
         "public health",
         lambda: assert_ready(request_json(f"{base_url}/healthz")),
@@ -151,6 +221,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     proof["checks"]["public_readiness"] = wait_for(
         "public readiness",
         lambda: assert_ready(request_json(f"{base_url}/readyz")),
+    )
+    proof["checks"]["public_metrics_denied"] = wait_for(
+        "public metrics denied at ingress",
+        lambda: expect_http_status(f"{base_url}/metrics", 404),
     )
     proof["checks"]["source_identity"] = wait_for(
         "exact source and image identity",
@@ -220,6 +294,17 @@ def main(argv: Iterable[str] | None = None) -> int:
     assert container["HostConfig"]["ReadonlyRootfs"] is True
     assert "ALL" in container["HostConfig"]["CapDrop"]
     assert container["HostConfig"]["RestartPolicy"]["Name"] == "unless-stopped"
+    image_source_tree = subprocess.check_output(
+        ["docker", "exec", container_id, "python", "-m", "app.source_identity"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    proof["checks"]["image_source"] = assert_image_source(
+        container,
+        args.expected_source,
+        checkout_source["source_tree_sha256"],
+        image_source_tree,
+    )
     proof["checks"]["container_controls"] = {
         "container_id": container_id,
         "health": container["State"]["Health"]["Status"],
