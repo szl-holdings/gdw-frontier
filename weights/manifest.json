@@ -106,14 +106,19 @@
       "sha256": "5fe6d854f4420f39f03c6a68e4fcf151609c8909e52650b1c3858674939d5981"
     },
     {
-      "bytes": 249,
+      "bytes": 822,
       "path": "ci/newman_run.sh",
-      "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
+      "sha256": "7e1ccb4965def134531a4e3a1f4356050a6d96c5e00d12e80a8df36d22206c06"
     },
     {
       "bytes": 2163,
       "path": "ci/receipt_proof.py",
       "sha256": "22bef707d60d531ae7927f4deb8b58a88cfd0ea011ce5568e7a5ae4c80f01cce"
+    },
+    {
+      "bytes": 1686,
+      "path": "ci/redact_newman_report.py",
+      "sha256": "fe91a0dfcae1b6f7e513fdb7a4f8c10349d525ded927eb3e2d3ad4a0a9e6f7bf"
     },
     {
       "bytes": 4404,
@@ -231,14 +236,14 @@
       "sha256": "7f1c2d2050f31dd3809f55ce607d5a328b3543a0d7d7a7616b882e566f078a26"
     },
     {
-      "bytes": 300,
+      "bytes": 403,
       "path": "postman/GDW.local.postman_environment.json",
-      "sha256": "12ad4de3db50e557a8d84e16647dc6fbc399015dbb20339ffa4723cedae571fb"
+      "sha256": "032526915eb111d64763e7db1726cf9d980f9c122cbe800ea5599a26d6ac576f"
     },
     {
-      "bytes": 3185,
+      "bytes": 3317,
       "path": "postman/GDW.postman_collection.json",
-      "sha256": "fce716991ac3e61570c3ead8fff4201c0d49cd08aa52bab13636de6f61f94ba4"
+      "sha256": "b0a707e86bc8bf06c970cb0fa50c017fd2a08ea05de9fb43b5b6eb3eb430865d"
     },
     {
       "bytes": 869,
@@ -291,9 +296,9 @@
       "sha256": "a1740af2e1fe1a8028f69485ed6c166725695e943b868530ca794dd571630783"
     },
     {
-      "bytes": 2559,
+      "bytes": 3028,
       "path": "tests/test_cardinality_audit.py",
-      "sha256": "1e441de7cd549278b60853cca75e52dabb4796085b8bc6958b5db9507a21c016"
+      "sha256": "9a504686e660ed28f13ecdf6d8e45ddd96a696c99b585f2cc3364252ec4a2dce"
     },
     {
       "bytes": 4796,

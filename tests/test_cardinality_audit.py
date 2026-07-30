@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.api import app
 from ci.audit_cardinality import audit_live, audit_static, extract_metric_definitions
+from ci.redact_newman_report import redact_secret
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,6 +29,17 @@ def test_every_observed_application_route_is_governed() -> None:
             policy["metrics"][metric_name]["allowed_values"]["route"]
         )
         assert observed_routes <= allowed_routes
+
+
+def test_newman_report_redaction_removes_nested_bearer_token() -> None:
+    secret = "test-token-that-is-at-least-32-characters"
+    report = {
+        "request": {"headers": [{"value": f"Bearer {secret}"}]},
+        "other": [secret, 1],
+    }
+    redacted = redact_secret(report, secret)
+    assert redacted["request"]["headers"][0]["value"] == "Bearer [REDACTED]"
+    assert redacted["other"] == ["[REDACTED]", 1]
 
 
 def test_ast_audit_finds_banned_label(tmp_path: Path) -> None:
