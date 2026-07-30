@@ -101,6 +101,12 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--expected-source", required=True)
     parser.add_argument("--expected-image", required=True)
     parser.add_argument(
+        "--api-token-file",
+        type=Path,
+        default=os.getenv("GDW_API_TOKEN_SOURCE_FILE"),
+        help="Protected file containing the bearer token used by deployment checks.",
+    )
+    parser.add_argument(
         "--env-file",
         type=Path,
         help="Optional Compose env file. If omitted, Compose inherits the verifier environment.",
@@ -109,10 +115,9 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
 
-    token_file = os.getenv("GDW_API_TOKEN_SOURCE_FILE", "")
-    if not token_file:
-        raise SystemExit("GDW_API_TOKEN_SOURCE_FILE must point to the deployment token file")
-    token = Path(token_file).read_text(encoding="utf-8").strip()
+    if args.api_token_file is None:
+        raise SystemExit("--api-token-file or GDW_API_TOKEN_SOURCE_FILE must point to the deployment token file")
+    token = args.api_token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
         raise SystemExit("the deployment token file must contain at least 32 characters")
     if not args.public_url.startswith("https://"):

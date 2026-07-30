@@ -40,7 +40,9 @@ docker compose \
 
 python ci/verify_stack.py \
   --app-url http://127.0.0.1:8080 \
-  --grafana-url http://127.0.0.1:3300
+  --grafana-url http://127.0.0.1:3300 \
+  --api-token-file /secure/gdw-api-token \
+  --grafana-password-file /secure/gdw-grafana-password
 ```
 
 All published ports default to `127.0.0.1`. Grafana anonymous access defaults to disabled. The application refuses to start in authenticated mode if its bearer token is shorter than 32 characters.
@@ -65,6 +67,7 @@ python ci/verify_live_deployment.py \
   --public-url "https://gdw.example.com" \
   --expected-source "${SOURCE_SHA}" \
   --expected-image "${IMAGE_DIGEST}" \
+  --api-token-file /secure/gdw-api-token \
   --env-file /secure/gdw-live.env
 ```
 
