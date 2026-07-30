@@ -173,6 +173,24 @@ def assert_container_healthy(container_id: str) -> dict[str, Any]:
     return container
 
 
+def assert_unsigned_migration_disabled(container: dict[str, Any]) -> dict[str, Any]:
+    environment = {
+        key: value
+        for key, _, value in (
+            entry.partition("=")
+            for entry in container.get("Config", {}).get("Env", [])
+        )
+    }
+    configured = environment.get(
+        "GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION",
+        "0",
+    ).lower()
+    assert configured not in {"1", "true", "yes"}, (
+        "GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION must be disabled after first activation"
+    )
+    return {"unsigned_migration_authorized": False}
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify a credential-backed GDW single-node deployment.")
     parser.add_argument("--public-url", required=True)
@@ -361,6 +379,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         "read_only_root": True,
         "capabilities_dropped": ["ALL"],
         "restart_policy": "unless-stopped",
+        **assert_unsigned_migration_disabled(container),
     }
 
     proof["status"] = "VERIFIED"

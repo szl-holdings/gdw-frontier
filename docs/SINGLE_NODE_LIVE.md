@@ -33,6 +33,8 @@ For a new signed ledger or an existing non-empty unsigned receipt ledger, set
 After readiness confirms a signed head and continuity state, set it back to
 `0` and recreate the application container. Leaving it at `0` after
 initialization prevents deleted signed state from being silently replaced.
+The live verifier refuses to certify a deployment while this authorization
+remains enabled.
 
 On Linux, assign all three files to the deployment account and a dedicated numeric
 group, set mode `0440`, and set `GDW_SECRETS_GID` to that group ID. Compose adds

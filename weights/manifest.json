@@ -136,9 +136,9 @@
       "sha256": "0bc097e67262b93c3f98ceb6728f66f69bcb1d7e7210efc436344c2ba76a3538"
     },
     {
-      "bytes": 13803,
+      "bytes": 14439,
       "path": "ci/verify_live_deployment.py",
-      "sha256": "ee5d4b18cc1c5141d45d934af46a22deef3111be3a6d8fcda74a831a1d378b27"
+      "sha256": "0d2bcb497b061d321403689850fa18e291c9f58ba0a90e125d0a270e605c4831"
     },
     {
       "bytes": 12561,
@@ -161,9 +161,9 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 3186,
+      "bytes": 3290,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "941625ad4e551b0766306884466a8b3edce5e066e7b339fc0af1374dce5d2ba0"
+      "sha256": "f2b6d02a77986ee069437cd0974957a9eb64bbc04a45c080c75c32531e1f352d"
     },
     {
       "bytes": 5313,
@@ -181,9 +181,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 6028,
+      "bytes": 6120,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "f064daa203ea7e52d93a704830e4c037dd48ff83911b537ca87c7abcba00383d"
+      "sha256": "13d5d01c4fdabd9ab9f9c386976ecdfd6699a6b31d3a8d96b22c2e3084cc1fee"
     },
     {
       "bytes": 1667,
@@ -301,9 +301,9 @@
       "sha256": "9a504686e660ed28f13ecdf6d8e45ddd96a696c99b585f2cc3364252ec4a2dce"
     },
     {
-      "bytes": 4796,
+      "bytes": 5285,
       "path": "tests/test_live_deployment_verifier.py",
-      "sha256": "3463539f9ab048fb8d9eeff7d09874837722845803916f1a5856db1d01e94c48"
+      "sha256": "f612348055f8bb0d974520faabf995e7ab3cdd381e6cafa53ea2212eaf884af5"
     },
     {
       "bytes": 10399,

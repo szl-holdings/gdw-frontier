@@ -50,6 +50,8 @@ non-empty legacy unsigned prefix requires
 signed runtime-activation boundary and separate signed continuity state
 without rewriting historical bytes. Subsequent loss of the recorded state
 fails closed instead of creating a replacement anchor.
+The live verifier refuses to certify a deployment until the one-start
+authorization is returned to `0`.
 
 The authenticated receipt surface returns the signed head plus its public key
 for offline verification. Every decision receipt binds exact source, image,
