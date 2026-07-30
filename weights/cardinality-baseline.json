@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "MEASURED local two-worker controlled-smoke baseline from ci/verify_stack.py; not a production baseline.",
+  "description": "MEASURED two-worker authenticated CI proof baseline from exact PR head run 30574753216 after ci/verify_stack.py and a 40-request bounded load; not a production baseline.",
   "max_growth_ratio": 1.5,
   "series": {
     "gdw_build_info": 1,
@@ -8,8 +8,8 @@
     "gdw_inflight_requests": 1,
     "gdw_log_lines_total": 1,
     "gdw_receipt_total": 1,
-    "gdw_request_latency_seconds": 28,
-    "gdw_request_total": 2,
+    "gdw_request_latency_seconds": 70,
+    "gdw_request_total": 5,
     "gdw_scheduler_mode_total": 3,
     "gdw_trace_span_latency_seconds": 13
   }

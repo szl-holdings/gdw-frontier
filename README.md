@@ -16,7 +16,9 @@ The block above is the required Wave 34 disclosure and must remain verbatim.
 - Grafana data sources, the 15-panel live-operations dashboard, and four Grafana-managed alert rules are reproducible through Terraform.
 - Grafana Alloy replaces Promtail. Promtail reached end of life and was removed from current Loki releases, so a new deployment should not depend on it.
 - Error-ratio queries use a defended denominator. Alerts include telemetry absence, not only service symptoms.
-- Local receipts form an append-only SHA-256 chain and are described honestly as local and unsigned.
+- Receipts can use a durable file-backed ECDSA P-256 signing root. Explicit one-start approval initializes a new signed ledger or anchors a legacy unsigned prefix and writes signed continuity state; later total state loss fails closed instead of silently reinitializing.
+- Signed backup manifests bind the ledger digest, signed continuity state, record count, head hash, runtime identity, and signing key. The proof profile restores the latest backup into isolated tmpfs before reporting `VERIFIED`.
+- A bounded authenticated load harness measures successful writes, throughput, latency percentiles, unique receipt hashes, and the exact signed-ledger delta.
 - A one-command verifier proves the local metrics, logs, traces, dashboard, and alert paths before writing a `VERIFIED` integration artifact.
 - The single-node live profile binds every published port to loopback, disables anonymous Grafana access, requires a strong bearer token for operator endpoints, publishes exact source/image identity, and can verify receipt-ledger recovery across a container restart.
 
@@ -51,11 +53,17 @@ Requirements: Docker Desktop with Compose v2. The stack binds ports `3000`, `310
 ```bash
 openssl rand -base64 -out /secure/gdw-api-token 48
 openssl rand -base64 -out /secure/gdw-grafana-password 48
+python ci/generate_signing_key.py --output /secure/gdw-receipt-signing-key.pem
 export GDW_API_TOKEN_SOURCE_FILE="/secure/gdw-api-token"
 export GRAFANA_ADMIN_PASSWORD_SOURCE_FILE="/secure/gdw-grafana-password"
+export GDW_SIGNING_KEY_SOURCE_FILE="/secure/gdw-receipt-signing-key.pem"
+export GDW_RECEIPT_SIGNING_REQUIRED=1
+export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1
 python ci/worker_calc.py
 docker compose -f monitoring/docker-compose.yml up -d --build
 python ci/verify_stack.py
+export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=0
+docker compose -f monitoring/docker-compose.yml up -d --no-build --force-recreate app
 python ci/audit_cardinality.py \
   --metrics-url http://localhost:8080/metrics \
   --baseline weights/cardinality-baseline.json
@@ -127,7 +135,8 @@ The repository distinguishes static validation from live integration:
 | Live series budgets | `ci/audit_cardinality.py --metrics-url ...` | One observed scrape |
 | Dashboard/rule/artifact integrity | `ci/gdw_gate.py` | Checked-in source |
 | Prometheus/Loki/Tempo/Grafana path | `ci/verify_stack.py` | Local Docker Compose only |
-| Credentialed HTTPS ingress and restart recovery | `ci/verify_live_deployment.py` | One observed single-node deployment |
+| Credentialed HTTPS ingress, signed receipts, backup/restore, and restart recovery | `ci/verify_live_deployment.py` | One observed single-node deployment |
+| Bounded authenticated write load | `ci/measure_load.py` | One target, request count, and concurrency setting |
 | Production scale, HA, tenant isolation | Not produced here | `UNVERIFIED` until measured in the target environment |
 
 Generated reports live under `output/` and are ignored by Git. CI uploads them as run-scoped artifacts.
@@ -144,7 +153,10 @@ The controlled two-worker Compose run produced the following **MEASURED local** 
 - 53 bounded GDW series were observed with no cardinality-policy findings;
 - one request was correlated across the API receipt, Loki log stream, and Tempo trace.
 
-These results verify this local run only. Production scale, high availability, tenant isolation, cryptographic receipt signing, and target-environment readiness remain **UNVERIFIED**.
+These dated results verify that local run only. A later deployment must produce
+fresh signed-receipt, backup/restore, and load artifacts. Production scale,
+high availability, multi-node durability, tenant isolation, off-host disaster
+recovery, and independent receipt witnessing remain **UNVERIFIED**.
 
 ## Scale posture
 
@@ -161,6 +173,7 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 
 - The local Grafana password is intentionally development-only and is sourced from `GRAFANA_ADMIN_PASSWORD_SOURCE_FILE`.
 - Compose mounts the GDW token and Grafana password as files; it does not place either secret in container environment metadata.
+- Compose also mounts the P-256 private signing key as a file. The key generator refuses to overwrite an existing key, and live signing fails closed when the configured key is missing or invalid.
 - A one-shot password-sync container applies the mounted Grafana secret to both new and existing local Grafana databases before Terraform provisioning runs.
 - All published Compose ports bind to `127.0.0.1` unless `GDW_BIND_ADDRESS` is deliberately overridden.
 - Anonymous Grafana access is disabled by default.
@@ -168,7 +181,7 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 - Do not expose the stack directly to an untrusted network. The supplied tunnel example denies public `/metrics` access and leaves operator endpoints behind bearer authentication.
 - Terraform credentials are passed through variables and are not committed.
 - Loki only indexes the bounded `job`, `service`, and `level` labels; request/session correlation remains structured log content.
-- The local receipt chain detects mutation but is not signed, independently witnessed, or durable across volume deletion.
+- Signed receipt heads and signed backup manifests are locally verifiable. They are not independently witnessed, backed by a hardware monotonic counter, replicated across nodes, or sufficient proof of off-host disaster recovery.
 
 ## Primary references
 

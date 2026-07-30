@@ -34,3 +34,10 @@ These runbooks apply to the modeled local stack. Production remediation must use
 4. Check scrape sample/label-limit failures before increasing a limit.
 5. Mark observability `UNAVAILABLE` until a fresh scrape is personally observed.
 
+## Signed receipt or backup verification failure
+
+1. Treat readiness as failed; do not disable required signing or synthesize a receipt.
+2. Preserve the ledger, its signed continuity state, signed backup manifest, key ID, exact source/image identity, and container logs.
+3. Confirm the mounted key file is the expected persistent P-256 root without printing its contents.
+4. Run the isolated backup-restore verifier against the latest completed backup.
+5. If the live ledger is invalid but a signed backup verifies, stop writes and follow an explicitly authorized restore procedure. Never overwrite the live volume during diagnosis.

@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from app.api import app
 from ci.audit_cardinality import audit_live, audit_static, extract_metric_definitions
+from ci.redact_newman_report import redact_secret
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -13,6 +15,31 @@ def test_current_metric_definitions_match_policy() -> None:
     findings, definitions = audit_static(ROOT / "app" / "telemetry.py", policy)
     assert findings == []
     assert len(definitions) == len(policy["metrics"])
+
+
+def test_every_observed_application_route_is_governed() -> None:
+    policy = json.loads((ROOT / "monitoring" / "metric-policy.json").read_text(encoding="utf-8"))
+    observed_routes = {
+        str(route.path)
+        for route in app.routes
+        if getattr(route, "path", None) and route.path != "/metrics"
+    }
+    for metric_name in ("gdw_request_latency_seconds", "gdw_request_total"):
+        allowed_routes = set(
+            policy["metrics"][metric_name]["allowed_values"]["route"]
+        )
+        assert observed_routes <= allowed_routes
+
+
+def test_newman_report_redaction_removes_nested_bearer_token() -> None:
+    secret = "test-token-that-is-at-least-32-characters"
+    report = {
+        "request": {"headers": [{"value": f"Bearer {secret}"}]},
+        "other": [secret, 1],
+    }
+    redacted = redact_secret(report, secret)
+    assert redacted["request"]["headers"][0]["value"] == "Bearer [REDACTED]"
+    assert redacted["other"] == ["[REDACTED]", 1]
 
 
 def test_ast_audit_finds_banned_label(tmp_path: Path) -> None:
@@ -54,4 +81,3 @@ gdw_decision_total{decision="user-123"} 1
     assert "unexpected_label_value" in kinds
     assert "metric_series_budget_exceeded" in kinds
     assert "total_series_budget_exceeded" in kinds
-

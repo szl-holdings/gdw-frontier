@@ -14,6 +14,7 @@ env:
   GDW_API_TOKEN: gdw-ci-only-token-with-at-least-32-characters
   GDW_API_TOKEN_SOURCE_FILE: /tmp/gdw-ci-api-token
   GDW_SECRETS_GID: "10002"
+  GDW_SIGNING_KEY_SOURCE_FILE: /tmp/gdw-ci-signing-key.pem
   GRAFANA_ADMIN_PASSWORD: gdw-local-admin
   GRAFANA_ADMIN_PASSWORD_SOURCE_FILE: /tmp/gdw-ci-grafana-password
 
@@ -44,6 +45,12 @@ jobs:
 
       - name: Install
         run: python -m pip install -e ".[test]"
+
+      - name: Generate ephemeral CI receipt-signing key
+        run: |
+          python ci/generate_signing_key.py --output "$GDW_SIGNING_KEY_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_SIGNING_KEY_SOURCE_FILE"
+          chmod 0440 "$GDW_SIGNING_KEY_SOURCE_FILE"
 
       - name: Unit tests
         run: pytest -q
@@ -78,6 +85,10 @@ jobs:
     needs: static
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "1"
+      GDW_RECEIPT_SIGNING_REQUIRED: "1"
+      GDW_REQUIRE_AUTH: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -98,6 +109,12 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[test]"
 
+      - name: Generate ephemeral CI receipt-signing key
+        run: |
+          python ci/generate_signing_key.py --output "$GDW_SIGNING_KEY_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_SIGNING_KEY_SOURCE_FILE"
+          chmod 0440 "$GDW_SIGNING_KEY_SOURCE_FILE"
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
@@ -110,6 +127,16 @@ jobs:
 
       - name: Verify metrics, logs, traces, dashboard, and alerts
         run: python ci/verify_stack.py
+
+      - name: Measure bounded authenticated write load
+        run: >-
+          python ci/measure_load.py
+          --public-url http://127.0.0.1:8080
+          --api-token-file "$GDW_API_TOKEN_SOURCE_FILE"
+          --requests 40
+          --concurrency 4
+          --allow-http-loopback
+          --output output/proofs/load-measurement.json
 
       - name: Live cardinality budget
         run: >-

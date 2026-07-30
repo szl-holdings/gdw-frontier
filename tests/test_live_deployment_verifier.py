@@ -178,3 +178,14 @@ def test_public_metrics_rejects_origin_success(
             "https://gdw.example.com/metrics",
             404,
         )
+
+
+def test_live_verifier_requires_unsigned_migration_to_be_disabled() -> None:
+    assert verify_live_deployment.assert_unsigned_migration_disabled(
+        {"Config": {"Env": ["GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=0"]}}
+    ) == {"unsigned_migration_authorized": False}
+
+    with pytest.raises(AssertionError, match="must be disabled"):
+        verify_live_deployment.assert_unsigned_migration_disabled(
+            {"Config": {"Env": ["GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1"]}}
+        )

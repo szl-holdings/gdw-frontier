@@ -14,11 +14,15 @@ services:
       - app
     environment:
       GDW_DATA_DIR: /var/lib/gdw
+      GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION: "${GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION:-0}"
+      GDW_BACKUP_DIR: "${GDW_BACKUP_DIR:-/var/backups/gdw}"
       GDW_API_TOKEN_FILE: /run/secrets/gdw_api_token
       GDW_DEPLOYMENT_MODE: "${GDW_DEPLOYMENT_MODE:-MODELED_LOCAL}"
       GDW_IMAGE_DIGEST: "${GDW_IMAGE_DIGEST:-UNAVAILABLE}"
       GDW_LOG_DIR: /var/log/gdw
       GDW_REQUIRE_AUTH: "${GDW_REQUIRE_AUTH:-0}"
+      GDW_RECEIPT_SIGNING_KEY_FILE: /run/secrets/gdw_receipt_signing_key
+      GDW_RECEIPT_SIGNING_REQUIRED: "${GDW_RECEIPT_SIGNING_REQUIRED:-0}"
       GDW_SOURCE_SHA: "${GDW_SOURCE_SHA:-UNAVAILABLE}"
       GDW_WORKERS: "${GDW_WORKERS:-2}"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
@@ -30,8 +34,10 @@ services:
     volumes:
       - gdw-data:/var/lib/gdw
       - gdw-logs:/var/log/gdw
+      - gdw-backups:/var/backups/gdw
     secrets:
       - gdw_api_token
+      - gdw_receipt_signing_key
     group_add:
       - "${GDW_SECRETS_GID:-10002}"
     depends_on:
@@ -200,13 +206,45 @@ services:
     cap_drop:
       - ALL
 
+  backup-restore-verify:
+    profiles:
+      - proof
+    image: "${GDW_IMAGE_REF:-gdw-frontier:local}"
+    command:
+      - python
+      - ci/verify_backup_restore.py
+      - --backup-dir
+      - /backups
+      - --restore-path
+      - /tmp/restored/receipts.jsonl
+      - --signing-key-file
+      - /run/secrets/gdw_receipt_signing_key
+    network_mode: none
+    volumes:
+      - gdw-backups:/backups:ro
+    secrets:
+      - gdw_receipt_signing_key
+    group_add:
+      - "${GDW_SECRETS_GID:-10002}"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
 secrets:
   gdw_api_token:
     file: "${GDW_API_TOKEN_SOURCE_FILE:?set GDW_API_TOKEN_SOURCE_FILE to an absolute secret file path}"
   grafana_admin_password:
     file: "${GRAFANA_ADMIN_PASSWORD_SOURCE_FILE:?set GRAFANA_ADMIN_PASSWORD_SOURCE_FILE to an absolute secret file path}"
+  gdw_receipt_signing_key:
+    file: "${GDW_SIGNING_KEY_SOURCE_FILE:?set GDW_SIGNING_KEY_SOURCE_FILE to an absolute P-256 private key path}"
 
 volumes:
+  gdw-backups:
   gdw-data:
   gdw-logs:
   grafana-data:

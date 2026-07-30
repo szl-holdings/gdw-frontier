@@ -6,19 +6,19 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 4503,
+      "bytes": 5608,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "a7e274e312afc4712d6b6064733638ab4889bad6d1696767de8f22f62b9ba1ee"
+      "sha256": "618e77a95e73a9b66610e6d42d8ce9bc9aca136e945095eac2556decfe317e43"
     },
     {
-      "bytes": 1026,
+      "bytes": 1073,
       "path": "Dockerfile",
-      "sha256": "7d01e20f444eec792384b968ae55607a1bca0cc70e00c9560427ca5790910f0e"
+      "sha256": "37d07ef2daec397474a5922edb379c6d408540b94d9e053eae3f4e5cf138fb49"
     },
     {
-      "bytes": 10609,
+      "bytes": 12100,
       "path": "README.md",
-      "sha256": "76b92ce5202fdae3b705f9dadeb3886d6baaa8032b47e4d0a8c76b840642c8f0"
+      "sha256": "c5190b9dc7c1d6689e054d5b213f72e9a506c2b9d2489272dc24038c53a5a525"
     },
     {
       "bytes": 83,
@@ -31,9 +31,9 @@
       "sha256": "4204318676931acf986c25c768b8171ec986bc599ac95382c1cc0622e98154cf"
     },
     {
-      "bytes": 9672,
+      "bytes": 11627,
       "path": "app/api.py",
-      "sha256": "17ebbe6d5f29bb257c9626ffc14b034c3820ba50ff352182d40f3462383cb25c"
+      "sha256": "471c2391d4e3ea57fb7176787e30bedcc01733da7d7c968f81a58610c2e74e37"
     },
     {
       "bytes": 350,
@@ -51,14 +51,14 @@
       "sha256": "5f476be0b0a43d58272b0a69b3cdbbb453a95fd96d39e8aff78b2dfaa13ee338"
     },
     {
-      "bytes": 1515,
+      "bytes": 2211,
       "path": "app/models.py",
-      "sha256": "874b67ad2d6bea3afd4101aede4724eb49e448d36ed47429a7f1797fce61876f"
+      "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
     },
     {
-      "bytes": 4630,
+      "bytes": 28933,
       "path": "app/persistence.py",
-      "sha256": "58cbd971da6083d28e4838d0d97bea8a20e8fc4c22374debc15869955b9dc7ce"
+      "sha256": "8e06966debd2846f9d79b00dc97ef436cab9c5c15eec96eb0fd35d105fc4672a"
     },
     {
       "bytes": 643,
@@ -96,9 +96,29 @@
       "sha256": "d1d1b8c5be6653967372a200e62081cd92ff10fbd47692000810e8ec9d0e1207"
     },
     {
-      "bytes": 249,
+      "bytes": 1253,
+      "path": "ci/generate_signing_key.py",
+      "sha256": "59b24c36e4d3e9d673459348ec0acaeda19e49ca806004de06ae6a6c7f29fbca"
+    },
+    {
+      "bytes": 6644,
+      "path": "ci/measure_load.py",
+      "sha256": "5fe6d854f4420f39f03c6a68e4fcf151609c8909e52650b1c3858674939d5981"
+    },
+    {
+      "bytes": 822,
       "path": "ci/newman_run.sh",
-      "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
+      "sha256": "7e1ccb4965def134531a4e3a1f4356050a6d96c5e00d12e80a8df36d22206c06"
+    },
+    {
+      "bytes": 2163,
+      "path": "ci/receipt_proof.py",
+      "sha256": "22bef707d60d531ae7927f4deb8b58a88cfd0ea011ce5568e7a5ae4c80f01cce"
+    },
+    {
+      "bytes": 1686,
+      "path": "ci/redact_newman_report.py",
+      "sha256": "fe91a0dfcae1b6f7e513fdb7a4f8c10349d525ded927eb3e2d3ad4a0a9e6f7bf"
     },
     {
       "bytes": 4404,
@@ -111,14 +131,19 @@
       "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
-      "bytes": 11914,
-      "path": "ci/verify_live_deployment.py",
-      "sha256": "4d4bf7f107f71f2fac43e36826141ddd7f0e97cd50be4a329ac3ce445dcd44e8"
+      "bytes": 1154,
+      "path": "ci/verify_backup_restore.py",
+      "sha256": "0bc097e67262b93c3f98ceb6728f66f69bcb1d7e7210efc436344c2ba76a3538"
     },
     {
-      "bytes": 11070,
+      "bytes": 14439,
+      "path": "ci/verify_live_deployment.py",
+      "sha256": "0d2bcb497b061d321403689850fa18e291c9f58ba0a90e125d0a270e605c4831"
+    },
+    {
+      "bytes": 12561,
       "path": "ci/verify_stack.py",
-      "sha256": "981b6459c61b6b9eec7e2d5e93a71397b23d1040cca3a2f5982ef98c53f06424"
+      "sha256": "f2a78fcc3ac133e5c7a8e54621319f710df13fea1cb422c6b542cd522693c280"
     },
     {
       "bytes": 3981,
@@ -126,9 +151,9 @@
       "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
     },
     {
-      "bytes": 529,
+      "bytes": 766,
       "path": "deployment/.env.live.example",
-      "sha256": "f11a766ffe9e2718ef1cb2c3183c990b4cd83e689a1c3d884cdf951ddd12705d"
+      "sha256": "46754ae47202dde2fb1579c08fa018277466a4708746a02e907ca19b06bef4a8"
     },
     {
       "bytes": 270,
@@ -136,9 +161,9 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 2110,
+      "bytes": 3290,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "c0a5470fa5dc6cb3a24d7714b2f17c9b8932f92b6d8ef6c66dfe24c1cb15af7c"
+      "sha256": "f2b6d02a77986ee069437cd0974957a9eb64bbc04a45c080c75c32531e1f352d"
     },
     {
       "bytes": 5313,
@@ -146,9 +171,9 @@
       "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
     },
     {
-      "bytes": 1706,
+      "bytes": 2339,
       "path": "docs/RUNBOOKS.md",
-      "sha256": "bee89cfaac072df4aebf469b32f5dbe18425673deb9b8afcabee1f6c0d3fb6de"
+      "sha256": "44049244ea469615d2fc19ea1547e85e7d2948597cf1b816b580427aff3bbdcc"
     },
     {
       "bytes": 1939,
@@ -156,9 +181,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 4718,
+      "bytes": 6120,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "35cead833acf583e1b8fe82aeeac3ed513a34833f64e94545804ec7135dfea21"
+      "sha256": "13d5d01c4fdabd9ab9f9c386976ecdfd6699a6b31d3a8d96b22c2e3084cc1fee"
     },
     {
       "bytes": 1667,
@@ -171,9 +196,9 @@
       "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
     },
     {
-      "bytes": 6101,
+      "bytes": 7258,
       "path": "monitoring/docker-compose.yml",
-      "sha256": "6234978f9729aa0e0b666e9e7ddcea9ad664a27196f9ea9e4a8f155a81efee55"
+      "sha256": "98dffc6e378f358988dea7f2676f741d5ee4857fa4976c5ded4dc02205b305a2"
     },
     {
       "bytes": 15917,
@@ -196,9 +221,9 @@
       "sha256": "0cc8f5a4e5f552ebf50dc85f865e714718181bf063e6fea3b032e0ac8c6c91c5"
     },
     {
-      "bytes": 2603,
+      "bytes": 3025,
       "path": "monitoring/metric-policy.json",
-      "sha256": "e6f7411c7e3525cec8ad17f75a109f8a5a666c47924dea817c0a684352271d3f"
+      "sha256": "e6a02cc8e190edefd2ef87c312858f9078ca651ce2a1fee9d065623a66274d42"
     },
     {
       "bytes": 505,
@@ -211,19 +236,19 @@
       "sha256": "7f1c2d2050f31dd3809f55ce607d5a328b3543a0d7d7a7616b882e566f078a26"
     },
     {
-      "bytes": 300,
+      "bytes": 403,
       "path": "postman/GDW.local.postman_environment.json",
-      "sha256": "12ad4de3db50e557a8d84e16647dc6fbc399015dbb20339ffa4723cedae571fb"
+      "sha256": "032526915eb111d64763e7db1726cf9d980f9c122cbe800ea5599a26d6ac576f"
     },
     {
-      "bytes": 3185,
+      "bytes": 3317,
       "path": "postman/GDW.postman_collection.json",
-      "sha256": "fce716991ac3e61570c3ead8fff4201c0d49cd08aa52bab13636de6f61f94ba4"
+      "sha256": "b0a707e86bc8bf06c970cb0fa50c017fd2a08ea05de9fb43b5b6eb3eb430865d"
     },
     {
-      "bytes": 844,
+      "bytes": 869,
       "path": "pyproject.toml",
-      "sha256": "8fb0b52128b1387f6dc5c1096089d16206ca981ea578583a846c6c52d5d34f63"
+      "sha256": "55f453253f4a3ae9ec77eb71dbf09c9917ccc320a6c15b307b31488758661ac8"
     },
     {
       "bytes": 1708,
@@ -266,24 +291,24 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 5978,
+      "bytes": 8305,
       "path": "tests/test_api.py",
-      "sha256": "bba7d9f06d44750a284e6cb32e56bd65a33b945088fc029fd2c5c28eaf9ca449"
+      "sha256": "2308e4d180aab5f675e343534e6e5d2340831ca8c6aa8b62ecc7d8d292e42b19"
     },
     {
-      "bytes": 1980,
+      "bytes": 3028,
       "path": "tests/test_cardinality_audit.py",
-      "sha256": "7a88c9c4bc7c9912181f41d2259eea0b074f591ca9cb737fc9694101b814cc6f"
+      "sha256": "9a504686e660ed28f13ecdf6d8e45ddd96a696c99b585f2cc3364252ec4a2dce"
     },
     {
-      "bytes": 4796,
+      "bytes": 5285,
       "path": "tests/test_live_deployment_verifier.py",
-      "sha256": "3463539f9ab048fb8d9eeff7d09874837722845803916f1a5856db1d01e94c48"
+      "sha256": "f612348055f8bb0d974520faabf995e7ab3cdd381e6cafa53ea2212eaf884af5"
     },
     {
-      "bytes": 1473,
+      "bytes": 10399,
       "path": "tests/test_persistence.py",
-      "sha256": "8ea7315519afe9c061dba49a1cc32a8ec7216a7cfdfc29d7b77bc516c55796bb"
+      "sha256": "5e0cc150cf266c830dce418298e503d27367e6aa02bd9d69073632599f94275c"
     },
     {
       "bytes": 480,
@@ -296,9 +321,9 @@
       "sha256": "3c41e485a3c93cf5bb218fa353624b1a0dc801652fa95097c98ee1a9883adb08"
     },
     {
-      "bytes": 483,
+      "bytes": 549,
       "path": "weights/cardinality-baseline.json",
-      "sha256": "e0b32bb742833e126b580ed9e235bbc8dd4fa895c7e009aac32ab40bdf298301"
+      "sha256": "4240698932648dcf80b64911012d19a2c50c4eb841af4a59548252b68ce841f1"
     }
   ],
   "content_policy": {

@@ -1,14 +1,26 @@
 # Credential-backed single-node deployment
 
-This runbook turns the modeled GDW stack into a live, authenticated deployment on one Docker host. It proves exact source and image identity, HTTPS ingress, fail-closed operator authentication, a healthy observability stack, and receipt-ledger recovery across an application-container restart.
+This runbook turns the modeled GDW stack into a live, authenticated deployment on one Docker host. It proves exact source and image identity, HTTPS ingress, fail-closed operator authentication, a healthy observability stack, file-backed P-256 receipt signing, signed local backup/restore, and receipt-ledger recovery across an application-container restart.
 
-It does **not** prove high availability, multi-node durability, tenant isolation, production-scale capacity, or cryptographic receipt signing. Those remain `UNVERIFIED` or `UNAVAILABLE` until separately measured.
+It does **not** prove high availability, multi-node durability, tenant isolation, production-scale capacity, off-host disaster recovery, hardware-backed signing, or independent receipt witnessing. Those remain `UNVERIFIED` or `UNAVAILABLE` until separately measured.
 
 ## 1. Prepare exact source and secrets
 
-Use a protected, settled default-branch commit. Copy `deployment/.env.live.example` to an ignored file outside the repository. Generate independent random secret files for the API token and Grafana password, restrict both files and the environment file to the deployment account, and never pass a secret value on a command line.
+Use a protected, settled default-branch commit. Copy
+`deployment/.env.live.example` to an ignored file outside the repository.
+Generate independent random secret files for the API token and Grafana
+password, then create the persistent P-256 signing key:
 
-Compose sources both file paths from the deployment environment and mounts the
+```bash
+python ci/generate_signing_key.py \
+  --output /secure/gdw-receipt-signing-key.pem
+```
+
+The generator refuses to overwrite an existing key. Restrict all three files
+and the environment file to the deployment account, and never pass a secret
+value on a command line.
+
+Compose sources all three file paths from the deployment environment and mounts the
 files read-only. The secret values are absent from `docker inspect`
 environment metadata. The
 application gives `GDW_API_TOKEN_FILE` precedence over the legacy direct
@@ -16,7 +28,15 @@ environment variable. A one-shot password-sync container applies the mounted
 Grafana secret to new and existing Grafana databases before Terraform
 provisioning runs.
 
-On Linux, assign both files to the deployment account and a dedicated numeric
+For a new signed ledger or an existing non-empty unsigned receipt ledger, set
+`GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1` for the first signed startup only.
+After readiness confirms a signed head and continuity state, set it back to
+`0` and recreate the application container. Leaving it at `0` after
+initialization prevents deleted signed state from being silently replaced.
+The live verifier refuses to certify a deployment while this authorization
+remains enabled.
+
+On Linux, assign all three files to the deployment account and a dedicated numeric
 group, set mode `0440`, and set `GDW_SECRETS_GID` to that group ID. Compose adds
 that supplemental group to each container that must read a secret. On Windows,
 use an ACL limited to the deployment account and `SYSTEM`.
@@ -75,7 +95,32 @@ python ci/verify_live_deployment.py \
   --env-file /secure/gdw-live.env
 ```
 
-The verifier checks TLS through the system trust store, rejects public `/metrics` unless the edge returns the configured `404`, cross-checks the clean checkout, the image revision label, and an independently recomputed in-container source-tree digest against `/build-info`, requires a `401 Bearer` challenge without credentials, creates an authenticated receipt, verifies ledger recovery across `docker compose restart app`, and checks the container's health, read-only root, dropped capabilities, and restart policy. It never writes the bearer token into the receipt.
+The verifier checks TLS through the system trust store, rejects public
+`/metrics` unless the edge returns the configured `404`, cross-checks the
+clean checkout, image revision label, independently recomputed in-container
+source-tree digest, and `/build-info`, and requires a `401 Bearer` challenge
+without credentials. It then verifies the signed receipt head offline,
+restores a signed backup from the separate backup volume into isolated tmpfs,
+checks ledger recovery across `docker compose restart app`, and checks the
+container's health, read-only root, dropped capabilities, and restart policy.
+It never writes the bearer token or private signing key into a proof artifact.
+
+## 5. Measure bounded write load
+
+Run a declared request count and concurrency against the authenticated HTTPS
+surface:
+
+```bash
+python ci/measure_load.py \
+  --public-url "https://gdw.example.com" \
+  --api-token-file /secure/gdw-api-token \
+  --requests 500 \
+  --concurrency 16 \
+  --output output/proofs/load-measurement.json
+```
+
+The artifact verifies unique signed receipts and the exact ledger delta. It is
+one bounded single-node measurement, not a universal capacity or HA claim.
 
 ## Rollback
 
@@ -85,4 +130,5 @@ Stop the dedicated tunnel process first, then stop only the GDW Compose project:
 docker compose --env-file /secure/gdw-live.env -f monitoring/docker-compose.yml down
 ```
 
-Do not use `--volumes` during a normal rollback because that deletes the local receipt and telemetry volumes.
+Do not use `--volumes` during a normal rollback because that deletes the local
+receipt, backup, and telemetry volumes.

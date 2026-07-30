@@ -40,6 +40,11 @@
         "method": "POST",
         "header": [
           {
+            "key": "Authorization",
+            "type": "text",
+            "value": "Bearer {{api_token}}"
+          },
+          {
             "key": "Content-Type",
             "value": "application/json"
           }
@@ -103,4 +108,3 @@
     }
   ]
 }
-
