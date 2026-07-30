@@ -56,9 +56,9 @@
       "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
     },
     {
-      "bytes": 23197,
+      "bytes": 23213,
       "path": "app/persistence.py",
-      "sha256": "fbf9586b7be2ad76df8f3916dd7024e6674a27239fab019910ef08a985514fd6"
+      "sha256": "017212fe1e1b72fe416b1449fc4fdc04356a365fca05457209d5f6fd03c91873"
     },
     {
       "bytes": 643,

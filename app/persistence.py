@@ -61,9 +61,6 @@ class ReceiptLedger:
             else ""
         )
         self.signing_key_path = signing_key_path or (Path(configured_key) if configured_key else None)
-        self.signing_transition_path = self.path.with_suffix(
-            self.path.suffix + ".signing-transition.json"
-        )
         self.signing_required = (
             signing_required
             if signing_required is not None
@@ -71,6 +68,10 @@ class ReceiptLedger:
         )
         self._lock = Lock()
         self._private_key: ec.EllipticCurvePrivateKey | None = None
+
+    @property
+    def signing_transition_path(self) -> Path:
+        return self.path.with_suffix(self.path.suffix + ".signing-transition.json")
 
     def append(self, body: dict[str, Any]) -> str:
         with self._lock:
