@@ -15,6 +15,7 @@ from typing import Any, Callable, Iterable
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_COMPOSE_FILE = ROOT / "monitoring" / "docker-compose.yml"
 DEFAULT_OUTPUT = ROOT / "output" / "proofs" / "live-deployment.json"
+VERIFIER_USER_AGENT = "GDW-Deployment-Verifier/0.1"
 
 
 def request_json(
@@ -24,7 +25,7 @@ def request_json(
     method: str = "GET",
     body: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    headers = {"Accept": "application/json"}
+    headers = {"Accept": "application/json", "User-Agent": VERIFIER_USER_AGENT}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     data = None
@@ -51,7 +52,10 @@ def wait_for(name: str, check: Callable[[], Any], *, timeout: float = 120.0) -> 
 
 
 def expect_unauthorized(url: str) -> dict[str, Any]:
-    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    request = urllib.request.Request(
+        url,
+        headers={"Accept": "application/json", "User-Agent": VERIFIER_USER_AGENT},
+    )
     try:
         urllib.request.urlopen(request, timeout=15)
     except urllib.error.HTTPError as error:
