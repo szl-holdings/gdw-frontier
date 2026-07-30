@@ -111,9 +111,9 @@
       "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
-      "bytes": 11858,
+      "bytes": 11914,
       "path": "ci/verify_live_deployment.py",
-      "sha256": "d1389cfdc1169175a8512ad591ea45e533f83fd8472939ccbbad7fe28a42a9fd"
+      "sha256": "4d4bf7f107f71f2fac43e36826141ddd7f0e97cd50be4a329ac3ce445dcd44e8"
     },
     {
       "bytes": 11070,
@@ -276,9 +276,9 @@
       "sha256": "7a88c9c4bc7c9912181f41d2259eea0b074f591ca9cb737fc9694101b814cc6f"
     },
     {
-      "bytes": 4271,
+      "bytes": 4796,
       "path": "tests/test_live_deployment_verifier.py",
-      "sha256": "72ffe81f6202410f6cf714b51b48ad2955d17be74c6d8bdc682547c1fc013374"
+      "sha256": "3463539f9ab048fb8d9eeff7d09874837722845803916f1a5856db1d01e94c48"
     },
     {
       "bytes": 1473,

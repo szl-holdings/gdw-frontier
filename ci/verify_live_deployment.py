@@ -5,6 +5,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -13,9 +14,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
-from app.source_identity import source_tree_digest
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from app.source_identity import source_tree_digest  # noqa: E402
+
 DEFAULT_COMPOSE_FILE = ROOT / "monitoring" / "docker-compose.yml"
 DEFAULT_OUTPUT = ROOT / "output" / "proofs" / "live-deployment.json"
 VERIFIER_USER_AGENT = "GDW-Deployment-Verifier/0.1"

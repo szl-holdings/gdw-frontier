@@ -1,11 +1,30 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import urllib.error
 
 import pytest
 
 from ci import verify_live_deployment
+
+
+def test_documented_direct_invocation_loads_from_fresh_checkout(tmp_path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            str(verify_live_deployment.ROOT / "ci" / "verify_live_deployment.py"),
+            "--help",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Verify a credential-backed GDW single-node deployment" in result.stdout
 
 
 class FakeResponse:
