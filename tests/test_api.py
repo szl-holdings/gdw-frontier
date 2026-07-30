@@ -80,6 +80,7 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
     token = "test-token-that-is-at-least-32-characters"
     monkeypatch.setenv("GDW_REQUIRE_AUTH", "true")
     monkeypatch.setenv("GDW_API_TOKEN", token)
+    monkeypatch.delenv("GDW_API_TOKEN_FILE", raising=False)
     api.ledger.path = tmp_path / "receipts.jsonl"
 
     with TestClient(api.app) as client:
@@ -122,6 +123,7 @@ def test_build_info_reports_exact_runtime_identity(monkeypatch) -> None:
 def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
     monkeypatch.setenv("GDW_REQUIRE_AUTH", "true")
     monkeypatch.setenv("GDW_API_TOKEN", "too-short")
+    monkeypatch.delenv("GDW_API_TOKEN_FILE", raising=False)
 
     try:
         with TestClient(api.app):
@@ -133,3 +135,27 @@ def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
 
     os.environ.pop("GDW_REQUIRE_AUTH", None)
     os.environ.pop("GDW_API_TOKEN", None)
+
+
+def test_auth_token_file_takes_precedence_over_environment(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    file_token = "file-token-that-is-at-least-32-characters"
+    token_file = tmp_path / "gdw_api_token"
+    token_file.write_text(file_token + "\n", encoding="utf-8")
+    monkeypatch.setenv("GDW_REQUIRE_AUTH", "true")
+    monkeypatch.setenv("GDW_API_TOKEN", "wrong-environment-token-that-is-still-long")
+    monkeypatch.setenv("GDW_API_TOKEN_FILE", str(token_file))
+
+    with TestClient(api.app) as client:
+        denied = client.get(
+            "/v1/gdw/ledger",
+            headers={"Authorization": "Bearer wrong-environment-token-that-is-still-long"},
+        )
+        assert denied.status_code == 401
+        allowed = client.get(
+            "/v1/gdw/ledger",
+            headers={"Authorization": f"Bearer {file_token}"},
+        )
+        assert allowed.status_code == 200

@@ -75,16 +75,12 @@ def assert_ready(payload: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def compose_command(compose_file: Path, env_file: Path, *args: str) -> list[str]:
-    return [
-        "docker",
-        "compose",
-        "--env-file",
-        str(env_file),
-        "-f",
-        str(compose_file),
-        *args,
-    ]
+def compose_command(compose_file: Path, env_file: Path | None, *args: str) -> list[str]:
+    command = ["docker", "compose"]
+    if env_file is not None:
+        command.extend(["--env-file", str(env_file)])
+    command.extend(["-f", str(compose_file), *args])
+    return command
 
 
 def inspect_container(container_id: str) -> dict[str, Any]:
@@ -104,14 +100,26 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--public-url", required=True)
     parser.add_argument("--expected-source", required=True)
     parser.add_argument("--expected-image", required=True)
-    parser.add_argument("--env-file", type=Path, required=True)
+    parser.add_argument(
+        "--api-token-file",
+        type=Path,
+        default=os.getenv("GDW_API_TOKEN_SOURCE_FILE"),
+        help="Protected file containing the bearer token used by deployment checks.",
+    )
+    parser.add_argument(
+        "--env-file",
+        type=Path,
+        help="Optional Compose env file. If omitted, Compose inherits the verifier environment.",
+    )
     parser.add_argument("--compose-file", type=Path, default=DEFAULT_COMPOSE_FILE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
 
-    token = os.getenv("GDW_API_TOKEN", "")
+    if args.api_token_file is None:
+        raise SystemExit("--api-token-file or GDW_API_TOKEN_SOURCE_FILE must point to the deployment token file")
+    token = args.api_token_file.read_text(encoding="utf-8").strip()
     if len(token) < 32:
-        raise SystemExit("GDW_API_TOKEN must be present in the verifier environment and contain at least 32 characters")
+        raise SystemExit("the deployment token file must contain at least 32 characters")
     if not args.public_url.startswith("https://"):
         raise SystemExit("--public-url must use HTTPS")
 

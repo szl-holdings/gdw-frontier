@@ -10,6 +10,13 @@ on:
 permissions:
   contents: read
 
+env:
+  GDW_API_TOKEN: gdw-ci-only-token-with-at-least-32-characters
+  GDW_API_TOKEN_SOURCE_FILE: /tmp/gdw-ci-api-token
+  GDW_SECRETS_GID: "10002"
+  GRAFANA_ADMIN_PASSWORD: gdw-local-admin
+  GRAFANA_ADMIN_PASSWORD_SOURCE_FILE: /tmp/gdw-ci-grafana-password
+
 concurrency:
   group: gdw-verify-${{ github.ref }}
   cancel-in-progress: true
@@ -20,6 +27,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Prepare ephemeral Compose secret files
+        shell: bash
+        run: |
+          umask 077
+          printf '%s\n' "$GDW_API_TOKEN" > "$GDW_API_TOKEN_SOURCE_FILE"
+          printf '%s\n' "$GRAFANA_ADMIN_PASSWORD" > "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          chmod 0440 "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -65,6 +81,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Prepare ephemeral Compose secret files
+        shell: bash
+        run: |
+          umask 077
+          printf '%s\n' "$GDW_API_TOKEN" > "$GDW_API_TOKEN_SOURCE_FILE"
+          printf '%s\n' "$GRAFANA_ADMIN_PASSWORD" > "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          chmod 0440 "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
@@ -97,7 +122,9 @@ jobs:
 
       - name: Capture stack logs
         if: always()
-        run: docker compose -f monitoring/docker-compose.yml logs --no-color > output/proofs/compose.log
+        run: |
+          mkdir -p output/proofs
+          docker compose -f monitoring/docker-compose.yml logs --no-color > output/proofs/compose.log
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()

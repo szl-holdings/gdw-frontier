@@ -8,6 +8,7 @@ import secrets
 import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator, Callable
 
 from fastapi import FastAPI, Request
@@ -82,10 +83,17 @@ def _auth_required() -> bool:
     return os.getenv("GDW_REQUIRE_AUTH", "").strip().lower() in TRUE_VALUES
 
 
+def _configured_api_token() -> str:
+    token_file = os.getenv("GDW_API_TOKEN_FILE", "").strip()
+    if token_file:
+        return Path(token_file).read_text(encoding="utf-8").strip()
+    return os.getenv("GDW_API_TOKEN", "")
+
+
 def _validate_runtime_configuration() -> None:
     if not _auth_required():
         return
-    token = os.getenv("GDW_API_TOKEN", "")
+    token = _configured_api_token()
     if len(token) < 32:
         raise RuntimeError("GDW_API_TOKEN must contain at least 32 characters when GDW_REQUIRE_AUTH is enabled")
 
@@ -93,7 +101,7 @@ def _validate_runtime_configuration() -> None:
 def _has_valid_bearer_token(request: Request) -> bool:
     if not _auth_required() or request.url.path in AUTH_EXEMPT_PATHS:
         return True
-    configured = os.getenv("GDW_API_TOKEN", "")
+    configured = _configured_api_token()
     scheme, separator, supplied = request.headers.get("authorization", "").partition(" ")
     return (
         separator == " "
