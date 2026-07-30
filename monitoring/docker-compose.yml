@@ -5,6 +5,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        GDW_SOURCE_SHA: "${GDW_SOURCE_SHA:-UNAVAILABLE}"
     image: "${GDW_IMAGE_REF:-gdw-frontier:local}"
     command:
       - python
