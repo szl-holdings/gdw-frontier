@@ -106,9 +106,9 @@
       "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
-      "bytes": 8795,
+      "bytes": 8940,
       "path": "ci/verify_live_deployment.py",
-      "sha256": "0db0fea50cadef600cd84b7e39008769ea11d8e1168186c378c3fdad1444eda0"
+      "sha256": "9acb18f21a7a6100041c0d28102eb00c7c1794c843b9adc809c5f533ce8c36bd"
     },
     {
       "bytes": 11070,
@@ -269,6 +269,11 @@
       "bytes": 1980,
       "path": "tests/test_cardinality_audit.py",
       "sha256": "7a88c9c4bc7c9912181f41d2259eea0b074f591ca9cb737fc9694101b814cc6f"
+    },
+    {
+      "bytes": 1020,
+      "path": "tests/test_live_deployment_verifier.py",
+      "sha256": "3e5190b1bace7c7093c7cf10d4ca7433942ab2083f2cfe97ac0c5985f50edf46"
     },
     {
       "bytes": 1473,
