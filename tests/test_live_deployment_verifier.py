@@ -189,3 +189,8 @@ def test_live_verifier_requires_unsigned_migration_to_be_disabled() -> None:
         verify_live_deployment.assert_unsigned_migration_disabled(
             {"Config": {"Env": ["GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1"]}}
         )
+
+    with pytest.raises(AssertionError, match="must be disabled"):
+        verify_live_deployment.assert_unsigned_migration_disabled(
+            {"Config": {"Env": ["GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION= true "]}}
+        )

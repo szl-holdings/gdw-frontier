@@ -184,7 +184,7 @@ def assert_unsigned_migration_disabled(container: dict[str, Any]) -> dict[str, A
     configured = environment.get(
         "GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION",
         "0",
-    ).lower()
+    ).strip().lower()
     assert configured not in {"1", "true", "yes"}, (
         "GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION must be disabled after first activation"
     )
