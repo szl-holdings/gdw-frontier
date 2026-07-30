@@ -6,9 +6,9 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 4493,
+      "bytes": 4503,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "e99a4e5b34578682d66506310299a1719b7d3bd94ee3040215eae34a67a92b58"
+      "sha256": "a7e274e312afc4712d6b6064733638ab4889bad6d1696767de8f22f62b9ba1ee"
     },
     {
       "bytes": 847,

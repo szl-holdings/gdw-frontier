@@ -34,7 +34,7 @@ jobs:
           umask 077
           printf '%s\n' "$GDW_API_TOKEN" > "$GDW_API_TOKEN_SOURCE_FILE"
           printf '%s\n' "$GRAFANA_ADMIN_PASSWORD" > "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
-          chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
           chmod 0440 "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -87,7 +87,7 @@ jobs:
           umask 077
           printf '%s\n' "$GDW_API_TOKEN" > "$GDW_API_TOKEN_SOURCE_FILE"
           printf '%s\n' "$GRAFANA_ADMIN_PASSWORD" > "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
-          chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
+          sudo chown "$(id -u):$GDW_SECRETS_GID" "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
           chmod 0440 "$GDW_API_TOKEN_SOURCE_FILE" "$GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
