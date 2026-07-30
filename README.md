@@ -49,6 +49,10 @@ The Terraform container waits for Grafana, then applies the version-controlled d
 Requirements: Docker Desktop with Compose v2. The stack binds ports `3000`, `3100`, `3200`, `4317`, `4318`, `8080`, `9090`, and `12345` on localhost.
 
 ```bash
+openssl rand -base64 -out /secure/gdw-api-token 48
+openssl rand -base64 -out /secure/gdw-grafana-password 48
+export GDW_API_TOKEN_SOURCE_FILE="/secure/gdw-api-token"
+export GRAFANA_ADMIN_PASSWORD_SOURCE_FILE="/secure/gdw-grafana-password"
 python ci/worker_calc.py
 docker compose -f monitoring/docker-compose.yml up -d --build
 python ci/verify_stack.py
@@ -155,7 +159,9 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 
 ## Security boundaries
 
-- The local Grafana password is intentionally development-only and can be overridden with `GRAFANA_ADMIN_PASSWORD`.
+- The local Grafana password is intentionally development-only and is sourced from `GRAFANA_ADMIN_PASSWORD_SOURCE_FILE`.
+- Compose mounts the GDW token and Grafana password as files; it does not place either secret in container environment metadata.
+- A one-shot password-sync container applies the mounted Grafana secret to both new and existing local Grafana databases before Terraform provisioning runs.
 - All published Compose ports bind to `127.0.0.1` unless `GDW_BIND_ADDRESS` is deliberately overridden.
 - Anonymous Grafana access is disabled by default.
 - When `GDW_REQUIRE_AUTH=1`, operator endpoints require a bearer token of at least 32 characters; health, readiness, build identity, and the internally scraped metrics endpoint remain unauthenticated.

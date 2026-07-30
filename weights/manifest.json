@@ -6,9 +6,9 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 3252,
+      "bytes": 4023,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "fe3436b4c5b3a3592c305ea50ca7857175f37a82dff828babc9b912cc119e7a9"
+      "sha256": "8690602639e8d9f424c87df33c07ee1e9954f7420116a4f02ab81b6722f1255a"
     },
     {
       "bytes": 847,
@@ -16,9 +16,9 @@
       "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
     },
     {
-      "bytes": 10079,
+      "bytes": 10609,
       "path": "README.md",
-      "sha256": "b17010f79bed75e7b5601cf8a9c0a225effbdc4406959e006ae4587fcef8754d"
+      "sha256": "76b92ce5202fdae3b705f9dadeb3886d6baaa8032b47e4d0a8c76b840642c8f0"
     },
     {
       "bytes": 83,
@@ -31,9 +31,9 @@
       "sha256": "4204318676931acf986c25c768b8171ec986bc599ac95382c1cc0622e98154cf"
     },
     {
-      "bytes": 9433,
+      "bytes": 9672,
       "path": "app/api.py",
-      "sha256": "5dfe959d7d2324ce8e96fcc99f1020c4e62423cfe43b10948a47836ae3c86735"
+      "sha256": "17ebbe6d5f29bb257c9626ffc14b034c3820ba50ff352182d40f3462383cb25c"
     },
     {
       "bytes": 350,
@@ -106,14 +106,14 @@
       "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
-      "bytes": 8284,
+      "bytes": 8599,
       "path": "ci/verify_live_deployment.py",
-      "sha256": "d4418def189891f8116351e22725f5f5cc29594386dc7e30a26571f3c369aa5b"
+      "sha256": "a721d344194ecefab63416c23f36b7811a3c0de29c38e682184753dae560883d"
     },
     {
-      "bytes": 10547,
+      "bytes": 11070,
       "path": "ci/verify_stack.py",
-      "sha256": "58071d67bace42567615437c741862daba5d053b01e0f6456ddf10f317b5ddd8"
+      "sha256": "981b6459c61b6b9eec7e2d5e93a71397b23d1040cca3a2f5982ef98c53f06424"
     },
     {
       "bytes": 3981,
@@ -121,9 +121,9 @@
       "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
     },
     {
-      "bytes": 485,
+      "bytes": 507,
       "path": "deployment/.env.live.example",
-      "sha256": "4c3b269153d5985cd71e8b064f46af32861dee0816bee86aea97d2cc3c5ed7d7"
+      "sha256": "37a6ff037f9fb2ec6fbd83ee5ff99f03ecd634bd9cacc159b0358770a2b2f6e4"
     },
     {
       "bytes": 270,
@@ -151,9 +151,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 3344,
+      "bytes": 3718,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "0765818c968e06f9669c326b2080397b95bee78dfdc33ea46af23852e677fa21"
+      "sha256": "54a0f062302c68fb6dcf87b8570651614a65198f60e4a23032b9f935a9f946d6"
     },
     {
       "bytes": 1667,
@@ -166,9 +166,9 @@
       "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
     },
     {
-      "bytes": 4651,
+      "bytes": 5828,
       "path": "monitoring/docker-compose.yml",
-      "sha256": "76135e49e9d9b76775f0473471389f93d10579ff83c21c0eeeb04cff2e821cb8"
+      "sha256": "e84c695b58e3b80f85bd397e892186f3bf9191b82bbef91bd90ac2823c05a0f0"
     },
     {
       "bytes": 15917,
@@ -261,9 +261,9 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 4963,
+      "bytes": 5978,
       "path": "tests/test_api.py",
-      "sha256": "5b5b9fb63657fdd98b4b823a2c63dd60c65a0fa54741c9a015e61ae8bca520de"
+      "sha256": "bba7d9f06d44750a284e6cb32e56bd65a33b945088fc029fd2c5c28eaf9ca449"
     },
     {
       "bytes": 1980,

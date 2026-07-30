@@ -12,7 +12,7 @@ services:
       - app
     environment:
       GDW_DATA_DIR: /var/lib/gdw
-      GDW_API_TOKEN: "${GDW_API_TOKEN:-}"
+      GDW_API_TOKEN_FILE: /run/secrets/gdw_api_token
       GDW_DEPLOYMENT_MODE: "${GDW_DEPLOYMENT_MODE:-MODELED_LOCAL}"
       GDW_IMAGE_DIGEST: "${GDW_IMAGE_DIGEST:-UNAVAILABLE}"
       GDW_LOG_DIR: /var/log/gdw
@@ -28,6 +28,8 @@ services:
     volumes:
       - gdw-data:/var/lib/gdw
       - gdw-logs:/var/log/gdw
+    secrets:
+      - gdw_api_token
     depends_on:
       - tempo
     restart: unless-stopped
@@ -115,17 +117,45 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "${GRAFANA_ANONYMOUS_ENABLED:-false}"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-gdw-local-admin}"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
       - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_GRAFANA_PORT:-3000}:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+    secrets:
+      - grafana_admin_password
     depends_on:
       - prometheus
       - loki
       - tempo
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  grafana-password-sync:
+    image: grafana/grafana:13.1.1
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - >-
+        until wget -q -O - http://grafana:3000/api/health >/dev/null; do sleep 2; done;
+        grafana cli admin reset-admin-password --password-from-stdin
+        < /run/secrets/grafana_admin_password
+    environment:
+      GF_PATHS_CONFIG: /etc/grafana/grafana.ini
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_PATHS_HOME: /usr/share/grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    secrets:
+      - grafana_admin_password
+    depends_on:
+      - grafana
+    restart: "no"
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -139,23 +169,32 @@ services:
     command:
       - >-
         until wget -q -O - http://grafana:3000/api/health >/dev/null; do sleep 2; done;
+        export TF_VAR_grafana_auth="admin:$$(cat /run/secrets/grafana_admin_password)";
         terraform -chdir=/workspace/terraform init -input=false -lockfile=readonly;
         terraform -chdir=/workspace/terraform apply
         -auto-approve -input=false -state=/state/terraform.tfstate
     environment:
       TF_DATA_DIR: /tmp/terraform-data
-      TF_VAR_grafana_auth: "admin:${GRAFANA_ADMIN_PASSWORD:-gdw-local-admin}"
       TF_VAR_grafana_url: http://grafana:3000
     volumes:
       - ..:/workspace:ro
       - terraform-state:/state
+    secrets:
+      - grafana_admin_password
     depends_on:
-      - grafana
+      grafana-password-sync:
+        condition: service_completed_successfully
     restart: "no"
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+secrets:
+  gdw_api_token:
+    file: "${GDW_API_TOKEN_SOURCE_FILE:?set GDW_API_TOKEN_SOURCE_FILE to an absolute secret file path}"
+  grafana_admin_password:
+    file: "${GRAFANA_ADMIN_PASSWORD_SOURCE_FILE:?set GRAFANA_ADMIN_PASSWORD_SOURCE_FILE to an absolute secret file path}"
 
 volumes:
   gdw-data:

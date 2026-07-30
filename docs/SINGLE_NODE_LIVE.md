@@ -6,7 +6,15 @@ It does **not** prove high availability, multi-node durability, tenant isolation
 
 ## 1. Prepare exact source and secrets
 
-Use a protected, settled default-branch commit. Copy `deployment/.env.live.example` to an ignored file outside the repository. Generate independent random values for `GDW_API_TOKEN` and `GRAFANA_ADMIN_PASSWORD`, restrict that file to the deployment account, and never pass the token on a command line.
+Use a protected, settled default-branch commit. Copy `deployment/.env.live.example` to an ignored file outside the repository. Generate independent random secret files for the API token and Grafana password, restrict both files and the environment file to the deployment account, and never pass a secret value on a command line.
+
+Compose sources both file paths from the deployment environment and mounts the
+files read-only. The secret values are absent from `docker inspect`
+environment metadata. The
+application gives `GDW_API_TOKEN_FILE` precedence over the legacy direct
+environment variable. A one-shot password-sync container applies the mounted
+Grafana secret to new and existing Grafana databases before Terraform
+provisioning runs.
 
 Build and capture the immutable Docker image ID:
 
@@ -25,7 +33,7 @@ docker compose \
   -f monitoring/docker-compose.yml \
   up -d --no-build
 
-GDW_API_TOKEN="${GDW_API_TOKEN}" python ci/verify_stack.py \
+python ci/verify_stack.py \
   --app-url http://127.0.0.1:8080 \
   --grafana-url http://127.0.0.1:3300
 ```
@@ -48,7 +56,7 @@ The example denies `/metrics` at the public edge. Health, readiness, and build i
 Export the API token only into the verifier process and write the proof outside version control:
 
 ```bash
-GDW_API_TOKEN="${GDW_API_TOKEN}" python ci/verify_live_deployment.py \
+python ci/verify_live_deployment.py \
   --public-url "https://gdw.example.com" \
   --expected-source "${SOURCE_SHA}" \
   --expected-image "${IMAGE_DIGEST}" \

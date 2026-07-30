@@ -66,13 +66,27 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify the complete local GDW signal path.")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--grafana-password", default="gdw-local-admin")
+    parser.add_argument(
+        "--grafana-password-file",
+        type=Path,
+        default=os.getenv("GRAFANA_ADMIN_PASSWORD_SOURCE_FILE"),
+    )
     parser.add_argument("--api-token", default=os.getenv("GDW_API_TOKEN"))
+    parser.add_argument(
+        "--api-token-file",
+        type=Path,
+        default=os.getenv("GDW_API_TOKEN_SOURCE_FILE"),
+    )
     parser.add_argument("--app-url", default="http://localhost:8080")
     parser.add_argument("--prometheus-url", default="http://localhost:9090")
     parser.add_argument("--loki-url", default="http://localhost:3100")
     parser.add_argument("--tempo-url", default="http://localhost:3200")
     parser.add_argument("--grafana-url", default="http://localhost:3000")
     args = parser.parse_args(argv)
+    if args.grafana_password_file:
+        args.grafana_password = args.grafana_password_file.read_text(encoding="utf-8").strip()
+    if args.api_token_file:
+        args.api_token = args.api_token_file.read_text(encoding="utf-8").strip()
     app_url = args.app_url.rstrip("/")
     prometheus_url = args.prometheus_url.rstrip("/")
     loki_base_url = args.loki_url.rstrip("/")
