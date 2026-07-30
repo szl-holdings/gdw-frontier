@@ -30,6 +30,8 @@ services:
       - gdw-logs:/var/log/gdw
     secrets:
       - gdw_api_token
+    group_add:
+      - "${GDW_SECRETS_GID:-10002}"
     depends_on:
       - tempo
     restart: unless-stopped
@@ -125,6 +127,8 @@ services:
       - grafana-data:/var/lib/grafana
     secrets:
       - grafana_admin_password
+    group_add:
+      - "${GDW_SECRETS_GID:-10002}"
     depends_on:
       - prometheus
       - loki
@@ -153,6 +157,8 @@ services:
       - grafana-data:/var/lib/grafana
     secrets:
       - grafana_admin_password
+    group_add:
+      - "${GDW_SECRETS_GID:-10002}"
     depends_on:
       - grafana
     restart: "no"
@@ -181,6 +187,8 @@ services:
       - terraform-state:/state
     secrets:
       - grafana_admin_password
+    group_add:
+      - "${GDW_SECRETS_GID:-10002}"
     depends_on:
       grafana-password-sync:
         condition: service_completed_successfully

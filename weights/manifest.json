@@ -6,9 +6,9 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 4023,
+      "bytes": 4493,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "8690602639e8d9f424c87df33c07ee1e9954f7420116a4f02ab81b6722f1255a"
+      "sha256": "e99a4e5b34578682d66506310299a1719b7d3bd94ee3040215eae34a67a92b58"
     },
     {
       "bytes": 847,
@@ -121,9 +121,9 @@
       "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
     },
     {
-      "bytes": 507,
+      "bytes": 529,
       "path": "deployment/.env.live.example",
-      "sha256": "37a6ff037f9fb2ec6fbd83ee5ff99f03ecd634bd9cacc159b0358770a2b2f6e4"
+      "sha256": "f11a766ffe9e2718ef1cb2c3183c990b4cd83e689a1c3d884cdf951ddd12705d"
     },
     {
       "bytes": 270,
@@ -151,9 +151,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 3718,
+      "bytes": 4016,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "54a0f062302c68fb6dcf87b8570651614a65198f60e4a23032b9f935a9f946d6"
+      "sha256": "43f142a37570c2c073965e71f756191b54316b405c0b1bb074fd47692c6c5c78"
     },
     {
       "bytes": 1667,
@@ -166,9 +166,9 @@
       "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
     },
     {
-      "bytes": 5828,
+      "bytes": 6032,
       "path": "monitoring/docker-compose.yml",
-      "sha256": "e84c695b58e3b80f85bd397e892186f3bf9191b82bbef91bd90ac2823c05a0f0"
+      "sha256": "ee186ed2aee67a5a866d2736996ce43fdb893d556bb0fe6a65d765ea946e4116"
     },
     {
       "bytes": 15917,

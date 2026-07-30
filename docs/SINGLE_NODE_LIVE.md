@@ -16,6 +16,11 @@ environment variable. A one-shot password-sync container applies the mounted
 Grafana secret to new and existing Grafana databases before Terraform
 provisioning runs.
 
+On Linux, assign both files to the deployment account and a dedicated numeric
+group, set mode `0440`, and set `GDW_SECRETS_GID` to that group ID. Compose adds
+that supplemental group to each container that must read a secret. On Windows,
+use an ACL limited to the deployment account and `SYSTEM`.
+
 Build and capture the immutable Docker image ID:
 
 ```bash
