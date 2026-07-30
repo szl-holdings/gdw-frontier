@@ -505,12 +505,14 @@ class ReceiptLedger:
 
     def _audit_with_signing_state_locked(self) -> LedgerAudit:
         audit = self._audit_locked()
-        if not audit.valid or not audit.signed_records:
+        if not audit.valid:
             return audit
         try:
             signing_state = self._read_signing_state()
             if signing_state is None:
-                raise RuntimeError("receipt signing continuity state is missing")
+                if audit.signed_records:
+                    raise RuntimeError("receipt signing continuity state is missing")
+                return audit
             self._validate_signing_state(signing_state)
         except RuntimeError:
             return self._invalid_audit(

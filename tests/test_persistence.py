@@ -244,6 +244,38 @@ def test_optional_signing_creates_continuity_state_and_backup(tmp_path: Path) ->
     assert manifest["payload"]["ledger"]["records"] == 2
 
 
+@pytest.mark.parametrize("legacy_prefix", [False, True], ids=["signed-only", "legacy-prefix"])
+def test_optional_signing_audit_rejects_truncated_signed_history(
+    tmp_path: Path,
+    legacy_prefix: bool,
+) -> None:
+    path = tmp_path / "ledger.jsonl"
+    if legacy_prefix:
+        ReceiptLedger(
+            path,
+            signing_required=False,
+            use_configured_signing_key=False,
+        ).append({"decision": "legacy"})
+
+    optional = ReceiptLedger(
+        path,
+        signing_key_path=_signing_key(tmp_path / "signing-key.pem"),
+        signing_required=False,
+        allow_unsigned_migration=True,
+    )
+    optional.ensure_signed_head({"source_sha": "a" * 40})
+
+    if legacy_prefix:
+        legacy_record = path.read_text(encoding="utf-8").splitlines()[0]
+        path.write_text(legacy_record + "\n", encoding="utf-8")
+    else:
+        path.unlink()
+
+    audit = optional.audit()
+    assert audit.valid is False
+    assert audit.signature_status == "INVALID"
+
+
 @pytest.mark.parametrize("malformed_state", ["42\n", "\"invalid\"\n"])
 def test_malformed_continuity_state_returns_invalid_audit(
     tmp_path: Path,

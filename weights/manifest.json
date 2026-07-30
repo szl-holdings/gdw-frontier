@@ -56,9 +56,9 @@
       "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
     },
     {
-      "bytes": 28933,
+      "bytes": 28979,
       "path": "app/persistence.py",
-      "sha256": "8e06966debd2846f9d79b00dc97ef436cab9c5c15eec96eb0fd35d105fc4672a"
+      "sha256": "e189eeade4e72cf4d6dd1dae83035137ba65a8fbd21a599eaaaf421f711c1a63"
     },
     {
       "bytes": 643,
@@ -136,9 +136,9 @@
       "sha256": "0bc097e67262b93c3f98ceb6728f66f69bcb1d7e7210efc436344c2ba76a3538"
     },
     {
-      "bytes": 14439,
+      "bytes": 14447,
       "path": "ci/verify_live_deployment.py",
-      "sha256": "0d2bcb497b061d321403689850fa18e291c9f58ba0a90e125d0a270e605c4831"
+      "sha256": "dd51b1e78b77fd931aaafebd180abd4978c403fb1c748156496e36a73bd5d5d0"
     },
     {
       "bytes": 12561,
@@ -301,14 +301,14 @@
       "sha256": "9a504686e660ed28f13ecdf6d8e45ddd96a696c99b585f2cc3364252ec4a2dce"
     },
     {
-      "bytes": 5285,
+      "bytes": 5509,
       "path": "tests/test_live_deployment_verifier.py",
-      "sha256": "f612348055f8bb0d974520faabf995e7ab3cdd381e6cafa53ea2212eaf884af5"
+      "sha256": "2fbbfebb7b414a22fdfadff13b1b4ad1e7787427d16a4a1da93efd7437c90764"
     },
     {
-      "bytes": 10399,
+      "bytes": 11391,
       "path": "tests/test_persistence.py",
-      "sha256": "5e0cc150cf266c830dce418298e503d27367e6aa02bd9d69073632599f94275c"
+      "sha256": "7eb1070477a65f6c2f654c1ae7d4d9cc293ede01b455d9e3034f10f212794f39"
     },
     {
       "bytes": 480,
