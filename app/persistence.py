@@ -89,7 +89,7 @@ class ReceiptLedger:
     def audit(self) -> LedgerAudit:
         with self._lock:
             with self._process_lock():
-                return self._audit_locked()
+                return self._audit_with_transition_locked()
 
     def validate_configuration(self) -> None:
         if self.signing_required and self.signing_key_path is None:
@@ -141,7 +141,7 @@ class ReceiptLedger:
     def head_proof(self) -> dict[str, Any]:
         with self._lock:
             with self._process_lock():
-                audit = self._audit_locked()
+                audit = self._audit_with_transition_locked()
                 if not audit.valid or audit.signature_status != "SIGNED":
                     raise RuntimeError("the receipt ledger has no valid signed head")
                 record = self._last_record()
@@ -157,10 +157,11 @@ class ReceiptLedger:
     def create_backup(self, backup_dir: Path, context: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
             with self._process_lock():
-                audit = self._audit_locked()
+                audit = self._audit_with_transition_locked()
                 if not audit.valid or audit.signature_status != "SIGNED":
                     raise RuntimeError("refusing to back up a ledger without a valid signed head")
                 ledger_bytes = self.path.read_bytes()
+                transition_bytes = self.signing_transition_path.read_bytes()
                 created_at = datetime.now(timezone.utc).isoformat()
                 backup_id = (
                     datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
@@ -177,6 +178,10 @@ class ReceiptLedger:
                         "records": audit.records,
                         "head_hash": audit.head_hash,
                     },
+                    "signing_transition": {
+                        "filename": "receipts.jsonl.signing-transition.json",
+                        "sha256": hashlib.sha256(transition_bytes).hexdigest(),
+                    },
                 }
                 manifest = {
                     "payload": payload,
@@ -190,6 +195,10 @@ class ReceiptLedger:
                 temporary.mkdir()
                 try:
                     self._write_durable(temporary / "receipts.jsonl", ledger_bytes)
+                    self._write_durable(
+                        temporary / "receipts.jsonl.signing-transition.json",
+                        transition_bytes,
+                    )
                     self._write_durable(
                         temporary / "manifest.json",
                         canonical_json(manifest) + b"\n",
@@ -205,6 +214,7 @@ class ReceiptLedger:
     def verify_and_restore_backup(self, backup_path: Path, restore_path: Path) -> dict[str, Any]:
         manifest_path = backup_path / "manifest.json"
         ledger_path = backup_path / "receipts.jsonl"
+        transition_path = backup_path / "receipts.jsonl.signing-transition.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         payload = manifest["payload"]
         if manifest.get("signature_algorithm") != SIGNATURE_ALGORITHM:
@@ -216,7 +226,15 @@ class ReceiptLedger:
         expected_digest = str(payload["ledger"]["sha256"])
         if hashlib.sha256(ledger_bytes).hexdigest() != expected_digest:
             raise ValueError("backup ledger digest mismatch")
+        transition_bytes = transition_path.read_bytes()
+        expected_transition_digest = str(payload["signing_transition"]["sha256"])
+        if hashlib.sha256(transition_bytes).hexdigest() != expected_transition_digest:
+            raise ValueError("backup signing transition digest mismatch")
         self._write_durable(restore_path, ledger_bytes)
+        restore_transition_path = restore_path.with_suffix(
+            restore_path.suffix + ".signing-transition.json"
+        )
+        self._write_durable(restore_transition_path, transition_bytes)
         restored = ReceiptLedger(
             restore_path,
             signing_key_path=self.signing_key_path,
@@ -345,6 +363,24 @@ class ReceiptLedger:
             signature_algorithm=SIGNATURE_ALGORITHM if signed_records else None,
             signing_key_id=self._key_id() if self.signing_key_path else None,
         )
+
+    def _audit_with_transition_locked(self) -> LedgerAudit:
+        audit = self._audit_locked()
+        if not self.signing_required or not audit.valid:
+            return audit
+        try:
+            transition = self._load_signing_transition()
+            if transition is None:
+                raise RuntimeError("the receipt signing transition marker is missing")
+            self._verify_signing_transition(transition)
+        except RuntimeError:
+            return self._invalid_audit(
+                audit.records,
+                audit.head_hash,
+                audit.signed_records,
+                audit.legacy_unsigned_records,
+            )
+        return audit
 
     def _invalid_audit(
         self,

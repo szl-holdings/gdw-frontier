@@ -54,7 +54,7 @@ a replacement anchor.
 The authenticated receipt surface returns the signed head plus its public key
 for offline verification. Every decision receipt binds exact source, image,
 and deployment mode. Signed backup manifests bind a byte-exact ledger copy,
-record count, head, runtime identity, and signing key; the proof profile
+its signed transition marker, record count, head, runtime identity, and signing key; the proof profile
 restores into isolated tmpfs and verifies the result.
 
 These controls do not supply an independent witness, hardware monotonic

@@ -12,7 +12,11 @@ from app.persistence import ReceiptLedger
 
 
 def _append_records(path: str, worker: int, count: int) -> None:
-    ledger = ReceiptLedger(Path(path))
+    ledger = ReceiptLedger(
+        Path(path),
+        signing_required=False,
+        use_configured_signing_key=False,
+    )
     for index in range(count):
         ledger.append({"worker": worker, "index": index})
 
@@ -31,7 +35,11 @@ def _signing_key(path: Path) -> Path:
 
 def test_receipt_chain_verifies_and_detects_tampering(tmp_path: Path) -> None:
     path = tmp_path / "ledger.jsonl"
-    ledger = ReceiptLedger(path)
+    ledger = ReceiptLedger(
+        path,
+        signing_required=False,
+        use_configured_signing_key=False,
+    )
     first_hash = ledger.append({"decision": "allow"})
     second_hash = ledger.append({"decision": "review"})
 
@@ -56,7 +64,11 @@ def test_receipt_chain_is_safe_across_worker_processes(tmp_path: Path) -> None:
     for process in processes:
         process.join(timeout=20)
         assert process.exitcode == 0
-    assert ReceiptLedger(path).verify() == (True, 20)
+    assert ReceiptLedger(
+        path,
+        signing_required=False,
+        use_configured_signing_key=False,
+    ).verify() == (True, 20)
 
 
 def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path) -> None:
@@ -98,6 +110,33 @@ def test_signed_transition_rejects_deleted_signed_only_ledger(tmp_path: Path) ->
     restarted = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
     with pytest.raises(RuntimeError, match="cannot anchor an invalid receipt ledger"):
         restarted.ensure_signed_head({"source_sha": "a" * 40})
+
+
+def test_every_audit_rejects_removed_anchor_signature(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.jsonl"
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed.ensure_signed_head({"source_sha": "a" * 40})
+    signed.append({"decision": "allow"})
+
+    records = [
+        json.loads(raw_line)
+        for raw_line in path.read_text(encoding="utf-8").splitlines()
+    ]
+    records[0].pop("signature")
+    records[0].pop("signature_algorithm")
+    records[0].pop("key_id")
+    path.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    assert signed.audit().valid is False
+    assert signed.audit().signature_status == "INVALID"
+    with pytest.raises(RuntimeError, match="valid signed head"):
+        signed.head_proof()
+    with pytest.raises(RuntimeError, match="valid signed head"):
+        signed.create_backup(tmp_path / "backups", {"source_sha": "a" * 40})
 
 
 def test_signed_backup_restores_exact_head_and_rejects_tampering(tmp_path: Path) -> None:

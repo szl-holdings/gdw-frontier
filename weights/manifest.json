@@ -16,9 +16,9 @@
       "sha256": "37d07ef2daec397474a5922edb379c6d408540b94d9e053eae3f4e5cf138fb49"
     },
     {
-      "bytes": 11858,
+      "bytes": 11884,
       "path": "README.md",
-      "sha256": "cf61e1e2b9cef57d9667dc82a0a3c40082524168bbe7939726905bcefc5c0326"
+      "sha256": "de563c069e71c54912e0c4c9146156ad3488dff6026fc03d3376ff6425703bf0"
     },
     {
       "bytes": 83,
@@ -56,9 +56,9 @@
       "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
     },
     {
-      "bytes": 23213,
+      "bytes": 25009,
       "path": "app/persistence.py",
-      "sha256": "017212fe1e1b72fe416b1449fc4fdc04356a365fca05457209d5f6fd03c91873"
+      "sha256": "77a5476845742de8e0f686ec70785808129f4d2049e36a6a304bda2c2e9b7081"
     },
     {
       "bytes": 643,
@@ -161,9 +161,9 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 3164,
+      "bytes": 3194,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "45a170aa88ff8425353ded7d667c87e06c7e4b34490dffb7ac407a8d7f1ab37f"
+      "sha256": "60cd2a3a35628b5a4df5fb429119d7df2eaa4a197489a01f0c9fd1fdc63d5128"
     },
     {
       "bytes": 5313,
@@ -306,9 +306,9 @@
       "sha256": "3463539f9ab048fb8d9eeff7d09874837722845803916f1a5856db1d01e94c48"
     },
     {
-      "bytes": 4818,
+      "bytes": 6120,
       "path": "tests/test_persistence.py",
-      "sha256": "2aef80f3e46fc4fd54cfcf93fe964ff24706821edf5f6eb0504c33a8232f8fee"
+      "sha256": "ad5554be60ba389bae282f82db2d29314b1a67676682e6660d0dcc6c612ae0ef"
     },
     {
       "bytes": 480,
