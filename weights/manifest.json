@@ -6,9 +6,9 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 3228,
+      "bytes": 3252,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "c2337b58a64fda5d4667c316fbef7df2b4801c415ea453c82994621b8faf850d"
+      "sha256": "fe3436b4c5b3a3592c305ea50ca7857175f37a82dff828babc9b912cc119e7a9"
     },
     {
       "bytes": 847,
@@ -101,9 +101,9 @@
       "sha256": "b6c12f2b7338c9a0a04191022209d44fb580fceb21dfbfdd9152651777182d14"
     },
     {
-      "bytes": 2011,
+      "bytes": 1985,
       "path": "ci/validate_weights.py",
-      "sha256": "d208f60506a748a942ba0d8b0cb3e16c0afd6870f1420376ede881c157ed478d"
+      "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
       "bytes": 9760,
