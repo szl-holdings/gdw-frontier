@@ -39,5 +39,21 @@ File provisioning YAML is an alternate deployment mechanism. Enabling both again
 
 ## Receipt boundary
 
-`ReceiptLedger` serializes canonical JSON into an append-only file and chains each entry to the preceding SHA-256 digest. Readiness fails if that chain does not verify. The ledger has no signature, external witness, monotonic hardware counter, replication, or backup. It is a tamper-evident local development primitive, not a release receipt.
+`ReceiptLedger` serializes canonical JSON into an append-only file and chains
+each entry to the preceding SHA-256 digest. When
+`GDW_RECEIPT_SIGNING_REQUIRED=1`, every new schema-v2 record is signed with a
+file-backed ECDSA P-256 key, the trusted public-key fingerprint is checked on
+read, and readiness fails if the required key, hash chain, signature sequence,
+or signed head is invalid. A signed runtime-activation record anchors an
+existing legacy unsigned prefix without rewriting historical bytes.
 
+The authenticated receipt surface returns the signed head plus its public key
+for offline verification. Every decision receipt binds exact source, image,
+and deployment mode. Signed backup manifests bind a byte-exact ledger copy,
+record count, head, runtime identity, and signing key; the proof profile
+restores into isolated tmpfs and verifies the result.
+
+These controls do not supply an independent witness, hardware monotonic
+counter, off-host copy, replication, high availability, or multi-node
+consensus. File-backed single-node signing and a separate local backup volume
+must not be described as those stronger properties.

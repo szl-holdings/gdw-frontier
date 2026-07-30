@@ -6,6 +6,10 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app import api
+from app.persistence import ReceiptLedger
+from ci.receipt_proof import verify_signed_receipt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 
 
 def _payload(**overrides):
@@ -101,11 +105,20 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
         assert authorized.json()["valid"] is True
 
 
-def test_build_info_reports_exact_runtime_identity(monkeypatch) -> None:
+def test_build_info_reports_exact_runtime_identity(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("GDW_REQUIRE_AUTH", raising=False)
     monkeypatch.setenv("GDW_SOURCE_SHA", "a" * 40)
     monkeypatch.setenv("GDW_IMAGE_DIGEST", "sha256:" + "b" * 64)
     monkeypatch.setenv("GDW_DEPLOYMENT_MODE", "SINGLE_NODE_LIVE")
+    monkeypatch.setattr(
+        api,
+        "ledger",
+        ReceiptLedger(
+            tmp_path / "receipts.jsonl",
+            signing_required=False,
+            use_configured_signing_key=False,
+        ),
+    )
 
     with TestClient(api.app) as client:
         response = client.get("/build-info")
@@ -116,6 +129,8 @@ def test_build_info_reports_exact_runtime_identity(monkeypatch) -> None:
             "source_sha": "a" * 40,
             "image_digest": "sha256:" + "b" * 64,
             "deployment_mode": "SINGLE_NODE_LIVE",
+            "receipt_signing": "UNAVAILABLE",
+            "receipt_signing_key_id": None,
             "model_status": "MODELED",
         }
 
@@ -159,3 +174,48 @@ def test_auth_token_file_takes_precedence_over_environment(
             headers={"Authorization": f"Bearer {file_token}"},
         )
         assert allowed.status_code == 200
+
+
+def test_signed_receipt_and_backup_surfaces_are_cryptographically_bound(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    key_path = tmp_path / "signing-key.pem"
+    key_path.write_bytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    signed_ledger = ReceiptLedger(
+        tmp_path / "receipts.jsonl",
+        signing_key_path=key_path,
+        signing_required=True,
+    )
+    monkeypatch.setattr(api, "ledger", signed_ledger)
+    monkeypatch.setenv("GDW_BACKUP_DIR", str(tmp_path / "backups"))
+    monkeypatch.setenv("GDW_SOURCE_SHA", "d" * 40)
+    monkeypatch.setenv("GDW_IMAGE_DIGEST", "sha256:" + "e" * 64)
+
+    with TestClient(api.app) as client:
+        step = client.post("/v1/gdw/step", json=_payload())
+        assert step.status_code == 200
+
+        status = client.get("/v1/gdw/ledger").json()
+        assert status["valid"] is True
+        assert status["signature_status"] == "SIGNED"
+        assert status["signed_records"] == 2
+        assert status["legacy_unsigned_records"] == 0
+
+        receipt = client.get("/v1/gdw/receipt")
+        assert receipt.status_code == 200
+        assert receipt.json()["record"]["receipt_hash"] == step.json()["receipt_hash"]
+        assert receipt.json()["record"]["body"]["runtime_identity"]["source_sha"] == "d" * 40
+        assert verify_signed_receipt(receipt.json())["valid"] is True
+
+        backup = client.post("/v1/gdw/backup")
+        assert backup.status_code == 200
+        assert backup.json()["status"] == "VERIFIED"
+        assert backup.json()["head_hash"] == step.json()["receipt_hash"]

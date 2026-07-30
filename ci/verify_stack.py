@@ -4,6 +4,7 @@ import argparse
 import base64
 import json
 import os
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -13,7 +14,13 @@ from typing import Any, Callable, Iterable
 
 from prometheus_client.parser import text_string_to_metric_families
 
+try:
+    from ci.receipt_proof import verify_signed_receipt
+except ModuleNotFoundError:
+    from receipt_proof import verify_signed_receipt
+
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_COMPOSE_FILE = ROOT / "monitoring" / "docker-compose.yml"
 DEFAULT_OUTPUT = ROOT / "output" / "proofs" / "stack-verification.json"
 
 
@@ -123,6 +130,48 @@ def main(argv: Iterable[str] | None = None) -> int:
         "trace_id": trace_id,
         "receipt_hash": step["receipt_hash"],
         "status": "MODELED",
+    }
+    ledger = request_json(
+        f"{app_url}/v1/gdw/ledger",
+        bearer_token=args.api_token,
+    )
+    assert ledger["valid"] is True
+    assert ledger["signature_status"] == "SIGNED"
+    receipt = verify_signed_receipt(
+        request_json(
+            f"{app_url}/v1/gdw/receipt",
+            bearer_token=args.api_token,
+        )
+    )
+    assert receipt["receipt_hash"] == step["receipt_hash"]
+    proof["checks"]["cryptographic_receipt"] = receipt
+
+    backup = request_json(
+        f"{app_url}/v1/gdw/backup",
+        method="POST",
+        bearer_token=args.api_token,
+    )
+    assert backup["status"] == "VERIFIED"
+    restore_output = subprocess.check_output(
+        [
+            "docker",
+            "compose",
+            "-f",
+            str(DEFAULT_COMPOSE_FILE),
+            "run",
+            "--rm",
+            "backup-restore-verify",
+        ],
+        cwd=ROOT,
+        text=True,
+    )
+    restore = json.loads(restore_output.strip().splitlines()[-1])
+    assert restore["status"] == "VERIFIED"
+    assert restore["head_hash"] == backup["head_hash"]
+    proof["checks"]["backup_restore"] = {
+        "backup": backup,
+        "restore": restore,
+        "scope": "separate local Docker volume restored into isolated tmpfs",
     }
 
     for index, (confidence, mode) in enumerate(

@@ -15,11 +15,12 @@ WORKDIR /srv/gdw
 
 RUN groupadd --system --gid 10001 gdw \
     && useradd --system --uid 10001 --gid gdw --home-dir /srv/gdw gdw \
-    && mkdir -p /var/log/gdw /var/lib/gdw \
-    && chown -R gdw:gdw /srv/gdw /var/log/gdw /var/lib/gdw
+    && mkdir -p /var/log/gdw /var/lib/gdw /var/backups/gdw \
+    && chown -R gdw:gdw /srv/gdw /var/log/gdw /var/lib/gdw /var/backups/gdw
 
 COPY pyproject.toml README.md ./
 COPY app ./app
+COPY ci ./ci
 RUN python -m pip install --upgrade pip==26.1.2 \
     && python -m pip install .
 
