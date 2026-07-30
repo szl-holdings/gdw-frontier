@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -70,3 +71,65 @@ def test_validation_rejects_unknown_fields(tmp_path: Path) -> None:
     with TestClient(api.app) as client:
         response = client.post("/v1/gdw/step", json=_payload(user_id="unsafe"))
         assert response.status_code == 422
+
+
+def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    token = "test-token-that-is-at-least-32-characters"
+    monkeypatch.setenv("GDW_REQUIRE_AUTH", "true")
+    monkeypatch.setenv("GDW_API_TOKEN", token)
+    api.ledger.path = tmp_path / "receipts.jsonl"
+
+    with TestClient(api.app) as client:
+        assert client.get("/healthz").status_code == 200
+        assert client.get("/readyz").status_code == 200
+        assert client.get("/build-info").status_code == 200
+        assert client.get("/metrics").status_code == 200
+
+        unauthorized = client.get("/v1/gdw/ledger")
+        assert unauthorized.status_code == 401
+        assert unauthorized.headers["www-authenticate"] == "Bearer"
+
+        authorized = client.get(
+            "/v1/gdw/ledger",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert authorized.status_code == 200
+        assert authorized.json()["valid"] is True
+
+
+def test_build_info_reports_exact_runtime_identity(monkeypatch) -> None:
+    monkeypatch.delenv("GDW_REQUIRE_AUTH", raising=False)
+    monkeypatch.setenv("GDW_SOURCE_SHA", "a" * 40)
+    monkeypatch.setenv("GDW_IMAGE_DIGEST", "sha256:" + "b" * 64)
+    monkeypatch.setenv("GDW_DEPLOYMENT_MODE", "SINGLE_NODE_LIVE")
+
+    with TestClient(api.app) as client:
+        response = client.get("/build-info")
+        assert response.status_code == 200
+        assert response.json() == {
+            "service": "gdw",
+            "version": "0.1.0",
+            "source_sha": "a" * 40,
+            "image_digest": "sha256:" + "b" * 64,
+            "deployment_mode": "SINGLE_NODE_LIVE",
+            "model_status": "MODELED",
+        }
+
+
+def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
+    monkeypatch.setenv("GDW_REQUIRE_AUTH", "true")
+    monkeypatch.setenv("GDW_API_TOKEN", "too-short")
+
+    try:
+        with TestClient(api.app):
+            pass
+    except RuntimeError as error:
+        assert "at least 32 characters" in str(error)
+    else:
+        raise AssertionError("weak production token unexpectedly started the service")
+
+    os.environ.pop("GDW_REQUIRE_AUTH", None)
+    os.environ.pop("GDW_API_TOKEN", None)

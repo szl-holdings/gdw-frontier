@@ -5,21 +5,26 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    image: gdw-frontier:local
+    image: "${GDW_IMAGE_REF:-gdw-frontier:local}"
     command:
       - python
       - -m
       - app
     environment:
       GDW_DATA_DIR: /var/lib/gdw
+      GDW_API_TOKEN: "${GDW_API_TOKEN:-}"
+      GDW_DEPLOYMENT_MODE: "${GDW_DEPLOYMENT_MODE:-MODELED_LOCAL}"
+      GDW_IMAGE_DIGEST: "${GDW_IMAGE_DIGEST:-UNAVAILABLE}"
       GDW_LOG_DIR: /var/log/gdw
+      GDW_REQUIRE_AUTH: "${GDW_REQUIRE_AUTH:-0}"
+      GDW_SOURCE_SHA: "${GDW_SOURCE_SHA:-UNAVAILABLE}"
       GDW_WORKERS: "${GDW_WORKERS:-2}"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: gdw
       PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus-multiproc
     ports:
-      - "8080:8080"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_HTTP_PORT:-8080}:8080"
     volumes:
       - gdw-data:/var/lib/gdw
       - gdw-logs:/var/log/gdw
@@ -43,7 +48,7 @@ services:
       - --storage.tsdb.wal-compression
       - --web.enable-lifecycle
     ports:
-      - "9090:9090"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./alerting-rules.yml:/etc/prometheus/alerting-rules.yml:ro
@@ -56,7 +61,7 @@ services:
     image: grafana/loki:3.7.4
     command: -config.file=/etc/loki/local-config.yaml
     ports:
-      - "3100:3100"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_LOKI_PORT:-3100}:3100"
     volumes:
       - ./loki.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
@@ -72,7 +77,7 @@ services:
       - --storage.path=/tmp/alloy
       - /etc/alloy/config.alloy
     ports:
-      - "12345:12345"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_ALLOY_PORT:-12345}:12345"
     volumes:
       - ./alloy.config:/etc/alloy/config.alloy:ro
       - gdw-logs:/var/log/gdw:ro
@@ -93,9 +98,9 @@ services:
     command:
       - -config.file=/etc/tempo.yml
     ports:
-      - "3200:3200"
-      - "4317:4317"
-      - "4318:4318"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_TEMPO_PORT:-3200}:3200"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_OTLP_GRPC_PORT:-4317}:4317"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_OTLP_HTTP_PORT:-4318}:4318"
     volumes:
       - ./tempo.yml:/etc/tempo.yml:ro
       - tempo-data:/var/tempo
@@ -107,13 +112,13 @@ services:
     image: grafana/grafana:13.1.1
     environment:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "${GRAFANA_ANONYMOUS_ENABLED:-false}"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-gdw-local-admin}"
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
-      - "3000:3000"
+      - "${GDW_BIND_ADDRESS:-127.0.0.1}:${GDW_GRAFANA_PORT:-3000}:3000"
     volumes:
       - grafana-data:/var/lib/grafana
     depends_on:

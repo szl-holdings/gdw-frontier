@@ -1,0 +1,10 @@
+tunnel: "[TUNNEL_UUID]"
+credentials-file: "[ABSOLUTE_PATH_TO_TUNNEL_CREDENTIALS]"
+
+ingress:
+  - hostname: "[GDW_HOSTNAME]"
+    path: "^/metrics$"
+    service: http_status:404
+  - hostname: "[GDW_HOSTNAME]"
+    service: http://127.0.0.1:8080
+  - service: http_status:404

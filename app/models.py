@@ -38,3 +38,18 @@ class ReadinessResponse(BaseModel):
     service: Literal["gdw"]
     model_status: Literal["MODELED"] = "MODELED"
 
+
+class BuildInfoResponse(BaseModel):
+    service: Literal["gdw"] = "gdw"
+    version: str
+    source_sha: str
+    image_digest: str
+    deployment_mode: str
+    model_status: Literal["MODELED"] = "MODELED"
+
+
+class LedgerStatusResponse(BaseModel):
+    valid: bool
+    records: int
+    head_hash: str | None
+    model_status: Literal["MODELED"] = "MODELED"

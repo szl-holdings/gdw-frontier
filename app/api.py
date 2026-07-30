@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import re
+import secrets
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -14,10 +15,11 @@ from fastapi.responses import JSONResponse, Response
 from prometheus_client import CollectorRegistry, REGISTRY, multiprocess
 from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST, generate_latest
 
+from . import __version__
 from .hybrid_scheduler import validate_mode
 from .kernel import decide
 from .logging_setup import configure_logging, log_event
-from .models import ReadinessResponse, StepRequest, StepResponse
+from .models import BuildInfoResponse, LedgerStatusResponse, ReadinessResponse, StepRequest, StepResponse
 from .persistence import ReceiptLedger
 from .telemetry import (
     DECISION_TOTAL,
@@ -32,6 +34,8 @@ from .tracing import configure_tracing, current_trace_fields, traced_span
 from .workspace import WorkspaceState
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+AUTH_EXEMPT_PATHS = frozenset({"/build-info", "/healthz", "/metrics", "/readyz"})
+TRUE_VALUES = frozenset({"1", "true", "yes"})
 logger = configure_logging()
 configure_tracing()
 ledger = ReceiptLedger()
@@ -40,6 +44,7 @@ workspace = WorkspaceState()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    _validate_runtime_configuration()
     valid, records = ledger.verify()
     log_event(logger, logging.INFO, "service_started", event="service_started", ledger_valid=valid, ledger_records=records)
     try:
@@ -71,6 +76,42 @@ def _route_template(request: Request) -> str:
 
 def _session_ref(session_id: str) -> str:
     return hashlib.sha256(session_id.encode("utf-8")).hexdigest()[:16]
+
+
+def _auth_required() -> bool:
+    return os.getenv("GDW_REQUIRE_AUTH", "").strip().lower() in TRUE_VALUES
+
+
+def _validate_runtime_configuration() -> None:
+    if not _auth_required():
+        return
+    token = os.getenv("GDW_API_TOKEN", "")
+    if len(token) < 32:
+        raise RuntimeError("GDW_API_TOKEN must contain at least 32 characters when GDW_REQUIRE_AUTH is enabled")
+
+
+def _has_valid_bearer_token(request: Request) -> bool:
+    if not _auth_required() or request.url.path in AUTH_EXEMPT_PATHS:
+        return True
+    configured = os.getenv("GDW_API_TOKEN", "")
+    scheme, separator, supplied = request.headers.get("authorization", "").partition(" ")
+    return (
+        separator == " "
+        and scheme.lower() == "bearer"
+        and bool(configured)
+        and secrets.compare_digest(supplied, configured)
+    )
+
+
+@app.middleware("http")
+async def enforce_api_auth(request: Request, call_next: Callable) -> Response:
+    if _has_valid_bearer_token(request):
+        return await call_next(request)
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "authentication required"},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @app.middleware("http")
@@ -145,6 +186,16 @@ async def readyz() -> ReadinessResponse:
     return ReadinessResponse(status=status, service="gdw")
 
 
+@app.get("/build-info", response_model=BuildInfoResponse)
+async def build_info() -> BuildInfoResponse:
+    return BuildInfoResponse(
+        version=__version__,
+        source_sha=os.getenv("GDW_SOURCE_SHA", "UNAVAILABLE"),
+        image_digest=os.getenv("GDW_IMAGE_DIGEST", "UNAVAILABLE"),
+        deployment_mode=os.getenv("GDW_DEPLOYMENT_MODE", "MODELED_LOCAL"),
+    )
+
+
 @app.get("/metrics", include_in_schema=False)
 async def metrics() -> Response:
     registry = REGISTRY
@@ -157,6 +208,12 @@ async def metrics() -> Response:
 @app.get("/v1/gdw/state")
 async def state() -> dict:
     return workspace.summary()
+
+
+@app.get("/v1/gdw/ledger", response_model=LedgerStatusResponse)
+async def ledger_status() -> LedgerStatusResponse:
+    valid, records, head_hash = ledger.status()
+    return LedgerStatusResponse(valid=valid, records=records, head_hash=head_hash)
 
 
 @app.post("/v1/gdw/step", response_model=StepResponse)

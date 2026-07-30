@@ -16,9 +16,9 @@
       "sha256": "f68f7d556efa467780e89c423e50c951d6396f47428680cec02a7f3d5f0db5b5"
     },
     {
-      "bytes": 8815,
+      "bytes": 10079,
       "path": "README.md",
-      "sha256": "a9bebd85dd5bb6aa7c4e82256ad7a4dfef10f506297d6d9d767b98f1dd537d74"
+      "sha256": "b17010f79bed75e7b5601cf8a9c0a225effbdc4406959e006ae4587fcef8754d"
     },
     {
       "bytes": 83,
@@ -31,9 +31,9 @@
       "sha256": "4204318676931acf986c25c768b8171ec986bc599ac95382c1cc0622e98154cf"
     },
     {
-      "bytes": 7382,
+      "bytes": 9433,
       "path": "app/api.py",
-      "sha256": "b7cddfd6639148efc989edd180471d00025e5288faeb14dbadbc5f5ea4031d8e"
+      "sha256": "5dfe959d7d2324ce8e96fcc99f1020c4e62423cfe43b10948a47836ae3c86735"
     },
     {
       "bytes": 350,
@@ -51,14 +51,14 @@
       "sha256": "5f476be0b0a43d58272b0a69b3cdbbb453a95fd96d39e8aff78b2dfaa13ee338"
     },
     {
-      "bytes": 1160,
+      "bytes": 1515,
       "path": "app/models.py",
-      "sha256": "ca774624a0a2b3b9d035524ba4eebe26c41f7966ea6da884ff1a0a48059c701a"
+      "sha256": "874b67ad2d6bea3afd4101aede4724eb49e448d36ed47429a7f1797fce61876f"
     },
     {
-      "bytes": 3466,
+      "bytes": 4630,
       "path": "app/persistence.py",
-      "sha256": "0a1f9db108aabde6191149f6208c4d9a147054e805aef87e6d896eeded771cd9"
+      "sha256": "58cbd971da6083d28e4838d0d97bea8a20e8fc4c22374debc15869955b9dc7ce"
     },
     {
       "bytes": 1441,
@@ -96,9 +96,9 @@
       "sha256": "f172264cb49feca7c96cd70dbe6ab6dd466e1d792dd511389daa8fa2e359afde"
     },
     {
-      "bytes": 4352,
+      "bytes": 4404,
       "path": "ci/update_weight_manifest.py",
-      "sha256": "b6c12f2b7338c9a0a04191022209d44fb580fceb21dfbfdd9152651777182d14"
+      "sha256": "629b8d7e2e408125e81db1b30c3ad9beab144c57fdb8da7bd50f197f128e5c09"
     },
     {
       "bytes": 1985,
@@ -106,14 +106,29 @@
       "sha256": "8e2acae1c1d0b9bc2f24b83453e3984bff8c27763293420deff3f1040726d2e4"
     },
     {
-      "bytes": 9760,
+      "bytes": 8284,
+      "path": "ci/verify_live_deployment.py",
+      "sha256": "d4418def189891f8116351e22725f5f5cc29594386dc7e30a26571f3c369aa5b"
+    },
+    {
+      "bytes": 10547,
       "path": "ci/verify_stack.py",
-      "sha256": "432d66536679f15ec77a03ab3188734d602f97cdfad29eb8fc41ce80623cbddf"
+      "sha256": "58071d67bace42567615437c741862daba5d053b01e0f6456ddf10f317b5ddd8"
     },
     {
       "bytes": 3981,
       "path": "ci/worker_calc.py",
       "sha256": "bb300d8ce28d70535107e4829f0a63132752146405d6ecb55092a7b5f5a3c30b"
+    },
+    {
+      "bytes": 485,
+      "path": "deployment/.env.live.example",
+      "sha256": "4c3b269153d5985cd71e8b064f46af32861dee0816bee86aea97d2cc3c5ed7d7"
+    },
+    {
+      "bytes": 270,
+      "path": "deployment/cloudflared-config.example.yml",
+      "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
       "bytes": 2110,
@@ -136,6 +151,11 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
+      "bytes": 3344,
+      "path": "docs/SINGLE_NODE_LIVE.md",
+      "sha256": "0765818c968e06f9669c326b2080397b95bee78dfdc33ea46af23852e677fa21"
+    },
+    {
       "bytes": 1667,
       "path": "monitoring/alerting-rules.yml",
       "sha256": "a51047c2491b3a5aebbfba93e91a394b342fed6bad54ecca3746593d3260c039"
@@ -146,9 +166,9 @@
       "sha256": "e0508dd8956dbb6e96b9ee20e9d4e81544859cb37b7b929c1b655e6b05034f2c"
     },
     {
-      "bytes": 3915,
+      "bytes": 4651,
       "path": "monitoring/docker-compose.yml",
-      "sha256": "7cd729c7ad2553e617ab719b0f44e7f3feff1c6df1ff9b8ffad85736d7e3c5e2"
+      "sha256": "76135e49e9d9b76775f0473471389f93d10579ff83c21c0eeeb04cff2e821cb8"
     },
     {
       "bytes": 15917,
@@ -241,9 +261,9 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 2717,
+      "bytes": 4963,
       "path": "tests/test_api.py",
-      "sha256": "bbd2924ba80fbc85b79ed5d6dc58af97130aa9eb7abbafaf833ee217201bb0c7"
+      "sha256": "5b5b9fb63657fdd98b4b823a2c63dd60c65a0fa54741c9a015e61ae8bca520de"
     },
     {
       "bytes": 1980,

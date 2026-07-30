@@ -18,6 +18,7 @@ The block above is the required Wave 34 disclosure and must remain verbatim.
 - Error-ratio queries use a defended denominator. Alerts include telemetry absence, not only service symptoms.
 - Local receipts form an append-only SHA-256 chain and are described honestly as local and unsigned.
 - A one-command verifier proves the local metrics, logs, traces, dashboard, and alert paths before writing a `VERIFIED` integration artifact.
+- The single-node live profile binds every published port to loopback, disables anonymous Grafana access, requires a strong bearer token for operator endpoints, publishes exact source/image identity, and can verify receipt-ledger recovery across a container restart.
 
 ## New Frontier operating doctrine
 
@@ -59,7 +60,7 @@ python ci/audit_cardinality.py \
 Open:
 
 - API docs: `http://localhost:8080/docs`
-- Grafana: `http://localhost:3000/d/gdw-live-ops` (anonymous viewer is enabled for this local stack)
+- Grafana: `http://localhost:3000/d/gdw-live-ops` (sign in as `admin` with the configured local password)
 - Prometheus: `http://localhost:9090`
 - Alloy: `http://localhost:12345`
 
@@ -70,6 +71,13 @@ docker compose -f monitoring/docker-compose.yml down --volumes
 ```
 
 That command removes only this Compose project’s local telemetry and Terraform state volumes.
+
+For a credential-backed HTTPS deployment on one Docker host, follow
+[`docs/SINGLE_NODE_LIVE.md`](docs/SINGLE_NODE_LIVE.md). The live verifier
+records exact source and image identity, fail-closed operator authentication,
+and receipt-ledger recovery across an application-container restart. This is
+stronger than a local smoke test, but it is still not high-availability or
+multi-node production proof.
 
 ## Development checks
 
@@ -115,6 +123,7 @@ The repository distinguishes static validation from live integration:
 | Live series budgets | `ci/audit_cardinality.py --metrics-url ...` | One observed scrape |
 | Dashboard/rule/artifact integrity | `ci/gdw_gate.py` | Checked-in source |
 | Prometheus/Loki/Tempo/Grafana path | `ci/verify_stack.py` | Local Docker Compose only |
+| Credentialed HTTPS ingress and restart recovery | `ci/verify_live_deployment.py` | One observed single-node deployment |
 | Production scale, HA, tenant isolation | Not produced here | `UNVERIFIED` until measured in the target environment |
 
 Generated reports live under `output/` and are ignored by Git. CI uploads them as run-scoped artifacts.
@@ -147,7 +156,10 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 ## Security boundaries
 
 - The local Grafana password is intentionally development-only and can be overridden with `GRAFANA_ADMIN_PASSWORD`.
-- Do not expose this Compose stack directly to an untrusted network.
+- All published Compose ports bind to `127.0.0.1` unless `GDW_BIND_ADDRESS` is deliberately overridden.
+- Anonymous Grafana access is disabled by default.
+- When `GDW_REQUIRE_AUTH=1`, operator endpoints require a bearer token of at least 32 characters; health, readiness, build identity, and the internally scraped metrics endpoint remain unauthenticated.
+- Do not expose the stack directly to an untrusted network. The supplied tunnel example denies public `/metrics` access and leaves operator endpoints behind bearer authentication.
 - Terraform credentials are passed through variables and are not committed.
 - Loki only indexes the bounded `job`, `service`, and `level` labels; request/session correlation remains structured log content.
 - The local receipt chain detects mutation but is not signed, independently witnessed, or durable across volume deletion.

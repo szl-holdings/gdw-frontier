@@ -16,6 +16,8 @@ INCLUDE_PATTERNS = (
     "app/*.py",
     "ci/*.py",
     "ci/*.sh",
+    "deployment/*.example",
+    "deployment/*.yml",
     "docs/*.md",
     "monitoring/*.config",
     "monitoring/*.yml",
