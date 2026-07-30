@@ -12,6 +12,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
+try:
+    from ci.receipt_proof import verify_signed_receipt
+except ModuleNotFoundError:
+    from receipt_proof import verify_signed_receipt
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_COMPOSE_FILE = ROOT / "monitoring" / "docker-compose.yml"
 DEFAULT_OUTPUT = ROOT / "output" / "proofs" / "live-deployment.json"
@@ -71,6 +76,8 @@ def assert_identity(payload: dict[str, Any], source_sha: str, image_digest: str)
     assert payload["image_digest"] == image_digest
     assert payload["deployment_mode"] == "SINGLE_NODE_LIVE"
     assert payload["model_status"] == "MODELED"
+    assert payload["receipt_signing"] == "ECDSA_P256_SHA256"
+    assert payload["receipt_signing_key_id"].startswith("sha256:")
     return payload
 
 
@@ -135,7 +142,9 @@ def main(argv: Iterable[str] | None = None) -> int:
             "model_status": "MODELED",
             "high_availability": "UNVERIFIED",
             "multi_node_durability": "UNVERIFIED",
-            "cryptographic_receipt_signing": "UNAVAILABLE",
+            "cryptographic_receipt_signing": "VERIFIED_FILE_BACKED_P256",
+            "external_witness": "UNAVAILABLE",
+            "off_host_backup": "UNVERIFIED",
         },
         "source_sha": args.expected_source,
         "image_digest": args.expected_image,
@@ -164,6 +173,7 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     ledger_before = request_json(f"{base_url}/v1/gdw/ledger", token=token)
     assert ledger_before["valid"] is True
+    assert ledger_before["signature_status"] == "SIGNED"
     step = request_json(
         f"{base_url}/v1/gdw/step",
         token=token,
@@ -181,8 +191,47 @@ def main(argv: Iterable[str] | None = None) -> int:
     assert step["receipt_status"] == "valid"
     ledger_written = request_json(f"{base_url}/v1/gdw/ledger", token=token)
     assert ledger_written["valid"] is True
+    assert ledger_written["signature_status"] == "SIGNED"
     assert ledger_written["records"] == ledger_before["records"] + 1
     assert ledger_written["head_hash"] == step["receipt_hash"]
+    signed_receipt = verify_signed_receipt(
+        request_json(f"{base_url}/v1/gdw/receipt", token=token)
+    )
+    assert signed_receipt["receipt_hash"] == step["receipt_hash"]
+    assert signed_receipt["body"]["runtime_identity"]["source_sha"] == args.expected_source
+    assert (
+        signed_receipt["body"]["runtime_identity"]["image_digest"]
+        == args.expected_image
+    )
+    proof["checks"]["cryptographic_receipt"] = signed_receipt
+
+    backup = request_json(
+        f"{base_url}/v1/gdw/backup",
+        token=token,
+        method="POST",
+    )
+    assert backup["status"] == "VERIFIED"
+    assert backup["head_hash"] == step["receipt_hash"]
+    restore_output = subprocess.check_output(
+        compose_command(
+            args.compose_file,
+            args.env_file,
+            "run",
+            "--rm",
+            "backup-restore-verify",
+        ),
+        cwd=ROOT,
+        text=True,
+    )
+    restore_proof = json.loads(restore_output.strip().splitlines()[-1])
+    assert restore_proof["status"] == "VERIFIED"
+    assert restore_proof["head_hash"] == backup["head_hash"]
+    assert restore_proof["records"] == backup["records"]
+    proof["checks"]["backup_restore"] = {
+        "backup": backup,
+        "restore": restore_proof,
+        "scope": "separate local Docker volume restored into isolated tmpfs",
+    }
 
     subprocess.run(
         compose_command(args.compose_file, args.env_file, "restart", "app"),
@@ -204,6 +253,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         "records_after": ledger_recovered["records"],
         "head_hash": ledger_recovered["head_hash"],
         "receipt_hash": step["receipt_hash"],
+        "signature_status": ledger_recovered["signature_status"],
+        "signing_key_id": ledger_recovered["signing_key_id"],
     }
 
     container_id = subprocess.check_output(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -45,6 +45,8 @@ class BuildInfoResponse(BaseModel):
     source_sha: str
     image_digest: str
     deployment_mode: str
+    receipt_signing: str
+    receipt_signing_key_id: str | None
     model_status: Literal["MODELED"] = "MODELED"
 
 
@@ -52,4 +54,28 @@ class LedgerStatusResponse(BaseModel):
     valid: bool
     records: int
     head_hash: str | None
+    signed_records: int
+    legacy_unsigned_records: int
+    signature_status: Literal["UNSIGNED", "SIGNED", "INVALID"]
+    signature_algorithm: str | None
+    signing_key_id: str | None
+    model_status: Literal["MODELED"] = "MODELED"
+
+
+class SignedReceiptProofResponse(BaseModel):
+    valid: bool
+    record: dict[str, Any]
+    public_key_pem: str
+    audit: dict[str, Any]
+    model_status: Literal["MODELED"] = "MODELED"
+
+
+class BackupResponse(BaseModel):
+    status: Literal["VERIFIED"] = "VERIFIED"
+    backup_id: str
+    created_at: str
+    ledger_sha256: str
+    records: int
+    head_hash: str
+    signing_key_id: str
     model_status: Literal["MODELED"] = "MODELED"

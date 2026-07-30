@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator, Callable
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CollectorRegistry, REGISTRY, multiprocess
 from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST, generate_latest
@@ -20,7 +20,15 @@ from . import __version__
 from .hybrid_scheduler import validate_mode
 from .kernel import decide
 from .logging_setup import configure_logging, log_event
-from .models import BuildInfoResponse, LedgerStatusResponse, ReadinessResponse, StepRequest, StepResponse
+from .models import (
+    BackupResponse,
+    BuildInfoResponse,
+    LedgerStatusResponse,
+    ReadinessResponse,
+    SignedReceiptProofResponse,
+    StepRequest,
+    StepResponse,
+)
 from .persistence import ReceiptLedger
 from .telemetry import (
     DECISION_TOTAL,
@@ -46,8 +54,18 @@ workspace = WorkspaceState()
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     _validate_runtime_configuration()
-    valid, records = ledger.verify()
-    log_event(logger, logging.INFO, "service_started", event="service_started", ledger_valid=valid, ledger_records=records)
+    ledger.ensure_signed_head(_runtime_identity())
+    audit = ledger.audit()
+    log_event(
+        logger,
+        logging.INFO,
+        "service_started",
+        event="service_started",
+        ledger_valid=audit.valid,
+        ledger_records=audit.records,
+        receipt_signature_status=audit.signature_status,
+        receipt_signing_key_id=audit.signing_key_id,
+    )
     try:
         yield
     finally:
@@ -91,11 +109,22 @@ def _configured_api_token() -> str:
 
 
 def _validate_runtime_configuration() -> None:
+    ledger.validate_configuration()
     if not _auth_required():
         return
     token = _configured_api_token()
     if len(token) < 32:
         raise RuntimeError("GDW_API_TOKEN must contain at least 32 characters when GDW_REQUIRE_AUTH is enabled")
+
+
+def _runtime_identity() -> dict[str, str]:
+    return {
+        "service": "gdw",
+        "version": __version__,
+        "source_sha": os.getenv("GDW_SOURCE_SHA", "UNAVAILABLE"),
+        "image_digest": os.getenv("GDW_IMAGE_DIGEST", "UNAVAILABLE"),
+        "deployment_mode": os.getenv("GDW_DEPLOYMENT_MODE", "MODELED_LOCAL"),
+    }
 
 
 def _has_valid_bearer_token(request: Request) -> bool:
@@ -189,18 +218,20 @@ async def healthz() -> ReadinessResponse:
 
 @app.get("/readyz", response_model=ReadinessResponse)
 async def readyz() -> ReadinessResponse:
-    valid, _ = ledger.verify()
-    status = "ready" if valid else "not_ready"
+    status = "ready" if ledger.audit().valid else "not_ready"
     return ReadinessResponse(status=status, service="gdw")
 
 
 @app.get("/build-info", response_model=BuildInfoResponse)
 async def build_info() -> BuildInfoResponse:
+    signing_algorithm, signing_key_id = ledger.signing_identity()
     return BuildInfoResponse(
         version=__version__,
         source_sha=os.getenv("GDW_SOURCE_SHA", "UNAVAILABLE"),
         image_digest=os.getenv("GDW_IMAGE_DIGEST", "UNAVAILABLE"),
         deployment_mode=os.getenv("GDW_DEPLOYMENT_MODE", "MODELED_LOCAL"),
+        receipt_signing=signing_algorithm or "UNAVAILABLE",
+        receipt_signing_key_id=signing_key_id,
     )
 
 
@@ -220,8 +251,35 @@ async def state() -> dict:
 
 @app.get("/v1/gdw/ledger", response_model=LedgerStatusResponse)
 async def ledger_status() -> LedgerStatusResponse:
-    valid, records, head_hash = ledger.status()
-    return LedgerStatusResponse(valid=valid, records=records, head_hash=head_hash)
+    return LedgerStatusResponse(**ledger.audit().to_dict())
+
+
+@app.get("/v1/gdw/receipt", response_model=SignedReceiptProofResponse)
+async def signed_receipt_proof() -> SignedReceiptProofResponse:
+    try:
+        return SignedReceiptProofResponse(**ledger.head_proof())
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
+
+@app.post("/v1/gdw/backup", response_model=BackupResponse)
+async def create_backup() -> BackupResponse:
+    configured = os.getenv("GDW_BACKUP_DIR", "").strip()
+    if not configured:
+        raise HTTPException(status_code=503, detail="GDW_BACKUP_DIR is not configured")
+    try:
+        manifest = ledger.create_backup(Path(configured), _runtime_identity())
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    payload = manifest["payload"]
+    return BackupResponse(
+        backup_id=payload["backup_id"],
+        created_at=payload["created_at"],
+        ledger_sha256=payload["ledger"]["sha256"],
+        records=payload["ledger"]["records"],
+        head_hash=payload["ledger"]["head_hash"],
+        signing_key_id=manifest["key_id"],
+    )
 
 
 @app.post("/v1/gdw/step", response_model=StepResponse)
@@ -243,6 +301,7 @@ async def step(payload: StepRequest, request: Request) -> StepResponse:
                 "scheduler_mode": scheduler_mode,
                 "request_id": request.state.request_id,
                 "trace_id": trace_fields.get("trace_id"),
+                "runtime_identity": _runtime_identity(),
             }
         )
 
