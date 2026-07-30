@@ -78,8 +78,16 @@
           "POST"
         ],
         "route": [
+          "/build-info",
+          "/docs",
+          "/docs/oauth2-redirect",
           "/healthz",
+          "/openapi.json",
           "/readyz",
+          "/redoc",
+          "/v1/gdw/backup",
+          "/v1/gdw/ledger",
+          "/v1/gdw/receipt",
           "/v1/gdw/state",
           "/v1/gdw/step",
           "unmatched"
@@ -98,8 +106,16 @@
           "POST"
         ],
         "route": [
+          "/build-info",
+          "/docs",
+          "/docs/oauth2-redirect",
           "/healthz",
+          "/openapi.json",
           "/readyz",
+          "/redoc",
+          "/v1/gdw/backup",
+          "/v1/gdw/ledger",
+          "/v1/gdw/receipt",
           "/v1/gdw/state",
           "/v1/gdw/step",
           "unmatched"

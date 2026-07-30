@@ -45,7 +45,11 @@ each entry to the preceding SHA-256 digest. When
 file-backed ECDSA P-256 key, the trusted public-key fingerprint is checked on
 read, and readiness fails if the required key, hash chain, signature sequence,
 or signed head is invalid. A signed runtime-activation record anchors an
-existing legacy unsigned prefix without rewriting historical bytes.
+existing legacy unsigned prefix without rewriting historical bytes. The first
+signed record is also bound into a separately signed transition marker beside
+the ledger. Once that marker exists, startup refuses a ledger that has been
+deleted or truncated back to its unsigned prefix instead of silently creating
+a replacement anchor.
 
 The authenticated receipt surface returns the signed head plus its public key
 for offline verification. Every decision receipt binds exact source, image,

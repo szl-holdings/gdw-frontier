@@ -61,6 +61,9 @@ class ReceiptLedger:
             else ""
         )
         self.signing_key_path = signing_key_path or (Path(configured_key) if configured_key else None)
+        self.signing_transition_path = self.path.with_suffix(
+            self.path.suffix + ".signing-transition.json"
+        )
         self.signing_required = (
             signing_required
             if signing_required is not None
@@ -110,9 +113,12 @@ class ReceiptLedger:
         }
         with self._lock:
             with self._process_lock():
-                audit = self._audit_locked(allow_unsigned_head=True)
+                transition = self._load_signing_transition()
+                audit = self._audit_locked(allow_unsigned_head=transition is None)
                 if not audit.valid:
                     raise RuntimeError("cannot anchor an invalid receipt ledger")
+                if transition is not None:
+                    self._verify_signing_transition(transition)
                 if self.path.exists():
                     for raw_line in reversed(
                         self.path.read_text(encoding="utf-8").splitlines()
@@ -123,8 +129,13 @@ class ReceiptLedger:
                             and record.get("body") == activation
                             and record.get("key_id") == self._key_id()
                         ):
+                            if transition is None:
+                                self._record_signing_transition()
                             return str(record["receipt_hash"])
-                return self._append_locked(activation)
+                receipt_hash = self._append_locked(activation)
+                if transition is None:
+                    self._record_signing_transition()
+                return receipt_hash
 
     def head_proof(self) -> dict[str, Any]:
         with self._lock:
@@ -363,6 +374,78 @@ class ReceiptLedger:
         if not lines:
             return None
         return dict(json.loads(lines[-1]))
+
+    def _load_signing_transition(self) -> dict[str, Any] | None:
+        if not self.signing_transition_path.exists():
+            return None
+        try:
+            return dict(
+                json.loads(self.signing_transition_path.read_text(encoding="utf-8"))
+            )
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
+            raise RuntimeError("the receipt signing transition marker is invalid") from error
+
+    def _record_signing_transition(self) -> None:
+        records = [
+            json.loads(raw_line)
+            for raw_line in self.path.read_text(encoding="utf-8").splitlines()
+        ]
+        first_signed = next(
+            (record for record in records if record.get("signature")),
+            None,
+        )
+        if first_signed is None:
+            raise RuntimeError("cannot record a signing transition without a signed record")
+        payload = {
+            "schema_version": 1,
+            "key_id": self._key_id(),
+            "legacy_head_hash": first_signed.get("previous_hash"),
+            "anchor_receipt_hash": first_signed.get("receipt_hash"),
+        }
+        marker = {
+            "payload": payload,
+            "signature_algorithm": SIGNATURE_ALGORITHM,
+            "signature": self._sign(payload),
+        }
+        self._write_durable(
+            self.signing_transition_path,
+            canonical_json(marker) + b"\n",
+        )
+
+    def _verify_signing_transition(self, marker: dict[str, Any]) -> None:
+        payload = marker.get("payload")
+        if (
+            not isinstance(payload, dict)
+            or payload.get("schema_version") != 1
+            or marker.get("signature_algorithm") != SIGNATURE_ALGORITHM
+            or payload.get("key_id") != self._key_id()
+        ):
+            raise RuntimeError("the receipt signing transition marker is invalid")
+        try:
+            self._verify_signature(payload, str(marker.get("signature", "")))
+        except (InvalidSignature, ValueError) as error:
+            raise RuntimeError("the receipt signing transition marker is invalid") from error
+
+        try:
+            records = [
+                json.loads(raw_line)
+                for raw_line in self.path.read_text(encoding="utf-8").splitlines()
+            ]
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
+            raise RuntimeError("the receipt signing transition marker is invalid") from error
+        first_signed = next(
+            (record for record in records if record.get("signature")),
+            None,
+        )
+        if (
+            first_signed is None
+            or first_signed.get("key_id") != payload["key_id"]
+            or first_signed.get("previous_hash") != payload.get("legacy_head_hash")
+            or first_signed.get("receipt_hash") != payload.get("anchor_receipt_hash")
+        ):
+            raise RuntimeError(
+                "the receipt ledger no longer contains its recorded signing transition"
+            )
 
     def _load_private_key(self) -> ec.EllipticCurvePrivateKey:
         if self._private_key is not None:

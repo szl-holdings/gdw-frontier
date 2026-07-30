@@ -82,6 +82,22 @@ def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path
     path.write_text(records[0] + "\n", encoding="utf-8")
     assert signed.audit().valid is False
     assert signed.audit().signature_status == "INVALID"
+    with pytest.raises(RuntimeError, match="cannot anchor an invalid receipt ledger"):
+        signed.ensure_signed_head({"source_sha": "a" * 40})
+
+
+def test_signed_transition_rejects_deleted_signed_only_ledger(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.jsonl"
+    key_path = _signing_key(tmp_path / "signing-key.pem")
+    signed = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    signed.ensure_signed_head({"source_sha": "a" * 40})
+
+    assert signed.signing_transition_path.is_file()
+    path.unlink()
+
+    restarted = ReceiptLedger(path, signing_key_path=key_path, signing_required=True)
+    with pytest.raises(RuntimeError, match="cannot anchor an invalid receipt ledger"):
+        restarted.ensure_signed_head({"source_sha": "a" * 40})
 
 
 def test_signed_backup_restores_exact_head_and_rejects_tampering(tmp_path: Path) -> None:
