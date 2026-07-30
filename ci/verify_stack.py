@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import time
 import urllib.error
 import urllib.parse
@@ -22,6 +23,7 @@ def request_json(
     method: str = "GET",
     body: dict[str, Any] | None = None,
     basic_auth: tuple[str, str] | None = None,
+    bearer_token: str | None = None,
 ) -> dict[str, Any]:
     headers = {"Accept": "application/json"}
     data = None
@@ -31,6 +33,8 @@ def request_json(
     if basic_auth:
         token = base64.b64encode(f"{basic_auth[0]}:{basic_auth[1]}".encode()).decode()
         headers["Authorization"] = f"Basic {token}"
+    if bearer_token:
+        headers["Authorization"] = f"Bearer {bearer_token}"
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(request, timeout=10) as response:
         return json.loads(response.read().decode("utf-8"))
@@ -50,9 +54,9 @@ def wait_for(name: str, check: Callable[[], Any], *, timeout: float = 120.0) -> 
     raise TimeoutError(f"{name} was not verified within {timeout}s: {last_error}")
 
 
-def prometheus_query(expression: str) -> dict[str, Any]:
+def prometheus_query(base_url: str, expression: str) -> dict[str, Any]:
     query = urllib.parse.urlencode({"query": expression})
-    result = request_json(f"http://localhost:9090/api/v1/query?{query}")
+    result = request_json(f"{base_url}/api/v1/query?{query}")
     assert result["status"] == "success"
     assert result["data"]["result"]
     return result
@@ -62,18 +66,30 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify the complete local GDW signal path.")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--grafana-password", default="gdw-local-admin")
+    parser.add_argument("--api-token", default=os.getenv("GDW_API_TOKEN"))
+    parser.add_argument("--app-url", default="http://localhost:8080")
+    parser.add_argument("--prometheus-url", default="http://localhost:9090")
+    parser.add_argument("--loki-url", default="http://localhost:3100")
+    parser.add_argument("--tempo-url", default="http://localhost:3200")
+    parser.add_argument("--grafana-url", default="http://localhost:3000")
     args = parser.parse_args(argv)
+    app_url = args.app_url.rstrip("/")
+    prometheus_url = args.prometheus_url.rstrip("/")
+    loki_base_url = args.loki_url.rstrip("/")
+    tempo_url = args.tempo_url.rstrip("/")
+    grafana_url = args.grafana_url.rstrip("/")
     proof: dict[str, Any] = {"status": "UNVERIFIED", "checks": {}}
 
-    wait_for("FastAPI readiness", lambda: _assert_value(request_json("http://localhost:8080/readyz"), "status", "ready"))
-    wait_for("Prometheus readiness", lambda: _assert_text("http://localhost:9090/-/ready", "Ready"))
-    wait_for("Loki readiness", lambda: _assert_text("http://localhost:3100/ready", "ready"))
-    wait_for("Tempo readiness", lambda: _assert_text("http://localhost:3200/ready", "ready"))
-    wait_for("Grafana health", lambda: _assert_value(request_json("http://localhost:3000/api/health"), "database", "ok"))
+    wait_for("FastAPI readiness", lambda: _assert_value(request_json(f"{app_url}/readyz"), "status", "ready"))
+    wait_for("Prometheus readiness", lambda: _assert_text(f"{prometheus_url}/-/ready", "Ready"))
+    wait_for("Loki readiness", lambda: _assert_text(f"{loki_base_url}/ready", "ready"))
+    wait_for("Tempo readiness", lambda: _assert_text(f"{tempo_url}/ready", "ready"))
+    wait_for("Grafana health", lambda: _assert_value(request_json(f"{grafana_url}/api/health"), "database", "ok"))
 
     step = request_json(
-        "http://localhost:8080/v1/gdw/step",
+        f"{app_url}/v1/gdw/step",
         method="POST",
+        bearer_token=args.api_token,
         body={
             "session_id": "stack-verification-session",
             "proposal_id": "stack-verification-proposal",
@@ -107,8 +123,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         start=1,
     ):
         extra = request_json(
-            "http://localhost:8080/v1/gdw/step",
+            f"{app_url}/v1/gdw/step",
             method="POST",
+            bearer_token=args.api_token,
             body={
                 "session_id": f"multiprocess-session-{index}",
                 "proposal_id": f"multiprocess-proposal-{index}",
@@ -123,30 +140,30 @@ def main(argv: Iterable[str] | None = None) -> int:
     aggregate = wait_for(
         "Prometheus multiprocess aggregation",
         lambda: _assert_metric_total(
-            _fetch_text("http://localhost:8080/metrics"),
+            _fetch_text(f"{app_url}/metrics"),
             "gdw_decision_total",
             7,
         ),
     )
     proof["checks"]["multiprocess_metrics"] = aggregate
 
-    wait_for("Prometheus GDW scrape", lambda: prometheus_query("gdw_build_info"))
+    wait_for("Prometheus GDW scrape", lambda: prometheus_query(prometheus_url, "gdw_build_info"))
     targets = wait_for(
         "Prometheus target health",
-        lambda: _assert_prometheus_target(request_json("http://localhost:9090/api/v1/targets")),
+        lambda: _assert_prometheus_target(request_json(f"{prometheus_url}/api/v1/targets")),
     )
     proof["checks"]["prometheus"] = targets
 
     rules = wait_for(
         "Prometheus alert evaluation",
-        lambda: _assert_prometheus_rules(request_json("http://localhost:9090/api/v1/rules?type=alert")),
+        lambda: _assert_prometheus_rules(request_json(f"{prometheus_url}/api/v1/rules?type=alert")),
     )
     proof["checks"]["alerts"] = rules
 
     dashboard = wait_for(
         "Terraform-provisioned Grafana dashboard",
         lambda: request_json(
-            "http://localhost:3000/api/dashboards/uid/gdw-live-ops",
+            f"{grafana_url}/api/dashboards/uid/gdw-live-ops",
             basic_auth=("admin", args.grafana_password),
         ),
     )
@@ -161,7 +178,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         "Terraform-provisioned Grafana alerts",
         lambda: _assert_grafana_alerts(
             request_json(
-                "http://localhost:3000/api/v1/provisioning/alert-rules",
+                f"{grafana_url}/api/v1/provisioning/alert-rules",
                 basic_auth=("admin", args.grafana_password),
             )
         ),
@@ -169,7 +186,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     proof["checks"]["grafana_alerts"] = grafana_alerts
 
     loki_query = '{job="gdw"} | json | request_id="' + request_id + '"'
-    loki_url = "http://localhost:3100/loki/api/v1/query_range?" + urllib.parse.urlencode(
+    loki_url = f"{loki_base_url}/loki/api/v1/query_range?" + urllib.parse.urlencode(
         {"query": loki_query, "limit": 20}
     )
     loki = wait_for("Alloy to Loki log correlation", lambda: _assert_loki_result(request_json(loki_url)))
@@ -177,7 +194,7 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     tempo = wait_for(
         "OTLP to Tempo trace correlation",
-        lambda: _assert_tempo_trace(request_json(f"http://localhost:3200/api/traces/{trace_id}")),
+        lambda: _assert_tempo_trace(request_json(f"{tempo_url}/api/traces/{trace_id}")),
     )
     proof["checks"]["tempo"] = tempo
 
