@@ -6,6 +6,11 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
+      "bytes": 1918,
+      "path": ".github/workflows/gdw-production-witness.yml",
+      "sha256": "44a106c9d9f8e7b1abd46fbf73686ddb876bf9b7ff3946202eb2ce0a4e03eab4"
+    },
+    {
       "bytes": 5608,
       "path": ".github/workflows/gdw-verify.yml",
       "sha256": "618e77a95e73a9b66610e6d42d8ce9bc9aca136e945095eac2556decfe317e43"
@@ -16,9 +21,9 @@
       "sha256": "37d07ef2daec397474a5922edb379c6d408540b94d9e053eae3f4e5cf138fb49"
     },
     {
-      "bytes": 12100,
+      "bytes": 12259,
       "path": "README.md",
-      "sha256": "c5190b9dc7c1d6689e054d5b213f72e9a506c2b9d2489272dc24038c53a5a525"
+      "sha256": "53c6d5d4ac203497944ffb0416c45fc46db778f2f83e02e2a32dc98f736c0f85"
     },
     {
       "bytes": 83,
@@ -141,6 +146,11 @@
       "sha256": "dd51b1e78b77fd931aaafebd180abd4978c403fb1c748156496e36a73bd5d5d0"
     },
     {
+      "bytes": 6431,
+      "path": "ci/verify_remote_witness.py",
+      "sha256": "bbd4aa3b14afea1d1636b0f19c924b163d1b69b445f3c177ac4e8f1237ff0399"
+    },
+    {
       "bytes": 12561,
       "path": "ci/verify_stack.py",
       "sha256": "f2a78fcc3ac133e5c7a8e54621319f710df13fea1cb422c6b542cd522693c280"
@@ -181,9 +191,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 6120,
+      "bytes": 6948,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "13d5d01c4fdabd9ab9f9c386976ecdfd6699a6b31d3a8d96b22c2e3084cc1fee"
+      "sha256": "6f1dceb64f30879eaab83d29be3da38bbcb14722b0abdb117d193b71404774ab"
     },
     {
       "bytes": 1667,
@@ -309,6 +319,11 @@
       "bytes": 11391,
       "path": "tests/test_persistence.py",
       "sha256": "7eb1070477a65f6c2f654c1ae7d4d9cc293ede01b455d9e3034f10f212794f39"
+    },
+    {
+      "bytes": 3904,
+      "path": "tests/test_remote_witness.py",
+      "sha256": "97b76ef28594f9fdb0da5fdc537564788bfc5299210f39a1b2e18da1a2861b1f"
     },
     {
       "bytes": 480,

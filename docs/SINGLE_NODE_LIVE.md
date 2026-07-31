@@ -122,6 +122,22 @@ python ci/measure_load.py \
 The artifact verifies unique signed receipts and the exact ledger delta. It is
 one bounded single-node measurement, not a universal capacity or HA claim.
 
+## 6. Capture an independent read-only witness
+
+Configure the `production` GitHub environment with the protected
+`GDW_PRODUCTION_API_TOKEN` secret and the `GDW_PRODUCTION_URL`,
+`GDW_PRODUCTION_SOURCE_SHA`, and `GDW_PRODUCTION_IMAGE_DIGEST` variables.
+Dispatch `gdw-production-witness` only after the exact deployed identity has
+been verified locally.
+
+The hosted verifier checks public health, readiness, ingress denial for
+`/metrics`, fail-closed operator authentication, exact source/image identity,
+and the current signed ledger head. It verifies the P-256 signature offline
+without writing a production record, then retains the proof as a run-scoped
+GitHub artifact. This is an independent network witness; it does not prove
+high availability, multi-node durability, hardware-backed signing, or
+off-host disaster recovery.
+
 ## Rollback
 
 Stop the dedicated tunnel process first, then stop only the GDW Compose project:
