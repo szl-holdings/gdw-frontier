@@ -136,6 +136,7 @@ The repository distinguishes static validation from live integration:
 | Dashboard/rule/artifact integrity | `ci/gdw_gate.py` | Checked-in source |
 | Prometheus/Loki/Tempo/Grafana path | `ci/verify_stack.py` | Local Docker Compose only |
 | Credentialed HTTPS ingress, signed receipts, backup/restore, and restart recovery | `ci/verify_live_deployment.py` | One observed single-node deployment |
+| Independent public identity and signed-head witness | `ci/verify_remote_witness.py` | One read-only external observation; no HA or disaster-recovery claim |
 | Bounded authenticated write load | `ci/measure_load.py` | One target, request count, and concurrency setting |
 | Production scale, HA, tenant isolation | Not produced here | `UNVERIFIED` until measured in the target environment |
 

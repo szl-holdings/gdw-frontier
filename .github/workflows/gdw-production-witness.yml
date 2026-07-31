@@ -1,0 +1,58 @@
+name: gdw-production-witness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gdw-production-witness
+  cancel-in-progress: false
+
+jobs:
+  witness:
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install verifier
+        run: python -m pip install -e .
+
+      - name: Materialize protected witness credential
+        shell: bash
+        env:
+          GDW_PRODUCTION_API_TOKEN: ${{ secrets.GDW_PRODUCTION_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$GDW_PRODUCTION_API_TOKEN"
+          umask 077
+          printf '%s' "$GDW_PRODUCTION_API_TOKEN" > "$RUNNER_TEMP/gdw-production-api-token"
+
+      - name: Verify exact public production identity and signed receipt
+        env:
+          GDW_API_TOKEN_SOURCE_FILE: ${{ runner.temp }}/gdw-production-api-token
+          GDW_PRODUCTION_IMAGE_DIGEST: ${{ vars.GDW_PRODUCTION_IMAGE_DIGEST }}
+          GDW_PRODUCTION_SOURCE_SHA: ${{ vars.GDW_PRODUCTION_SOURCE_SHA }}
+          GDW_PRODUCTION_URL: ${{ vars.GDW_PRODUCTION_URL }}
+        run: >-
+          python ci/verify_remote_witness.py
+          --public-url "$GDW_PRODUCTION_URL"
+          --expected-source "$GDW_PRODUCTION_SOURCE_SHA"
+          --expected-image "$GDW_PRODUCTION_IMAGE_DIGEST"
+          --output output/proofs/remote-production-witness.json
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: gdw-production-witness-${{ github.run_id }}
+          path: output/proofs/remote-production-witness.json
+          if-no-files-found: error
+          retention-days: 90
