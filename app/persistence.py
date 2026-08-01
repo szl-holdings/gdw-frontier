@@ -116,30 +116,27 @@ class ReceiptLedger:
                 return self._audit_with_signing_state_locked()
 
     def verified_records(self) -> list[dict[str, Any]]:
-        """Return the ledger snapshot while its integrity locks remain held."""
+        """Return the exact parsed ledger snapshot that passed verification."""
         with self._lock:
             with self._process_lock():
-                audit = self._audit_with_signing_state_locked()
+                try:
+                    records = self._read_records()
+                except (
+                    json.JSONDecodeError,
+                    TypeError,
+                    UnicodeDecodeError,
+                    ValueError,
+                ) as error:
+                    raise RuntimeError(
+                        "receipt ledger failed integrity or signature verification"
+                    ) from error
+                audit = self._audit_signing_state_locked(
+                    self._audit_records_locked(records),
+                    records=records,
+                )
                 if not audit.valid:
                     raise RuntimeError(
                         "receipt ledger failed integrity or signature verification"
-                    )
-                if not self.path.exists():
-                    return []
-                try:
-                    records = [
-                        json.loads(raw_line)
-                        for raw_line in self.path.read_text(
-                            encoding="utf-8"
-                        ).splitlines()
-                    ]
-                except (json.JSONDecodeError, UnicodeDecodeError) as error:
-                    raise RuntimeError(
-                        "receipt ledger changed after integrity verification"
-                    ) from error
-                if len(records) != audit.records:
-                    raise RuntimeError(
-                        "receipt ledger changed after integrity verification"
                     )
                 return records
 
@@ -396,7 +393,12 @@ class ReceiptLedger:
             canonical_json(signing_state) + b"\n",
         )
 
-    def _validate_signing_state(self, signing_state: dict[str, Any]) -> None:
+    def _validate_signing_state(
+        self,
+        signing_state: dict[str, Any],
+        *,
+        records: list[dict[str, Any]] | None = None,
+    ) -> None:
         try:
             payload = dict(signing_state["payload"])
             if int(payload.get("schema_version", 0)) != 1:
@@ -411,10 +413,10 @@ class ReceiptLedger:
             legacy_records = int(payload["legacy_records"])
             if legacy_records < 0:
                 raise ValueError("signing continuity state has a negative boundary")
-            records = self._read_records()
-            if len(records) <= legacy_records:
+            ledger_records = records if records is not None else self._read_records()
+            if len(ledger_records) <= legacy_records:
                 raise ValueError("receipt ledger no longer contains its signed transition")
-            activation = records[legacy_records]
+            activation = ledger_records[legacy_records]
             if activation.get("body", {}).get("event") != "runtime_activation":
                 raise ValueError("recorded signing transition is not a runtime activation")
             if activation.get("previous_hash") != payload.get("legacy_head_hash"):
@@ -465,12 +467,32 @@ class ReceiptLedger:
         return receipt_hash
 
     def _audit_locked(self, *, allow_unsigned_head: bool = False) -> LedgerAudit:
+        try:
+            records = self._read_records()
+        except (
+            json.JSONDecodeError,
+            TypeError,
+            UnicodeDecodeError,
+            ValueError,
+        ):
+            return self._invalid_audit(0, None, 0, 0)
+        return self._audit_records_locked(
+            records,
+            allow_unsigned_head=allow_unsigned_head,
+        )
+
+    def _audit_records_locked(
+        self,
+        records: list[dict[str, Any]],
+        *,
+        allow_unsigned_head: bool = False,
+    ) -> LedgerAudit:
         previous_hash: str | None = None
         count = 0
         signed_records = 0
         legacy_unsigned_records = 0
         seen_signed = False
-        if not self.path.exists():
+        if not records:
             valid = not self.signing_required or allow_unsigned_head
             return LedgerAudit(
                 valid=valid,
@@ -482,13 +504,6 @@ class ReceiptLedger:
                 signature_algorithm=None,
                 signing_key_id=self._key_id() if self.signing_key_path else None,
             )
-        try:
-            records = [
-                json.loads(raw_line)
-                for raw_line in self.path.read_text(encoding="utf-8").splitlines()
-            ]
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return self._invalid_audit(count, previous_hash, signed_records, legacy_unsigned_records)
         for record in records:
             if record.get("previous_hash") != previous_hash:
                 return self._invalid_audit(count, previous_hash, signed_records, legacy_unsigned_records)
@@ -545,7 +560,26 @@ class ReceiptLedger:
         )
 
     def _audit_with_signing_state_locked(self) -> LedgerAudit:
-        audit = self._audit_locked()
+        try:
+            records = self._read_records()
+        except (
+            json.JSONDecodeError,
+            TypeError,
+            UnicodeDecodeError,
+            ValueError,
+        ):
+            return self._invalid_audit(0, None, 0, 0)
+        return self._audit_signing_state_locked(
+            self._audit_records_locked(records),
+            records=records,
+        )
+
+    def _audit_signing_state_locked(
+        self,
+        audit: LedgerAudit,
+        *,
+        records: list[dict[str, Any]] | None = None,
+    ) -> LedgerAudit:
         if not audit.valid:
             return audit
         try:
@@ -554,7 +588,7 @@ class ReceiptLedger:
                 if audit.signed_records:
                     raise RuntimeError("receipt signing continuity state is missing")
                 return audit
-            self._validate_signing_state(signing_state)
+            self._validate_signing_state(signing_state, records=records)
         except RuntimeError:
             return self._invalid_audit(
                 audit.records,

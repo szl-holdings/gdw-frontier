@@ -9,6 +9,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
+from threading import Event
 from typing import AsyncIterator, Callable
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -72,6 +73,9 @@ from gdw_x.apps.calibration_api.router import router as calibration_router
 from gdw_x.apps.master_suite_api.router import router as master_suite_router
 from gdw_x.telemetry.otel import instrument_fastapi
 
+# Direct ASGI launchers can disable lifespan, so validate topology at import too.
+governed_worker_count()
+
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 AUTH_EXEMPT_PATHS = frozenset(
     {
@@ -90,10 +94,12 @@ ledger = ReceiptLedger()
 exemplar_store = ExemplarStore()
 policy_bundle = load_policy_bundle()
 workspace = WorkspaceState()
+_GOVERNED_RUNTIME_READY = Event()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    _GOVERNED_RUNTIME_READY.clear()
     lease = MasterSuiteProcessLease()
     lease.acquire()
     try:
@@ -116,9 +122,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
             policy_revision=policy_bundle.revision,
             policy_digest=policy_bundle.digest,
         )
+        _GOVERNED_RUNTIME_READY.set()
         try:
             yield
         finally:
+            _GOVERNED_RUNTIME_READY.clear()
             if os.getenv("PROMETHEUS_MULTIPROC_DIR"):
                 multiprocess.mark_process_dead(os.getpid())
             log_event(logger, logging.INFO, "service_stopped", event="service_stopped")
@@ -265,6 +273,16 @@ async def observe_request(request: Request, call_next: Callable) -> Response:
             session_ref=getattr(request.state, "session_ref", None),
             **span_fields,
         )
+
+
+@app.middleware("http")
+async def enforce_governed_startup(request: Request, call_next: Callable) -> Response:
+    if not _GOVERNED_RUNTIME_READY.is_set():
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "governed runtime startup incomplete"},
+        )
+    return await call_next(request)
 
 
 @app.get("/healthz", response_model=ReadinessResponse)

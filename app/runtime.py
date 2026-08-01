@@ -10,14 +10,30 @@ from gdw_x.memory.lake_journal import resolve_master_suite_data_root
 
 def governed_worker_count() -> int:
     signals: list[tuple[str, str]] = []
-    for name in ("GDW_WORKERS", "WEB_CONCURRENCY"):
+    for name in ("GDW_WORKERS", "WEB_CONCURRENCY", "UVICORN_WORKERS"):
         configured = os.getenv(name, "").strip()
         if configured:
             signals.append((name, configured))
 
+    if os.getenv("UVICORN_LIFESPAN", "").strip().casefold() == "off":
+        raise RuntimeError(
+            "UVICORN_LIFESPAN=off is unsupported because governed startup controls require lifespan"
+        )
+
     arguments = sys.argv[1:]
     for index, argument in enumerate(arguments):
-        if argument == "--workers":
+        if argument == "--lifespan":
+            value = arguments[index + 1] if index + 1 < len(arguments) else ""
+            if value.casefold() == "off":
+                raise RuntimeError(
+                    "uvicorn --lifespan off is unsupported because governed startup controls require lifespan"
+                )
+        elif argument.startswith("--lifespan="):
+            if argument.split("=", 1)[1].casefold() == "off":
+                raise RuntimeError(
+                    "uvicorn --lifespan off is unsupported because governed startup controls require lifespan"
+                )
+        elif argument == "--workers":
             value = arguments[index + 1] if index + 1 < len(arguments) else ""
             signals.append(("uvicorn --workers", value))
         elif argument.startswith("--workers="):
