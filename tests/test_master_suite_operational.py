@@ -21,6 +21,9 @@ from gdw_x.domain.master_suite import (
 from gdw_x.memory.lake_journal import LakeJournal
 
 
+TEST_GOVERNANCE_KEY = "test-governance-key-material-at-least-32-bytes"
+
+
 def _append_journal_events(root: str, worker: int, count: int) -> None:
     journal = LakeJournal(Path(root))
     for index in range(count):
@@ -113,7 +116,7 @@ def test_master_suite_defaults_to_the_configured_writable_data_dir(
     monkeypatch.setenv("GDW_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("GDWX_MASTER_SUITE_DATA_ROOT", "")
 
-    service = MasterSuiteService(signing_key="test-governance-key")
+    service = MasterSuiteService(signing_key=TEST_GOVERNANCE_KEY)
 
     assert service._journal.root == tmp_path / "master_suite"
     assert (tmp_path / "master_suite" / ".lake-journal.lock").is_file()
@@ -124,13 +127,51 @@ def test_master_suite_prefers_the_file_backed_signing_key(
     monkeypatch,
 ) -> None:
     key_path = tmp_path / "master-suite-signing-key"
-    key_path.write_text("file-backed-governance-key\n", encoding="utf-8")
+    file_key = "file-backed-governance-key-material-at-least-32-bytes"
+    key_path.write_text(file_key + "\n", encoding="utf-8")
     monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_path))
-    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "environment-fallback")
+    monkeypatch.setenv(
+        "GDWX_MASTER_SUITE_SIGNING_KEY",
+        "environment-fallback-key-material-at-least-32-bytes",
+    )
 
     service = MasterSuiteService(data_root=tmp_path / "service")
 
-    assert service._signing_key == "file-backed-governance-key"
+    assert service._signing_key == file_key
+
+
+@pytest.mark.parametrize(
+    ("contents", "error_code"),
+    [("\n", "signing_key_unavailable"), ("short\n", "weak_signing_key")],
+)
+def test_master_suite_rejects_empty_or_short_file_backed_signing_keys(
+    tmp_path: Path,
+    monkeypatch,
+    contents: str,
+    error_code: str,
+) -> None:
+    key_path = tmp_path / "master-suite-signing-key"
+    key_path.write_text(contents, encoding="utf-8")
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_path))
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", TEST_GOVERNANCE_KEY)
+
+    with pytest.raises(MasterSuiteError) as error:
+        MasterSuiteService(data_root=tmp_path / "service")
+
+    assert error.value.code == error_code
+
+
+def test_master_suite_rejects_short_environment_signing_key(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", raising=False)
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "short")
+
+    with pytest.raises(MasterSuiteError) as error:
+        MasterSuiteService(data_root=tmp_path / "service")
+
+    assert error.value.code == "weak_signing_key"
 
 
 def test_strategy_mutation_hash_excludes_generated_identity_and_timestamp() -> None:
@@ -153,10 +194,50 @@ def test_strategy_mutation_hash_excludes_generated_identity_and_timestamp() -> N
     assert first.proposal_hash() == second.proposal_hash()
 
 
+def test_fresh_evidence_objects_preserve_mutation_idempotency(tmp_path: Path) -> None:
+    service = MasterSuiteService(
+        data_root=tmp_path,
+        signing_key=TEST_GOVERNANCE_KEY,
+    )
+    first_observation, first_reference = _evidence_window()
+    second_observation, second_reference = _evidence_window()
+    assert first_observation.observation_id != second_observation.observation_id
+    assert first_reference[0].observation_id != second_reference[0].observation_id
+    values = {
+        "strategy_id": "frontier-alpha-strategy",
+        "formula_id": "frontier-alpha",
+        "from_version": "1.0.0",
+        "candidate_version": "1.0.1",
+        "parameter_diff": {"signal_weight": 0.02},
+        "evidence_hashes": ["evidence-replay-001"],
+        "requested_mode": DeploymentMode.PAPER,
+        "parent_runtime_hash": service.dashboard_state()["active_runtime_hash"],
+        "requestor_identity": "strategy-lab",
+        "reversibility_plan": "Restore the prior version.",
+    }
+
+    first = service.submit_mutation(
+        StrategyMutation(**values),
+        first_observation,
+        first_reference,
+        correlation_id="fresh-evidence-first",
+    )
+    second = service.submit_mutation(
+        StrategyMutation(**values),
+        second_observation,
+        list(reversed(second_reference)),
+        correlation_id="fresh-evidence-retry",
+    )
+
+    assert first["proposal_hash"] == second["proposal_hash"]
+    assert first["idempotent"] is False
+    assert second["idempotent"] is True
+
+
 def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
-        signing_key="test-governance-key",
+        signing_key=TEST_GOVERNANCE_KEY,
     )
     observation, reference = _evidence_window()
     parent = service.dashboard_state()["active_runtime_hash"]
@@ -300,7 +381,7 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
 
     replayed = MasterSuiteService(
         data_root=tmp_path,
-        signing_key="test-governance-key",
+        signing_key=TEST_GOVERNANCE_KEY,
     ).dashboard_state()
     assert replayed["journal"]["integrity_status"] == "VERIFIED"
     assert replayed["chain_counts"] == {

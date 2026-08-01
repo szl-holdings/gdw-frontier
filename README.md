@@ -118,6 +118,13 @@ python ci/audit_cardinality.py \
   --baseline weights/cardinality-baseline.json
 ```
 
+The Master Suite HMAC secret must contain at least 32 UTF-8 bytes; the command
+above generates 64 hexadecimal characters. The worker calculator always emits
+`workers: 1`, the only supported runtime
+setting while workflow state is process-local. Its MODELED `replica_capacity`
+value is horizontal capacity guidance, not permission to start extra workers in
+one application process.
+
 Open:
 
 - API docs: `http://localhost:8080/docs`

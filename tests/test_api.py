@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -206,6 +207,28 @@ def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
         assert "integer 1" in str(error)
     else:
         raise AssertionError("invalid worker count was accepted")
+
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    monkeypatch.setenv("WEB_CONCURRENCY", "2")
+    try:
+        governed_worker_count()
+    except RuntimeError as error:
+        assert "WEB_CONCURRENCY must be 1" in str(error)
+    else:
+        raise AssertionError("WEB_CONCURRENCY bypassed the worker boundary")
+
+    monkeypatch.delenv("WEB_CONCURRENCY")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["uvicorn", "app.api:app", "--workers", "2"],
+    )
+    try:
+        api._validate_runtime_configuration()
+    except RuntimeError as error:
+        assert "uvicorn --workers must be 1" in str(error)
+    else:
+        raise AssertionError("the Uvicorn CLI bypassed the worker boundary")
 
 
 def test_auth_token_file_takes_precedence_over_environment(

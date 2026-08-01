@@ -36,6 +36,7 @@ class MasterSuiteError(RuntimeError):
 
 class MasterSuiteService:
     POLICY_VERSION = "gdw-x-master-suite-2026-07-29"
+    MINIMUM_SIGNING_KEY_BYTES = 32
     PROTECTED_PARAMETERS = frozenset(
         {
             "max_order_size",
@@ -72,11 +73,26 @@ class MasterSuiteService:
             "GDWX_MASTER_SUITE_SIGNING_KEY_FILE",
             "",
         ).strip()
-        self._signing_key = signing_key or (
-            Path(signing_key_file).read_text(encoding="utf-8").strip()
-            if signing_key_file
-            else os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
-        )
+        if signing_key is not None:
+            configured_signing_key = signing_key
+        elif signing_key_file:
+            configured_signing_key = Path(signing_key_file).read_text(
+                encoding="utf-8"
+            ).strip()
+        else:
+            configured_signing_key = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
+        if configured_signing_key is not None:
+            if not configured_signing_key:
+                raise MasterSuiteError(
+                    "signing_key_unavailable",
+                    "The configured Master Suite signing key is empty.",
+                )
+            if len(configured_signing_key.encode("utf-8")) < self.MINIMUM_SIGNING_KEY_BYTES:
+                raise MasterSuiteError(
+                    "weak_signing_key",
+                    "The Master Suite signing key must contain at least 32 UTF-8 bytes.",
+                )
+        self._signing_key = configured_signing_key
         self._signer = os.getenv(
             "GDWX_MASTER_SUITE_SIGNER",
             "local-governance-kernel",

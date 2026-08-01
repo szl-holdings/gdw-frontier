@@ -45,11 +45,17 @@ def test_receipt_chain_verifies_and_detects_tampering(tmp_path: Path) -> None:
 
     assert first_hash != second_hash
     assert ledger.verify() == (True, 2)
+    assert [record["body"]["decision"] for record in ledger.verified_records()] == [
+        "allow",
+        "review",
+    ]
 
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     records[0]["body"]["decision"] = "withhold"
     path.write_text("\n".join(json.dumps(record) for record in records) + "\n", encoding="utf-8")
     assert ledger.verify()[0] is False
+    with pytest.raises(RuntimeError, match="integrity or signature verification"):
+        ledger.verified_records()
 
 
 def test_receipt_chain_is_safe_across_worker_processes(tmp_path: Path) -> None:

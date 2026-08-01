@@ -115,6 +115,34 @@ class ReceiptLedger:
             with self._process_lock():
                 return self._audit_with_signing_state_locked()
 
+    def verified_records(self) -> list[dict[str, Any]]:
+        """Return the exact ledger snapshot that passed integrity verification."""
+        with self._lock:
+            with self._process_lock():
+                audit = self._audit_with_signing_state_locked()
+                if not audit.valid:
+                    raise RuntimeError(
+                        "receipt ledger failed integrity or signature verification"
+                    )
+                if not self.path.exists():
+                    return []
+                try:
+                    records = [
+                        json.loads(raw_line)
+                        for raw_line in self.path.read_text(
+                            encoding="utf-8"
+                        ).splitlines()
+                    ]
+                except (json.JSONDecodeError, UnicodeDecodeError) as error:
+                    raise RuntimeError(
+                        "receipt ledger changed after integrity verification"
+                    ) from error
+                if len(records) != audit.records:
+                    raise RuntimeError(
+                        "receipt ledger changed after integrity verification"
+                    )
+                return records
+
     def validate_configuration(self) -> None:
         if self.signing_required and self.signing_key_path is None:
             raise RuntimeError(

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import sys
+
 import pytest
 
+from app.__main__ import governed_worker_count
 from ci.worker_calc import calculate_workers
 
 
@@ -17,7 +20,8 @@ def test_worker_count_is_bounded_by_cpu_memory_and_maximum() -> None:
     )
     assert plan.cpu_limit == 7
     assert plan.memory_limit == 3
-    assert plan.workers == 3
+    assert plan.workers == 1
+    assert plan.replica_capacity == 3
     assert plan.status == "MODELED"
 
 
@@ -30,3 +34,11 @@ def test_worker_count_rejects_invalid_capacity() -> None:
     with pytest.raises(ValueError):
         calculate_workers(cpu=0, memory_gib=4)
 
+
+def test_advertised_runtime_worker_setting_is_accepted(monkeypatch) -> None:
+    plan = calculate_workers(cpu=8, memory_gib=4)
+    monkeypatch.setenv("GDW_WORKERS", str(plan.workers))
+    monkeypatch.delenv("WEB_CONCURRENCY", raising=False)
+    monkeypatch.setattr(sys, "argv", ["python", "-m", "app"])
+
+    assert governed_worker_count() == plan.workers == 1

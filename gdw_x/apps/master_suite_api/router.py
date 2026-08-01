@@ -79,6 +79,7 @@ def _raise_http(error: MasterSuiteError) -> None:
         "manifest_not_found": 404,
         "journal_integrity_failed": 503,
         "signing_key_unavailable": 503,
+        "weak_signing_key": 503,
     }
     raise HTTPException(
         status_code=statuses.get(error.code, 409),

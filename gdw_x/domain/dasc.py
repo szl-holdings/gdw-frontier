@@ -184,10 +184,16 @@ class DASCLocalizer:
             "Finite-sample coverage is not asserted under non-exchangeable drift",
             "No runtime eligibility is granted when the reference pool is insufficient",
         ]
+        reference_evidence = [
+            item.model_dump(
+                mode="json",
+                exclude={"observation_id", "timestamp"},
+            )
+            for item in comparable
+        ]
+        reference_evidence.sort(key=canonical_hash)
         return DriftLocalization(
-            reference_window_hash=canonical_hash(
-                [item.model_dump(mode="json") for item in comparable]
-            ),
+            reference_window_hash=canonical_hash(reference_evidence),
             reference_size=len(comparable),
             effective_sample_size=float(len(comparable)),
             evidence_quality=evidence_quality,

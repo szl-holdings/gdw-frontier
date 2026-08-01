@@ -17,6 +17,7 @@ from prometheus_client import CollectorRegistry, REGISTRY, multiprocess
 from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST, generate_latest
 
 from . import __version__
+from .__main__ import governed_worker_count
 from .anomaly_decoder import decode_incident
 from .benchmarks import benchmark_decoder, op_cal_eval
 from .calibration_plane import calibrate as run_calibration
@@ -151,14 +152,7 @@ def _configured_api_token() -> str:
 
 def _validate_runtime_configuration() -> None:
     ledger.validate_configuration()
-    try:
-        workers = int(os.getenv("GDW_WORKERS", "1"))
-    except ValueError as error:
-        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
-    if workers != 1:
-        raise RuntimeError(
-            "GDW_WORKERS must be 1 while calibration and Master Suite workflow state is process-local"
-        )
+    governed_worker_count()
     if not _auth_required():
         return
     token = _configured_api_token()

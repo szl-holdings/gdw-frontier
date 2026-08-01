@@ -14,6 +14,7 @@ from typing import Iterable
 @dataclass(frozen=True)
 class WorkerPlan:
     workers: int
+    replica_capacity: int
     cpu_limit: int
     memory_limit: int
     detected_cpu: float
@@ -68,9 +69,10 @@ def calculate_workers(
     usable_memory = max(0.0, memory_gib - reserve_memory_gib)
     cpu_limit = max(1, math.floor(usable_cpu / cpu_per_worker))
     memory_limit = max(1, math.floor(usable_memory / memory_gib_per_worker))
-    workers = max(1, min(cpu_limit, memory_limit, maximum))
+    replica_capacity = max(1, min(cpu_limit, memory_limit, maximum))
     return WorkerPlan(
-        workers=workers,
+        workers=1,
+        replica_capacity=replica_capacity,
         cpu_limit=cpu_limit,
         memory_limit=memory_limit,
         detected_cpu=round(cpu, 2),
@@ -83,7 +85,12 @@ def calculate_workers(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Calculate a bounded MODELED GDW worker count.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Report the required single-process GDW worker setting and a bounded "
+            "MODELED horizontal replica capacity."
+        )
+    )
     parser.add_argument("--cpu", type=float, default=float(os.cpu_count() or 1))
     parser.add_argument("--memory-gib", type=float, default=detected_memory_gib())
     parser.add_argument("--reserve-cpu", type=float, default=1.0)
@@ -111,4 +118,3 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
