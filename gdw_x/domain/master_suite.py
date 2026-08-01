@@ -7,7 +7,7 @@ from hashlib import sha256
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def utc_now() -> datetime:
@@ -222,6 +222,9 @@ class RiskGateDecision(StrictModel):
 class OutcomeObservation(StrictModel):
     outcome_id: UUID = Field(default_factory=uuid4)
     proposal_hash: str
+    manifest_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    runtime_instance: str = Field(min_length=1, max_length=128)
+    observed_runtime_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     forecast_loss: float = Field(ge=0.0)
     calibration_error: float = Field(ge=0.0)
     latency_p95_ms: float = Field(ge=0.0)
@@ -231,3 +234,10 @@ class OutcomeObservation(StrictModel):
     realized_utility: float | None = None
     observed_at: datetime = Field(default_factory=utc_now)
     truth_status: Literal["MEASURED", "MODELED"] = "MEASURED"
+
+    @field_validator("observed_at")
+    @classmethod
+    def require_timezone_aware_observation(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("observed_at must include a timezone offset")
+        return value.astimezone(timezone.utc)

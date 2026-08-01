@@ -46,6 +46,9 @@ class ApplyRequest(BaseModel):
 
 
 class OutcomeRequest(ProposalReference):
+    manifest_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    runtime_instance: str = Field(min_length=1, max_length=128)
+    observed_runtime_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     regime_id: str = Field(min_length=1, max_length=128)
     parameter_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     observed_utility: float
@@ -133,8 +136,9 @@ async def apply_manifest(payload: ApplyRequest) -> dict:
     started = time.perf_counter()
     try:
         ack = service.apply_manifest(payload.manifest_hash)
-    except KeyError as error:
-        CALIBRATION_RECEIPT_FAILURES.labels(reason="unknown_manifest").inc()
+    except (KeyError, PermissionError) as error:
+        reason = "unknown_manifest" if isinstance(error, KeyError) else "superseded_manifest"
+        CALIBRATION_RECEIPT_FAILURES.labels(reason=reason).inc()
         raise _error(error) from error
     if ack.active_mode.value in {"paper", "shadow"}:
         RUNTIME_CONVERGENCE.labels(mode=ack.active_mode.value).observe(time.perf_counter() - started)
@@ -150,6 +154,9 @@ async def record_outcome(payload: OutcomeRequest) -> dict:
     try:
         return service.record_outcome(
             proposal_hash=payload.proposal_hash,
+            manifest_hash=payload.manifest_hash,
+            runtime_instance=payload.runtime_instance,
+            observed_runtime_hash=payload.observed_runtime_hash,
             regime_id=payload.regime_id,
             parameter_hash=payload.parameter_hash,
             observed_utility=payload.observed_utility,
