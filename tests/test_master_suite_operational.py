@@ -78,6 +78,25 @@ def test_stable_window_does_not_false_quarantine() -> None:
     assert result.abstain is False
 
 
+def test_master_suite_data_root_follows_canonical_environment(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    canonical_root = tmp_path / "canonical"
+    specific_root = tmp_path / "specific"
+    monkeypatch.setenv("GDW_DATA_DIR", str(canonical_root))
+    monkeypatch.delenv("GDWX_MASTER_SUITE_DATA_ROOT", raising=False)
+
+    service = MasterSuiteService(signing_key="test-governance-key")
+
+    assert service._journal.root == canonical_root / "master_suite"
+
+    monkeypatch.setenv("GDWX_MASTER_SUITE_DATA_ROOT", str(specific_root))
+    overridden = MasterSuiteService(signing_key="test-governance-key")
+
+    assert overridden._journal.root == specific_root
+
+
 def test_bronze_journal_serializes_concurrent_processes(tmp_path: Path) -> None:
     context = multiprocessing.get_context("spawn")
     processes = [
