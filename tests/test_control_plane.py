@@ -77,7 +77,9 @@ def test_empty_exemplar_memory_gets_a_signed_genesis_record(
     assert main_ledger.verify() == (True, 1)
     assert store.verify() == (True, 1)
     assert store.load() == []
-    assert main_ledger.signing_state_path != store._ledger().signing_state_path
+    assert store.signing_state_path.is_file()
+    assert store.signing_state_path.name == "incident-exemplars-signing-state.json"
+    assert main_ledger.signing_state_path != store.signing_state_path
 
 
 def test_calibration_decode_and_simulation_surface(tmp_path: Path) -> None:

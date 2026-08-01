@@ -106,7 +106,7 @@ def test_master_suite_defaults_to_the_configured_writable_data_dir(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("GDW_DATA_DIR", str(tmp_path))
-    monkeypatch.delenv("GDWX_MASTER_SUITE_DATA_ROOT", raising=False)
+    monkeypatch.setenv("GDWX_MASTER_SUITE_DATA_ROOT", "")
 
     service = MasterSuiteService(signing_key="test-governance-key")
 

@@ -16,12 +16,14 @@ class ExemplarStore:
         data_dir = Path(os.getenv("GDW_DATA_DIR", "data"))
         self.path = path or data_dir / "incident-exemplars.jsonl"
 
+    @property
+    def signing_state_path(self) -> Path:
+        return self.path.with_name("incident-exemplars-signing-state.json")
+
     def _ledger(self) -> ReceiptLedger:
         return ReceiptLedger(
             self.path,
-            signing_state_path=self.path.with_suffix(
-                self.path.suffix + ".signing-state.json"
-            ),
+            signing_state_path=self.signing_state_path,
         )
 
     def append(self, record: dict[str, Any]) -> str:
@@ -29,7 +31,14 @@ class ExemplarStore:
 
     def ensure_signed_head(self, runtime_identity: dict[str, Any]) -> str | None:
         """Anchor an empty or legacy memory chain when receipt signing is required."""
-        return self._ledger().ensure_signed_head(runtime_identity)
+        exemplar_ledger = self._ledger()
+        exemplar_ledger.validate_configuration()
+        return exemplar_ledger.ensure_signed_head(
+            {
+                **runtime_identity,
+                "ledger_role": "incident_exemplar_memory",
+            }
+        )
 
     def append_once(
         self,

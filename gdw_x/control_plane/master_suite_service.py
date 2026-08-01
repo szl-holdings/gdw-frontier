@@ -56,16 +56,16 @@ class MasterSuiteService:
         signing_key: str | None = None,
     ) -> None:
         project_root = Path(__file__).resolve().parents[2]
-        default_data_root = Path(
+        shared_data_root = Path(
             os.getenv("GDW_DATA_DIR", str(project_root / "data"))
-        ) / "master_suite"
+        )
+        configured_data_root = os.getenv("GDWX_MASTER_SUITE_DATA_ROOT")
         self._journal = LakeJournal(
             data_root
-            or Path(
-                os.getenv(
-                    "GDWX_MASTER_SUITE_DATA_ROOT",
-                    str(default_data_root),
-                )
+            or (
+                Path(configured_data_root)
+                if configured_data_root
+                else shared_data_root / "master_suite"
             )
         )
         self._signing_key = (

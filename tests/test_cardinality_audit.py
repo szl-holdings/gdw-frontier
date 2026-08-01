@@ -34,14 +34,23 @@ def test_every_observed_application_route_is_governed() -> None:
 
 
 def test_calibration_proposal_route_has_one_owner() -> None:
-    routes = [
+    calibration_routes = [
         route
         for route in [*calibration_router.routes, *master_suite_router.routes]
         if getattr(route, "path", None) == "/v1/calibration/proposals"
         and "POST" in getattr(route, "methods", set())
     ]
-    assert len(routes) == 1
-    assert routes[0].name == "create_proposal"
+    master_suite_routes = [
+        route
+        for route in master_suite_router.routes
+        if getattr(route, "path", None)
+        == "/v1/master-suite/calibration/proposals"
+        and "POST" in getattr(route, "methods", set())
+    ]
+    assert len(calibration_routes) == 1
+    assert calibration_routes[0].name == "create_proposal"
+    assert len(master_suite_routes) == 1
+    assert master_suite_routes[0].name == "submit_mutation"
 
 
 def test_newman_report_redaction_removes_nested_bearer_token() -> None:
