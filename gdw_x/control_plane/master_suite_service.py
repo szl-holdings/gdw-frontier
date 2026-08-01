@@ -688,6 +688,7 @@ class MasterSuiteService:
                         {},
                     ).get("proposal_hash")
                     == outcome.proposal_hash
+                    and ack.get("status") == "applied"
                 ),
                 {},
             )

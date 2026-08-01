@@ -105,6 +105,7 @@ or issue manifests. No default signing secret is embedded. The runtime also
 requires `GDW_WORKERS=1` while workflow state remains process-local. Optional
 settings:
 
+- `GDWX_MASTER_SUITE_SIGNING_KEY` (propagated by Compose; decisions fail closed when absent)
 - `GDWX_MASTER_SUITE_SIGNER`
 - `GDWX_MASTER_SUITE_DATA_ROOT` (overrides `GDW_DATA_DIR/master_suite`)
 - `GDWX_ACTIVE_RUNTIME_HASH`

@@ -139,8 +139,14 @@ class StrategyMutation(StrictModel):
     reversibility_plan: str | None = Field(default=None, max_length=2048)
     created_at: datetime = Field(default_factory=utc_now)
 
+    def proposal_payload(self) -> dict[str, Any]:
+        return self.model_dump(
+            mode="json",
+            exclude={"mutation_id", "created_at"},
+        )
+
     def proposal_hash(self) -> str:
-        return canonical_hash(self)
+        return canonical_hash(self.proposal_payload())
 
 
 class GovernanceDecision(StrictModel):

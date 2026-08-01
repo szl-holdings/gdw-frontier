@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from app import api
 from app.__main__ import governed_worker_count
+from app.exemplar_store import ExemplarStore
 from app.persistence import ReceiptLedger
 from ci.receipt_proof import verify_signed_receipt
 from cryptography.hazmat.primitives import serialization
@@ -57,6 +59,22 @@ def test_missing_receipt_fails_closed(tmp_path: Path) -> None:
         assert response.json()["decision"] == "withhold"
         assert len(response.json()["receipt_hash"]) == 64
         assert api.ledger.verify() == (True, 1)
+
+
+def test_exemplar_load_fails_closed_on_valid_json_tampering(tmp_path: Path) -> None:
+    path = tmp_path / "exemplars.jsonl"
+    store = ExemplarStore(path)
+    store.append({"truth_status": "MODELED", "risk_score": 0.1})
+    envelope = json.loads(path.read_text(encoding="utf-8"))
+    envelope["body"]["record"]["truth_status"] = "LIVE"
+    path.write_text(json.dumps(envelope) + "\n", encoding="utf-8")
+
+    try:
+        store.load()
+    except RuntimeError as error:
+        assert "integrity verification failed" in str(error)
+    else:
+        raise AssertionError("tampered exemplar ledger unexpectedly loaded")
 
 
 def test_metrics_do_not_expose_identity_values_or_labels(tmp_path: Path) -> None:
