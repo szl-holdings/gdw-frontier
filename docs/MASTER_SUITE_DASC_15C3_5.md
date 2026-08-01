@@ -100,7 +100,7 @@ requires `GDW_WORKERS=1` while workflow state remains process-local. Optional
 settings:
 
 - `GDWX_MASTER_SUITE_SIGNER`
-- `GDWX_MASTER_SUITE_DATA_ROOT`
+- `GDWX_MASTER_SUITE_DATA_ROOT` (defaults to `GDW_DATA_DIR/master_suite`)
 - `GDWX_ACTIVE_RUNTIME_HASH`
 
 The signing key is HMAC-based local modeling. It is not independent public-key
