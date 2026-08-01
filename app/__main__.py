@@ -17,13 +17,26 @@ def prepare_multiprocess_metrics() -> None:
             shard.unlink()
 
 
+def governed_worker_count() -> int:
+    configured = os.getenv("GDW_WORKERS", "1")
+    try:
+        workers = int(configured)
+    except ValueError as error:
+        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
+    if workers != 1:
+        raise RuntimeError(
+            "GDW_WORKERS must be 1 while Master Suite state is process-local"
+        )
+    return workers
+
+
 def main() -> None:
     prepare_multiprocess_metrics()
     uvicorn.run(
         "app.api:app",
         host=os.getenv("GDW_HOST", "0.0.0.0"),
         port=int(os.getenv("GDW_PORT", "8080")),
-        workers=int(os.getenv("GDW_WORKERS", "1")),
+        workers=governed_worker_count(),
         access_log=False,
     )
 
