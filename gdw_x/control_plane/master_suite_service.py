@@ -25,7 +25,22 @@ from gdw_x.domain.master_suite import (
     canonical_json,
     utc_now,
 )
-from gdw_x.memory.lake_journal import JournalIntegrityError, LakeJournal
+from gdw_x.memory.lake_journal import (
+    JournalIntegrityError,
+    LakeJournal,
+    resolve_master_suite_data_root,
+)
+
+
+def _configured_signing_key(explicit: str | None) -> tuple[str | None, str]:
+    if explicit is not None:
+        return explicit, "argument"
+    key_file = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", "").strip()
+    if key_file:
+        key = Path(key_file).read_text(encoding="utf-8").strip()
+        return (key or None), "file"
+    key = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY", "").strip()
+    return (key or None), ("environment" if key else "UNAVAILABLE")
 
 
 class MasterSuiteError(RuntimeError):
@@ -55,18 +70,12 @@ class MasterSuiteService:
         data_root: Path | None = None,
         signing_key: str | None = None,
     ) -> None:
-        project_root = Path(__file__).resolve().parents[2]
-        self._journal = LakeJournal(
-            data_root
-            or Path(
-                os.getenv(
-                    "GDWX_MASTER_SUITE_DATA_ROOT",
-                    str(project_root / "data" / "master_suite"),
-                )
-            )
-        )
-        self._signing_key = (
-            signing_key or os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
+        self._journal = LakeJournal(resolve_master_suite_data_root(data_root))
+        (
+            self._signing_key,
+            self._signing_key_source,
+        ) = _configured_signing_key(
+            signing_key
         )
         self._signer = os.getenv(
             "GDWX_MASTER_SUITE_SIGNER",
@@ -105,7 +114,7 @@ class MasterSuiteService:
         if not self._signing_key:
             raise MasterSuiteError(
                 "signing_key_unavailable",
-                "GDWX_MASTER_SUITE_SIGNING_KEY is required for signed decisions.",
+                "A Master Suite signing key file or environment key is required for signed decisions.",
             )
         return hmac.new(
             self._signing_key.encode("utf-8"),
@@ -614,8 +623,11 @@ class MasterSuiteService:
                 ),
                 parent_hash_matches=bool(
                     manifest
-                    and manifest.parent_runtime_hash
-                    == self._active_runtime_hash
+                    and self._active_runtime_hash
+                    in {
+                        manifest.parent_runtime_hash,
+                        manifest.target_runtime_hash,
+                    }
                 ),
                 approved_mode=(
                     manifest.approved_mode if manifest else None
@@ -836,11 +848,7 @@ class MasterSuiteService:
                             "unsafe" if invalid_receipts else "watch"
                         ),
                         "truth_status": "MODELED",
-                        "signing_key_source": (
-                            "environment"
-                            if self._signing_key
-                            else "UNAVAILABLE"
-                        ),
+                        "signing_key_source": self._signing_key_source,
                     },
                     "kill_switch_readiness": {
                         "status": "watch",

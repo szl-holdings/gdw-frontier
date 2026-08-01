@@ -5,6 +5,8 @@ from pathlib import Path
 
 import uvicorn
 
+from .runtime import governed_worker_count
+
 
 def prepare_multiprocess_metrics() -> None:
     configured = os.getenv("PROMETHEUS_MULTIPROC_DIR")
@@ -23,7 +25,7 @@ def main() -> None:
         "app.api:app",
         host=os.getenv("GDW_HOST", "0.0.0.0"),
         port=int(os.getenv("GDW_PORT", "8080")),
-        workers=int(os.getenv("GDW_WORKERS", "1")),
+        workers=governed_worker_count(),
         access_log=False,
     )
 

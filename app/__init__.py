@@ -1,4 +1,5 @@
 """Governed Delta Workspace modeled observability core."""
 
-__version__ = "0.1.0"
+from .version import VERSION
 
+__version__ = VERSION

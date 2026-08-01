@@ -24,7 +24,8 @@ services:
       GDW_RECEIPT_SIGNING_KEY_FILE: /run/secrets/gdw_receipt_signing_key
       GDW_RECEIPT_SIGNING_REQUIRED: "${GDW_RECEIPT_SIGNING_REQUIRED:-0}"
       GDW_SOURCE_SHA: "${GDW_SOURCE_SHA:-UNAVAILABLE}"
-      GDW_WORKERS: "${GDW_WORKERS:-2}"
+      GDW_WORKERS: "${GDW_WORKERS:-1}"
+      GDWX_MASTER_SUITE_SIGNING_KEY_FILE: /run/secrets/gdw_master_suite_signing_key
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: gdw
@@ -37,6 +38,7 @@ services:
       - gdw-backups:/var/backups/gdw
     secrets:
       - gdw_api_token
+      - gdw_master_suite_signing_key
       - gdw_receipt_signing_key
     group_add:
       - "${GDW_SECRETS_GID:-10002}"
@@ -238,6 +240,8 @@ services:
 secrets:
   gdw_api_token:
     file: "${GDW_API_TOKEN_SOURCE_FILE:?set GDW_API_TOKEN_SOURCE_FILE to an absolute secret file path}"
+  gdw_master_suite_signing_key:
+    file: "${GDWX_MASTER_SUITE_SIGNING_KEY_SOURCE_FILE:?set GDWX_MASTER_SUITE_SIGNING_KEY_SOURCE_FILE to an absolute HMAC secret file path}"
   grafana_admin_password:
     file: "${GRAFANA_ADMIN_PASSWORD_SOURCE_FILE:?set GRAFANA_ADMIN_PASSWORD_SOURCE_FILE to an absolute secret file path}"
   gdw_receipt_signing_key:

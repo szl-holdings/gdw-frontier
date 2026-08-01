@@ -129,9 +129,35 @@
   <footer>Refresh interval: 5 seconds. Hashes are truncated for display. Full governance records remain in the local append-only ledger.</footer>
   <script>
     const shortHash = value => value ? `${value.slice(0, 8)}...${value.slice(-6)}` : "none";
+    let bearerToken = "";
+    let tokenPrompt = null;
+
+    async function requestBearerToken() {
+      if (!tokenPrompt) {
+        tokenPrompt = Promise.resolve()
+          .then(() => window.prompt("Enter the GDW bearer token for this page session."))
+          .then(value => (value || "").trim())
+          .finally(() => { tokenPrompt = null; });
+      }
+      return tokenPrompt;
+    }
+
+    async function apiFetch(path) {
+      const request = () => fetch(path, {
+        cache: "no-store",
+        headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}
+      });
+      let response = await request();
+      if (response.status !== 401) return response;
+      const supplied = await requestBearerToken();
+      if (!supplied) return response;
+      bearerToken = supplied;
+      return request();
+    }
+
     async function refresh() {
       try {
-        const response = await fetch("/v1/calibration/status", {cache: "no-store"});
+        const response = await apiFetch("/v1/calibration/status");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         document.querySelector("#connection").textContent = "Control plane reachable";

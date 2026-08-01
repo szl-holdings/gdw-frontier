@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import BinaryIO
+
+from gdw_x.memory.lake_journal import resolve_master_suite_data_root
+
+
+def governed_worker_count() -> int:
+    configured = os.getenv("GDW_WORKERS", "1")
+    try:
+        workers = int(configured)
+    except ValueError as error:
+        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
+    if workers != 1:
+        raise RuntimeError(
+            "GDW_WORKERS must be 1 while Master Suite state is process-local"
+        )
+    return workers
+
+
+class MasterSuiteProcessLease:
+    """Exclusive OS lease preventing multiple ASGI workers from sharing stale state."""
+
+    def __init__(self, data_root: Path | None = None) -> None:
+        self.path = resolve_master_suite_data_root(data_root) / ".process.lock"
+        self._handle: BinaryIO | None = None
+
+    def acquire(self) -> None:
+        if self._handle is not None:
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        handle = self.path.open("a+b")
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                handle.seek(0, os.SEEK_END)
+                if handle.tell() == 0:
+                    handle.write(b"\0")
+                    handle.flush()
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            handle.close()
+            raise RuntimeError(
+                "another Master Suite process already owns the shared data root"
+            ) from error
+        self._handle = handle
+
+    def release(self) -> None:
+        handle = self._handle
+        if handle is None:
+            return
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
+            self._handle = None

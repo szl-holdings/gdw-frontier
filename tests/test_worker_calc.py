@@ -17,7 +17,8 @@ def test_worker_count_is_bounded_by_cpu_memory_and_maximum() -> None:
     )
     assert plan.cpu_limit == 7
     assert plan.memory_limit == 3
-    assert plan.workers == 3
+    assert plan.workers == 1
+    assert plan.state_coordination == "process_local_single_worker"
     assert plan.status == "MODELED"
 
 
@@ -29,4 +30,3 @@ def test_worker_count_never_drops_below_one() -> None:
 def test_worker_count_rejects_invalid_capacity() -> None:
     with pytest.raises(ValueError):
         calculate_workers(cpu=0, memory_gib=4)
-

@@ -438,11 +438,37 @@
         : '<div class="empty">No runtime alerts recorded.</div>';
     }
 
+    let bearerToken = "";
+    let tokenPrompt = null;
+
+    async function requestBearerToken() {
+      if (!tokenPrompt) {
+        tokenPrompt = Promise.resolve()
+          .then(() => window.prompt("Enter the GDW bearer token for this page session."))
+          .then(value => (value || "").trim())
+          .finally(() => { tokenPrompt = null; });
+      }
+      return tokenPrompt;
+    }
+
+    async function apiFetch(path) {
+      const request = () => fetch(path, {
+        cache: "no-store",
+        headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}
+      });
+      let response = await request();
+      if (response.status !== 401) return response;
+      const supplied = await requestBearerToken();
+      if (!supplied) return response;
+      bearerToken = supplied;
+      return request();
+    }
+
     async function refresh() {
       try {
         const [stateResponse, alertResponse] = await Promise.all([
-          fetch("/v1/dashboard/state", { cache: "no-store" }),
-          fetch("/v1/dashboard/alerts", { cache: "no-store" })
+          apiFetch("/v1/dashboard/state"),
+          apiFetch("/v1/dashboard/alerts")
         ]);
         if (!stateResponse.ok || !alertResponse.ok) throw new Error("state unavailable");
         const state = await stateResponse.json();
