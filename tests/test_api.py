@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app import api
+from app.__main__ import governed_worker_count
 from app.persistence import ReceiptLedger
 from ci.receipt_proof import verify_signed_receipt
 from cryptography.hazmat.primitives import serialization
@@ -160,6 +161,9 @@ def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
 def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
     monkeypatch,
 ) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    assert governed_worker_count() == 1
+
     monkeypatch.setenv("GDW_WORKERS", "2")
     monkeypatch.setattr(api.ledger, "validate_configuration", lambda: None)
 
@@ -169,6 +173,21 @@ def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
         assert "GDW_WORKERS must be 1" in str(error)
     else:
         raise AssertionError("unsupported multi-worker runtime unexpectedly started")
+
+    try:
+        governed_worker_count()
+    except RuntimeError as error:
+        assert "GDW_WORKERS must be 1" in str(error)
+    else:
+        raise AssertionError("unsupported multi-worker Uvicorn launch was accepted")
+
+    monkeypatch.setenv("GDW_WORKERS", "not-an-integer")
+    try:
+        governed_worker_count()
+    except RuntimeError as error:
+        assert "integer 1" in str(error)
+    else:
+        raise AssertionError("invalid worker count was accepted")
 
 
 def test_auth_token_file_takes_precedence_over_environment(

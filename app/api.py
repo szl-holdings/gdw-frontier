@@ -151,7 +151,10 @@ def _configured_api_token() -> str:
 
 def _validate_runtime_configuration() -> None:
     ledger.validate_configuration()
-    workers = int(os.getenv("GDW_WORKERS", "1"))
+    try:
+        workers = int(os.getenv("GDW_WORKERS", "1"))
+    except ValueError as error:
+        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
     if workers != 1:
         raise RuntimeError(
             "GDW_WORKERS must be 1 while calibration and Master Suite workflow state is process-local"

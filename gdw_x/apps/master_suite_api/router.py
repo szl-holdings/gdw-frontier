@@ -97,6 +97,7 @@ def master_suite_status() -> dict[str, Any]:
 
 
 @router.post("/v1/strategy/mutations", status_code=201)
+@router.post("/v1/master-suite/calibration/proposals", status_code=201)
 def submit_mutation(
     envelope: MutationEnvelope,
     request: Request,

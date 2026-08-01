@@ -67,9 +67,15 @@ Research basis:
 Event timestamps are UTC and forced monotonic within the local stream. A broken
 event hash, parent hash, or sequence fails the service closed.
 
+The journal defaults to `GDW_DATA_DIR/master_suite`, which places it on the
+shipped writable data volume. `GDWX_MASTER_SUITE_DATA_ROOT` remains an explicit
+override. The current service keeps its replayed state in process memory, so the
+runtime enforces `GDW_WORKERS=1` and fails startup closed for any other value.
+
 ## API
 
 - `POST /v1/strategy/mutations`
+- `POST /v1/master-suite/calibration/proposals` (Master Suite mutation alias)
 - `POST /v1/calibration/proposals` (Calibration Intelligence Plane proposals only)
 - `POST /v1/calibration/simulate/{proposal_hash}`
 - `POST /v1/governance/decisions/{proposal_hash}`
@@ -100,7 +106,7 @@ requires `GDW_WORKERS=1` while workflow state remains process-local. Optional
 settings:
 
 - `GDWX_MASTER_SUITE_SIGNER`
-- `GDWX_MASTER_SUITE_DATA_ROOT` (defaults to `GDW_DATA_DIR/master_suite`)
+- `GDWX_MASTER_SUITE_DATA_ROOT` (overrides `GDW_DATA_DIR/master_suite`)
 - `GDWX_ACTIVE_RUNTIME_HASH`
 
 The signing key is HMAC-based local modeling. It is not independent public-key
