@@ -9,22 +9,27 @@ It does **not** prove high availability, multi-node durability, tenant isolation
 Use a protected, settled default-branch commit. Copy
 `deployment/.env.live.example` to an ignored file outside the repository.
 Generate independent random secret files for the API token and Grafana
-password, then create the persistent P-256 signing key:
+password, a distinct Master Suite HMAC key, then create the persistent P-256
+receipt-signing key:
 
 ```bash
+openssl rand -base64 -out /secure/gdw-api-token 48
+openssl rand -base64 -out /secure/gdw-grafana-password 48
+openssl rand -base64 -out /secure/gdw-master-suite-signing-key 48
 python ci/generate_signing_key.py \
   --output /secure/gdw-receipt-signing-key.pem
 ```
 
-The generator refuses to overwrite an existing key. Restrict all three files
+The generator refuses to overwrite an existing key. Restrict all four files
 and the environment file to the deployment account, and never pass a secret
 value on a command line.
 
-Compose sources all three file paths from the deployment environment and mounts the
+Compose sources all four file paths from the deployment environment and mounts the
 files read-only. The secret values are absent from `docker inspect`
 environment metadata. The
 application gives `GDW_API_TOKEN_FILE` precedence over the legacy direct
-environment variable. A one-shot password-sync container applies the mounted
+environment variable, and the Master Suite reads its HMAC key from the mounted
+file. A one-shot password-sync container applies the mounted
 Grafana secret to new and existing Grafana databases before Terraform
 provisioning runs.
 
@@ -36,10 +41,14 @@ initialization prevents deleted signed state from being silently replaced.
 The live verifier refuses to certify a deployment while this authorization
 remains enabled.
 
-On Linux, assign all three files to the deployment account and a dedicated numeric
+On Linux, assign all four files to the deployment account and a dedicated numeric
 group, set mode `0440`, and set `GDW_SECRETS_GID` to that group ID. Compose adds
 that supplemental group to each container that must read a secret. On Windows,
 use an ACL limited to the deployment account and `SYSTEM`.
+
+Keep `GDW_WORKERS=1`. Master Suite state is process-local, and application
+lifespan also holds an exclusive lease on its shared data root to reject an
+external multi-worker ASGI launch before concurrent journal writes occur.
 
 Build and capture the immutable Docker image ID:
 

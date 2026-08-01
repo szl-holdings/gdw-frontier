@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
+from app.runtime import MasterSuiteProcessLease, governed_worker_count
+from gdw_x.apps.calibration_api import router as calibration_router
+from gdw_x.apps.master_suite_api import router as master_suite_router
 from gdw_x.control_plane.master_suite_service import MasterSuiteService
 from gdw_x.domain.dasc import DASCLocalizer
 from gdw_x.domain.master_suite import (
@@ -63,6 +68,72 @@ def test_stable_window_does_not_false_quarantine() -> None:
     assert result.abstain is False
 
 
+def test_master_suite_defaults_to_shared_data_volume(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GDW_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("GDWX_MASTER_SUITE_DATA_ROOT", raising=False)
+
+    service = MasterSuiteService(signing_key="test-governance-key")
+
+    assert service._journal.root == tmp_path / "master_suite"
+
+
+def test_master_suite_signing_key_file_precedes_environment(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    key_file = tmp_path / "master-suite-signing-key"
+    key_file.write_text("file-backed-master-suite-signing-key", encoding="utf-8")
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_file))
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "wrong-environment-key")
+
+    service = MasterSuiteService(data_root=tmp_path / "journal")
+
+    assert (
+        service.dashboard_state()["sections"]["receipt_validity"][
+            "signing_key_source"
+        ]
+        == "file"
+    )
+
+
+def test_master_suite_runtime_fails_closed_with_multiple_workers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    assert governed_worker_count() == 1
+
+    monkeypatch.setenv("GDW_WORKERS", "2")
+    with pytest.raises(RuntimeError, match="must be 1"):
+        governed_worker_count()
+
+
+def test_master_suite_process_lease_blocks_external_asgi_workers(tmp_path) -> None:
+    first = MasterSuiteProcessLease(tmp_path)
+    second = MasterSuiteProcessLease(tmp_path)
+    first.acquire()
+    try:
+        with pytest.raises(RuntimeError, match="already owns"):
+            second.acquire()
+    finally:
+        first.release()
+
+
+def test_master_suite_proposal_alias_is_unique() -> None:
+    paths = [
+        route.path
+        for route in (
+            *calibration_router.router.routes,
+            *master_suite_router.router.routes,
+        )
+    ]
+
+    assert paths.count("/v1/calibration/proposals") == 1
+    assert paths.count("/v1/master-suite/calibration/proposals") == 1
+
+
 def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
@@ -103,6 +174,13 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         expires_in_seconds=900,
         correlation_id="test-lifecycle",
     )
+    ack = service.acknowledge(
+        manifest.manifest_hash,
+        "paper-runtime-1",
+        correlation_id="test-lifecycle",
+    )
+    assert ack.status == "applied"
+
     permitted = service.evaluate_risk(
         OrderIntent(
             actor_identity="paper-runtime",
@@ -131,13 +209,6 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
     )
     assert live_request.allow is False
     assert "live_execution_authority_unavailable" in live_request.reason_codes
-
-    ack = service.acknowledge(
-        manifest.manifest_hash,
-        "paper-runtime-1",
-        correlation_id="test-lifecycle",
-    )
-    assert ack.status == "applied"
     service.record_outcome(
         OutcomeObservation(
             proposal_hash=proposal_hash,
