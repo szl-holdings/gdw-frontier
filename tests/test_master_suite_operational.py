@@ -39,8 +39,11 @@ def _append_journal_events(root: str, worker: int, count: int) -> None:
         )
 
 
-def _evidence_window() -> tuple[FormulaObservation, list[FormulaObservation]]:
-    base = datetime.now(timezone.utc) - timedelta(minutes=30)
+def _evidence_window(
+    observed_at: datetime | None = None,
+) -> tuple[FormulaObservation, list[FormulaObservation]]:
+    observed_at = observed_at or datetime.now(timezone.utc)
+    base = observed_at - timedelta(minutes=30)
     reference: list[FormulaObservation] = []
     for index in range(20):
         predicted = 100.0 + index * 0.01
@@ -65,7 +68,7 @@ def _evidence_window() -> tuple[FormulaObservation, list[FormulaObservation]]:
     observation = FormulaObservation(
         formula_id="frontier-alpha",
         formula_version="1.0.0",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=observed_at,
         predicted=100.25,
         realized=100.30,
         raw_confidence=0.88,
@@ -87,6 +90,26 @@ def test_stable_window_does_not_false_quarantine() -> None:
     assert result.evidence_quality == 1.0
     assert result.drift.maximum < 0.80
     assert result.abstain is False
+
+
+def test_shifted_evidence_window_changes_governance_identity() -> None:
+    anchor = datetime(2026, 7, 29, 12, 0, tzinfo=timezone.utc)
+    observation, reference = _evidence_window(anchor)
+    shifted_observation, shifted_reference = _evidence_window(
+        anchor + timedelta(hours=2)
+    )
+
+    first = DASCLocalizer().localize(observation, reference)
+    shifted = DASCLocalizer().localize(
+        shifted_observation,
+        shifted_reference,
+    )
+
+    assert first.reference_window_hash != shifted.reference_window_hash
+    assert (
+        first.drift.localization_payload["observation_epoch_utc"]
+        != shifted.drift.localization_payload["observation_epoch_utc"]
+    )
 
 
 def test_bronze_journal_serializes_concurrent_processes(tmp_path: Path) -> None:
@@ -237,8 +260,9 @@ def test_fresh_evidence_objects_preserve_mutation_idempotency(tmp_path: Path) ->
         data_root=tmp_path,
         signing_key=TEST_GOVERNANCE_KEY,
     )
-    first_observation, first_reference = _evidence_window()
-    second_observation, second_reference = _evidence_window()
+    observed_at = datetime.now(timezone.utc)
+    first_observation, first_reference = _evidence_window(observed_at)
+    second_observation, second_reference = _evidence_window(observed_at)
     assert first_observation.observation_id != second_observation.observation_id
     assert first_reference[0].observation_id != second_reference[0].observation_id
     values = {
@@ -352,6 +376,9 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
     assert rejected_ack.status == "rejected"
     blocked_outcome = OutcomeObservation(
         proposal_hash=proposal_hash,
+        manifest_hash=manifest.manifest_hash,
+        runtime_instance="rejecting-runtime",
+        observed_runtime_hash=manifest.target_runtime_hash,
         forecast_loss=0.04,
         calibration_error=0.03,
         latency_p95_ms=8.2,
@@ -363,7 +390,7 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         service.record_outcome(
             blocked_outcome,
             correlation_id="test-rejected-ack",
-        )
+    )
     assert outcome_error.value.code == "applied_runtime_ack_required"
     service._active_runtime_hash = original_runtime_hash
 
@@ -373,6 +400,18 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         correlation_id="test-lifecycle",
     )
     assert ack.status == "applied"
+    applied_outcome = OutcomeObservation(
+        proposal_hash=proposal_hash,
+        manifest_hash=manifest.manifest_hash,
+        runtime_instance=ack.runtime_instance,
+        observed_runtime_hash=ack.active_runtime_hash,
+        forecast_loss=0.04,
+        calibration_error=0.03,
+        latency_p95_ms=8.2,
+        error_rate=0.0,
+        risk_events=0,
+        realized_utility=0.71,
+    )
 
     permitted = service.evaluate_risk(
         OrderIntent(
@@ -410,8 +449,16 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         },
         **service._acks,
     }
+    service._active_runtime_hash = "e" * 64
+    with pytest.raises(MasterSuiteError) as superseded_error:
+        service.record_outcome(
+            applied_outcome,
+            correlation_id="test-superseded-runtime",
+        )
+    assert superseded_error.value.code == "outcome_runtime_binding_mismatch"
+    service._active_runtime_hash = ack.active_runtime_hash
     recorded = service.record_outcome(
-        blocked_outcome,
+        applied_outcome,
         correlation_id="test-lifecycle",
     )
     assert recorded["gold_exemplar"]["deployment_mode"] == DeploymentMode.PAPER.value

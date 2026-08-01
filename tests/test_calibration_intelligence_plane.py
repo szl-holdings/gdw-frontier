@@ -69,6 +69,9 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
 
     outcome = service.record_outcome(
         proposal_hash=proposal_hash,
+        manifest_hash=manifest.canonical_hash(),
+        runtime_instance=first_ack.runtime_instance,
+        observed_runtime_hash=first_ack.active_runtime_hash,
         regime_id="recurring",
         parameter_hash="b" * 64,
         observed_utility=0.03,
@@ -82,6 +85,33 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
         k=3,
     )
     assert matches[0]["proposal_hash"] == proposal_hash
+
+    successor = _proposal(
+        proposal_id="proposal-frontier-2",
+        candidate_version="1.2.0",
+        proposed_parameters={"alpha": 0.21},
+        parent_runtime_hash=service.runtime.active_runtime_hash,
+    )
+    successor_hash = service.create_proposal(successor)["proposal_hash"]
+    service.simulate(successor_hash, ["recurring_regime"])
+    service.decide(successor_hash)
+    successor_manifest = service.issue_manifest(successor_hash)
+    service.apply_manifest(successor_manifest.canonical_hash())
+    try:
+        service.record_outcome(
+            proposal_hash=proposal_hash,
+            manifest_hash=manifest.canonical_hash(),
+            runtime_instance=first_ack.runtime_instance,
+            observed_runtime_hash=first_ack.active_runtime_hash,
+            regime_id="recurring",
+            parameter_hash="b" * 64,
+            observed_utility=0.03,
+            rollback_status="not_required",
+        )
+    except PermissionError as error:
+        assert "current applied runtime" in str(error)
+    else:
+        raise AssertionError("superseded runtime outcome was accepted")
 
 
 def test_protected_parameters_and_market_authority_fail_closed(tmp_path: Path) -> None:
@@ -144,6 +174,9 @@ def test_calibration_api_exposes_status_and_paper_flow(tmp_path: Path) -> None:
             "/v1/calibration/outcomes",
             json={
                 "proposal_hash": proposal_hash,
+                "manifest_hash": manifest.json()["manifest_hash"],
+                "runtime_instance": calibration_router.service.runtime.runtime_instance,
+                "observed_runtime_hash": manifest.json()["manifest"]["target_runtime_hash"],
                 "regime_id": "recurring",
                 "parameter_hash": "b" * 64,
                 "observed_utility": 0.03,

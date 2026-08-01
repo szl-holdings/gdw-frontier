@@ -689,23 +689,37 @@ class MasterSuiteService:
         with self._lock:
             if outcome.proposal_hash not in self._mutations:
                 raise MasterSuiteError("proposal_not_found", "Unknown proposal.")
-            matching_ack = next(
-                (
-                    ack
-                    for ack in self._acks.values()
-                    if ack.get("status") == "applied"
-                    and self._manifests.get(
-                        ack["manifest_hash"],
-                        {},
-                    ).get("proposal_hash")
-                    == outcome.proposal_hash
-                ),
-                None,
-            )
-            if matching_ack is None:
+            ack_key = f"{outcome.manifest_hash}:{outcome.runtime_instance}"
+            matching_ack_payload = self._acks.get(ack_key)
+            if (
+                matching_ack_payload is None
+                or matching_ack_payload.get("status") != "applied"
+            ):
                 raise MasterSuiteError(
                     "applied_runtime_ack_required",
                     "An applied runtime acknowledgement is required before recording an outcome.",
+                )
+            manifest_payload = self._manifests.get(outcome.manifest_hash)
+            if manifest_payload is None:
+                raise MasterSuiteError(
+                    "applied_runtime_ack_required",
+                    "An applied runtime acknowledgement is required before recording an outcome.",
+                )
+            matching_ack = RuntimeAck.model_validate(matching_ack_payload)
+            manifest = RuntimeManifest.model_validate(manifest_payload)
+            if (
+                manifest.proposal_hash != outcome.proposal_hash
+                or matching_ack.manifest_hash != outcome.manifest_hash
+                or matching_ack.runtime_instance != outcome.runtime_instance
+                or matching_ack.active_runtime_hash
+                != outcome.observed_runtime_hash
+                or manifest.target_runtime_hash != outcome.observed_runtime_hash
+                or self._active_runtime_hash != outcome.observed_runtime_hash
+                or outcome.observed_at < matching_ack.applied_at
+            ):
+                raise MasterSuiteError(
+                    "outcome_runtime_binding_mismatch",
+                    "The outcome must bind to the current applied runtime and its exact manifest.",
                 )
             payload = outcome.model_dump(mode="json")
             self._record(
@@ -733,7 +747,10 @@ class MasterSuiteService:
                     mutation["parameter_diff"]
                 ),
                 "decision_id": decision.get("decision_id"),
-                "deployment_mode": matching_ack["deployment_mode"],
+                "manifest_hash": matching_ack.manifest_hash,
+                "runtime_instance": matching_ack.runtime_instance,
+                "observed_runtime_hash": matching_ack.active_runtime_hash,
+                "deployment_mode": matching_ack.deployment_mode.value,
                 "rollback_flag": False,
                 "outcome_quality": max(
                     0.0,
