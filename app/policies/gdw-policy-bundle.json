@@ -1,0 +1,42 @@
+{
+  "actions": {
+    "adjust_threshold": {
+      "approval_required": true,
+      "execution_mode": "proposal_only",
+      "risk_class": "high"
+    },
+    "adjust_worker_count": {
+      "approval_required": true,
+      "execution_mode": "proposal_only",
+      "risk_class": "medium"
+    },
+    "block_weights": {
+      "approval_required": false,
+      "execution_mode": "fail_closed_control",
+      "risk_class": "medium"
+    },
+    "increase_scrape_interval": {
+      "approval_required": true,
+      "execution_mode": "proposal_only",
+      "risk_class": "medium"
+    },
+    "quarantine_route": {
+      "approval_required": true,
+      "execution_mode": "proposal_only",
+      "risk_class": "high"
+    },
+    "raise_alert": {
+      "approval_required": false,
+      "execution_mode": "notification_only",
+      "risk_class": "low"
+    },
+    "record_exemplar": {
+      "approval_required": false,
+      "execution_mode": "local_append_only",
+      "risk_class": "low"
+    }
+  },
+  "default_decision": "withhold",
+  "revision": "gdw-x/2026-07-29",
+  "schema_version": "gdw.policy.v1"
+}

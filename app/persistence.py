@@ -89,6 +89,19 @@ class ReceiptLedger:
             with self._process_lock():
                 return self._append_locked(body)
 
+    def append_once(self, body: dict[str, Any], idempotency_key: str) -> tuple[str, bool]:
+        if not idempotency_key:
+            raise ValueError("idempotency_key cannot be empty")
+        idempotent_body = {**body, "idempotency_key": idempotency_key}
+        with self._lock:
+            with self._process_lock():
+                if self.path.exists():
+                    for raw_line in self.path.read_text(encoding="utf-8").splitlines():
+                        record = json.loads(raw_line)
+                        if record.get("body", {}).get("idempotency_key") == idempotency_key:
+                            return str(record["receipt_hash"]), False
+                return self._append_locked(idempotent_body), True
+
     def verify(self) -> tuple[bool, int]:
         audit = self.audit()
         return audit.valid, audit.records
@@ -612,6 +625,17 @@ class ReceiptLedger:
             handle.flush()
             os.fsync(handle.fileno())
         temporary.replace(path)
+
+    def _append_unlocked(self, body: dict[str, Any]) -> str:
+        previous_hash = self._last_hash()
+        envelope = {"previous_hash": previous_hash, "body": body}
+        receipt_hash = hashlib.sha256(canonical_json(envelope)).hexdigest()
+        record = {**envelope, "receipt_hash": receipt_hash}
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(canonical_json(record).decode("utf-8") + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        return receipt_hash
 
     @contextmanager
     def _process_lock(self):

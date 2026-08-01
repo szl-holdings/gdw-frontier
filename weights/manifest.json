@@ -16,14 +16,14 @@
       "sha256": "618e77a95e73a9b66610e6d42d8ce9bc9aca136e945095eac2556decfe317e43"
     },
     {
-      "bytes": 1073,
+      "bytes": 1092,
       "path": "Dockerfile",
-      "sha256": "37d07ef2daec397474a5922edb379c6d408540b94d9e053eae3f4e5cf138fb49"
+      "sha256": "7d93440d10ac310c967010abd2e2082640fcae2c4b044d8eeb7e1dca55c66595"
     },
     {
-      "bytes": 12259,
+      "bytes": 16024,
       "path": "README.md",
-      "sha256": "53c6d5d4ac203497944ffb0416c45fc46db778f2f83e02e2a32dc98f736c0f85"
+      "sha256": "36bbac65f914ff99000e3f8c86cf1ae43ef0889c8f44c7e39d1e7961f2f78e15"
     },
     {
       "bytes": 83,
@@ -36,9 +36,34 @@
       "sha256": "4204318676931acf986c25c768b8171ec986bc599ac95382c1cc0622e98154cf"
     },
     {
-      "bytes": 11627,
+      "bytes": 1567,
+      "path": "app/anomaly_decoder.py",
+      "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
+    },
+    {
+      "bytes": 23041,
       "path": "app/api.py",
-      "sha256": "471c2391d4e3ea57fb7176787e30bedcc01733da7d7c968f81a58610c2e74e37"
+      "sha256": "a5619e9d967cc0ebac716fa812d487aa84abf5dafd5fbd9268d1a96bd7415c93"
+    },
+    {
+      "bytes": 5066,
+      "path": "app/benchmarks.py",
+      "sha256": "4e49b001d10cb5a07d091a222cb0f657a2c0b7db7b5fc7a7ff9f884ac9ef4e26"
+    },
+    {
+      "bytes": 2521,
+      "path": "app/calibration_plane.py",
+      "sha256": "de50d7e84da413fdc56ba5b83ba2a32180aa64d0e522c2a8fff5437ab382178e"
+    },
+    {
+      "bytes": 896,
+      "path": "app/diagnostics.py",
+      "sha256": "332eb0f5a9c24e22c50c5d9719906d76f4dd27f93da9dde0cbc24521e6887e69"
+    },
+    {
+      "bytes": 1972,
+      "path": "app/exemplar_store.py",
+      "sha256": "f16f9f7b47b2d9c68835ddf09125bc6477b34ad743156f27e216cd32937a4376"
     },
     {
       "bytes": 350,
@@ -46,9 +71,14 @@
       "sha256": "f4179ffc9489d9fb65352d7b01c7725d106c9580c7a4548bbfe55c9404e2093a"
     },
     {
-      "bytes": 435,
+      "bytes": 2837,
+      "path": "app/incident_memory.py",
+      "sha256": "78b92ffdc79fb21fca135cfed56b71f3b7be3c181a0825b3400d50c01a37a9e9"
+    },
+    {
+      "bytes": 2188,
       "path": "app/kernel.py",
-      "sha256": "61b61002560bcd8b1e373a03925ea2db2de89be25515ad9504efac256f0d72cd"
+      "sha256": "b87560609efda3b2891748d71cd7aa3c56c8885fde9587b7a1f75ebb85baf2a9"
     },
     {
       "bytes": 2389,
@@ -56,14 +86,49 @@
       "sha256": "5f476be0b0a43d58272b0a69b3cdbbb453a95fd96d39e8aff78b2dfaa13ee338"
     },
     {
-      "bytes": 2211,
-      "path": "app/models.py",
-      "sha256": "914c89f1f59058145b1d6719bf8807e667028c33ea7f836626732b97bf9f8aea"
+      "bytes": 1240,
+      "path": "app/model_calibration_loop.py",
+      "sha256": "f2a6b01c836358446cd6806298b89d2ed9e4c8022dadddfd124ef2999624fa12"
     },
     {
-      "bytes": 28979,
+      "bytes": 6868,
+      "path": "app/models.py",
+      "sha256": "86413b975062c7562d3a481ee6f93b3b0bbb2a6dc28523a908370a6b1ab5f116"
+    },
+    {
+      "bytes": 30259,
       "path": "app/persistence.py",
-      "sha256": "e189eeade4e72cf4d6dd1dae83035137ba65a8fbd21a599eaaaf421f711c1a63"
+      "sha256": "3c229e484101e3ec8f25019a181e89aba8835e095a79376f563a84d9c2656557"
+    },
+    {
+      "bytes": 1088,
+      "path": "app/policies/gdw-policy-bundle.json",
+      "sha256": "3e19259f9af6dfd8b002e18783f1d32907b7d2baa6649cb530b1bff15bb76713"
+    },
+    {
+      "bytes": 1718,
+      "path": "app/policy_bundle.py",
+      "sha256": "c5056ba3c364298c484f1728786733c3e9b1b88338de8bba2d695bceb8042eeb"
+    },
+    {
+      "bytes": 1021,
+      "path": "app/provenance.py",
+      "sha256": "67c952350bf77855b2a7cf00f11142d31a32e108c0adac75864d3de958689db2"
+    },
+    {
+      "bytes": 2289,
+      "path": "app/quant_core.py",
+      "sha256": "b3de372a22e54c7154173500e2c665779931ee498f9642387ca3ddd61f17e6ae"
+    },
+    {
+      "bytes": 1657,
+      "path": "app/risk_control.py",
+      "sha256": "879fba30d841ba092691cf046915ad0b51ec933cd1346e1986f3823d639fa5f5"
+    },
+    {
+      "bytes": 2375,
+      "path": "app/simulator.py",
+      "sha256": "3cd13a2674a01734ef51e565c78c4cac00de2ee59c162e5d7c37930232d1f947"
     },
     {
       "bytes": 643,
@@ -71,14 +136,29 @@
       "sha256": "f3eca38a196a76feb6d3664efb18d5c896ec31e54ec77d08e727f7bb6bc57577"
     },
     {
-      "bytes": 1441,
+      "bytes": 8370,
+      "path": "app/static/calibration-console.html",
+      "sha256": "dfd6000a697fcedcb9c8ad59c19910e3e0a09a90fc5a82c1b6e7f925b5507923"
+    },
+    {
+      "bytes": 17562,
+      "path": "app/static/master-suite.html",
+      "sha256": "2d9ab70dc4c902f9eea2ca4e7bedf0aa4397024c0562faf1704e117aecb2747f"
+    },
+    {
+      "bytes": 2176,
       "path": "app/telemetry.py",
-      "sha256": "2454ee4fb9a0350423f7059a0b6407f7d2ec2524af9941ec04411064a6b5476d"
+      "sha256": "34acb2efd718e5f0d3ddff697f7ab0e5547fb34a266e656408a628e9a0eb835a"
     },
     {
       "bytes": 2024,
       "path": "app/tracing.py",
       "sha256": "9ea97b35bcdbae6e93317a5ec7eefbcd971c84f65a34ebd7302f6f3926d7dc71"
+    },
+    {
+      "bytes": 54,
+      "path": "app/version.py",
+      "sha256": "dee5db5f9e27f6fffe7b2fe426300b486693b8d21fe11fdf26990e1c545810e2"
     },
     {
       "bytes": 896,
@@ -126,9 +206,9 @@
       "sha256": "fe91a0dfcae1b6f7e513fdb7a4f8c10349d525ded927eb3e2d3ad4a0a9e6f7bf"
     },
     {
-      "bytes": 4404,
+      "bytes": 4477,
       "path": "ci/update_weight_manifest.py",
-      "sha256": "629b8d7e2e408125e81db1b30c3ad9beab144c57fdb8da7bd50f197f128e5c09"
+      "sha256": "3fd28ac4bbcb1130985dd7613cc962afac586d7b854b9d31b49499dfa9db47d3"
     },
     {
       "bytes": 1985,
@@ -171,14 +251,29 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 3290,
+      "bytes": 5582,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "f2b6d02a77986ee069437cd0974957a9eb64bbc04a45c080c75c32531e1f352d"
+      "sha256": "99a2e3550e31b3729ad45f2b26b4079015c9d46cdf5d8b530c44795f0e619519"
+    },
+    {
+      "bytes": 3232,
+      "path": "docs/CALIBRATION_INTELLIGENCE_PLANE.md",
+      "sha256": "34489dcc88a1c136a66679324abd183cb40bd02eac74103b34d7481d64317c52"
     },
     {
       "bytes": 5313,
       "path": "docs/FRONTIER_PLAYBOOK.md",
       "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
+    },
+    {
+      "bytes": 3548,
+      "path": "docs/FRONTIER_POSTURE.md",
+      "sha256": "53226c7c6f4e68031d3e198d601979c47f53101179b6630fce923188d921790b"
+    },
+    {
+      "bytes": 4827,
+      "path": "docs/MASTER_SUITE_DASC_15C3_5.md",
+      "sha256": "3ad2cc3661ec3d32917bf6bab1ad15cb8ede1be3b34f8fa9daf3c1eac198dd79"
     },
     {
       "bytes": 2339,
@@ -196,9 +291,154 @@
       "sha256": "6f1dceb64f30879eaab83d29be3da38bbcb14722b0abdb117d193b71404774ab"
     },
     {
-      "bytes": 1667,
+      "bytes": 91,
+      "path": "gdw_x/__init__.py",
+      "sha256": "7c1b009555f23a621f8f7d5a02baeaec9af81d457198a27cf9573c50c847c91e"
+    },
+    {
+      "bytes": 42,
+      "path": "gdw_x/apps/__init__.py",
+      "sha256": "246107a2b0d6da9ca397020d3769faf27d161c7fb0a67edcd11fd5f62bf05046"
+    },
+    {
+      "bytes": 61,
+      "path": "gdw_x/apps/calibration_api/__init__.py",
+      "sha256": "d3aadafb721033cf6a76f63384eeb710fef1b89051c90abdc62d03fb03ecda6f"
+    },
+    {
+      "bytes": 6352,
+      "path": "gdw_x/apps/calibration_api/router.py",
+      "sha256": "5e7b38b419bd0d10d26a9b42328f7609de5f3ada8521cf35c436910020c5c188"
+    },
+    {
+      "bytes": 58,
+      "path": "gdw_x/apps/master_suite_api/__init__.py",
+      "sha256": "09a10ba2c744fcfc1f3a35469f65f1de8699a54951ade77807f41aeed5cbe783"
+    },
+    {
+      "bytes": 8706,
+      "path": "gdw_x/apps/master_suite_api/router.py",
+      "sha256": "035539ab9680402ad083e9e7d8b6e2d2cc2bf712c6310eb1898f8418e5637e9d"
+    },
+    {
+      "bytes": 81,
+      "path": "gdw_x/control_plane/__init__.py",
+      "sha256": "38fcbf6001133a2f7019c6e04cbabd1bb496a8cca6c8da798f9b0edcb99ebc5c"
+    },
+    {
+      "bytes": 14690,
+      "path": "gdw_x/control_plane/calibration_service.py",
+      "sha256": "a37b4c5eb4bf1f2232bddbd022807f0cfd3c559b925762ba171e6d2e9a4ae2da"
+    },
+    {
+      "bytes": 35698,
+      "path": "gdw_x/control_plane/master_suite_service.py",
+      "sha256": "730bb2b26bca64ba2e4e4c6e437e09a427936f2d65a387b5f08b80e6f5f2b3ee"
+    },
+    {
+      "bytes": 963,
+      "path": "gdw_x/control_plane/reconciliation.py",
+      "sha256": "d71bc8f4bdd85dbb9a0ab042b6018d4a37ae6e5f03280455668b6819028ccf9d"
+    },
+    {
+      "bytes": 65,
+      "path": "gdw_x/data_plane/__init__.py",
+      "sha256": "b48815345a9aac3f1671f51690ccb13f18c9deba86b93aa0ba1ec791b8e52211"
+    },
+    {
+      "bytes": 3449,
+      "path": "gdw_x/data_plane/risk_gate_15c35.py",
+      "sha256": "1949c393f8b824f102eae2d02880c1230ddb3fda223a6b7b0a9a0af8dd7a2a19"
+    },
+    {
+      "bytes": 959,
+      "path": "gdw_x/data_plane/risk_gateway.py",
+      "sha256": "86a1d47d1c97aa0151fb9dfbea3c560809d2806063a9e687278dae4fb31ea227"
+    },
+    {
+      "bytes": 74,
+      "path": "gdw_x/domain/__init__.py",
+      "sha256": "3e44942c6d1a6f6c8ac49c88d3cedcb0d435c520b61c54e70b72af36f9a8aac2"
+    },
+    {
+      "bytes": 1317,
+      "path": "gdw_x/domain/confidence.py",
+      "sha256": "a0f7fd3febfcc2cab5b83ffa4a432876a33cd2c07b269b63c77f42559f159b6c"
+    },
+    {
+      "bytes": 6781,
+      "path": "gdw_x/domain/contracts.py",
+      "sha256": "7d3066bd819746f6a3a7cc8f44190c25b8aadcf3f4903a8b87d2421885942d53"
+    },
+    {
+      "bytes": 7640,
+      "path": "gdw_x/domain/dasc.py",
+      "sha256": "b8ad19e1901652d55425b3a6adb93eeb9cae5fbd149a65fb9bf9b67789d98adc"
+    },
+    {
+      "bytes": 2539,
+      "path": "gdw_x/domain/drift.py",
+      "sha256": "95a70246e35e28763289aeaeeb3911bbef4cc6eba8b7010975afa34ceb2784bf"
+    },
+    {
+      "bytes": 7437,
+      "path": "gdw_x/domain/master_suite.py",
+      "sha256": "9d61b73042b666e4f7097351d3b00e1c264aa006863a6b9be593ccf0b3992036"
+    },
+    {
+      "bytes": 1069,
+      "path": "gdw_x/domain/quantcaleval.py",
+      "sha256": "481346e7a974ac26b20b72ebb67c66d788d515fef4dc9b9dd7dbfbb79286bd32"
+    },
+    {
+      "bytes": 4660,
+      "path": "gdw_x/domain/simulator.py",
+      "sha256": "90fd6ced06ac89a713a5723cce38c4a7286ecf46e61baa0c4d49c1f980bb3b40"
+    },
+    {
+      "bytes": 77,
+      "path": "gdw_x/governance/__init__.py",
+      "sha256": "1164075b94c2f2bb7e03f8bc690b6afc161013db2a75664539cbafb0a21b6d3b"
+    },
+    {
+      "bytes": 2535,
+      "path": "gdw_x/governance/kernel.py",
+      "sha256": "2d99cbae2c6dfd8b2b3e3a50f9fc641d0813f1b82d5e6c71c5d04bb8d9b2c6ec"
+    },
+    {
+      "bytes": 2556,
+      "path": "gdw_x/governance/receipts.py",
+      "sha256": "c65770fb52af93e6649a79f3dc5df0327b1a1e9e156f77286a4459c3327fdf47"
+    },
+    {
+      "bytes": 59,
+      "path": "gdw_x/memory/__init__.py",
+      "sha256": "b778d25330f5987c4a475cc7e7a5547f5f3f68d45b8c390698a85ef78bcbb1c4"
+    },
+    {
+      "bytes": 3609,
+      "path": "gdw_x/memory/exemplar_store.py",
+      "sha256": "fe6050120bd00e4c3035fe7815d23a5efe5559f99476e4bbdea9b42c3a6b4865"
+    },
+    {
+      "bytes": 5101,
+      "path": "gdw_x/memory/lake_journal.py",
+      "sha256": "b5d641fd50df006628311d621985bfab7ef9400d097a8366ab74c86e28747737"
+    },
+    {
+      "bytes": 35,
+      "path": "gdw_x/telemetry/__init__.py",
+      "sha256": "c91d654de0d180590c0317b6ad589b25faeffabe8fd9c992f2232684dd4ac234"
+    },
+    {
+      "bytes": 1054,
+      "path": "gdw_x/telemetry/otel.py",
+      "sha256": "90e4fde79e7cee7a13dcdccd7e0416348ecc1b6b299276a042f045f4ff12b5ec"
+    },
+    {
+      "bytes": 1691,
       "path": "monitoring/alerting-rules.yml",
-      "sha256": "a51047c2491b3a5aebbfba93e91a394b342fed6bad54ecca3746593d3260c039"
+      "sha256": "3ee9f7833ec09ce5f54865e5ed65c58222342d63a00e2be355e5890f6b015d9e"
     },
     {
       "bytes": 618,
@@ -231,9 +471,9 @@
       "sha256": "0cc8f5a4e5f552ebf50dc85f865e714718181bf063e6fea3b032e0ac8c6c91c5"
     },
     {
-      "bytes": 3025,
+      "bytes": 6935,
       "path": "monitoring/metric-policy.json",
-      "sha256": "e6a02cc8e190edefd2ef87c312858f9078ca651ce2a1fee9d065623a66274d42"
+      "sha256": "ca2b4ce09adcca0e81839043aa77d8193961a3b9971ffccc7bdc5f727c267279"
     },
     {
       "bytes": 505,
@@ -256,9 +496,9 @@
       "sha256": "b0a707e86bc8bf06c970cb0fa50c017fd2a08ea05de9fb43b5b6eb3eb430865d"
     },
     {
-      "bytes": 869,
+      "bytes": 928,
       "path": "pyproject.toml",
-      "sha256": "55f453253f4a3ae9ec77eb71dbf09c9917ccc320a6c15b307b31488758661ac8"
+      "sha256": "5cdae377c5dd60e83100b7b688607b209c20251e90a32e2020cfeb7f6638c566"
     },
     {
       "bytes": 1708,
@@ -301,9 +541,14 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 8305,
+      "bytes": 8592,
       "path": "tests/test_api.py",
-      "sha256": "2308e4d180aab5f675e343534e6e5d2340831ca8c6aa8b62ecc7d8d292e42b19"
+      "sha256": "e2973fe1a36ba80129807881c490d3b9b91896ae0c5a4c96c40ec393a25de47c"
+    },
+    {
+      "bytes": 5867,
+      "path": "tests/test_calibration_intelligence_plane.py",
+      "sha256": "0abec055696610825dd95991248349fc5874f251a3d6e58e1fca1885e74e2aa4"
     },
     {
       "bytes": 3028,
@@ -311,9 +556,19 @@
       "sha256": "9a504686e660ed28f13ecdf6d8e45ddd96a696c99b585f2cc3364252ec4a2dce"
     },
     {
+      "bytes": 6161,
+      "path": "tests/test_control_plane.py",
+      "sha256": "c1ed1aaef906f76a241e72a73926672bda95ce0bfd2d302081fab5328d8b7773"
+    },
+    {
       "bytes": 5509,
       "path": "tests/test_live_deployment_verifier.py",
       "sha256": "2fbbfebb7b414a22fdfadff13b1b4ad1e7787427d16a4a1da93efd7437c90764"
+    },
+    {
+      "bytes": 5258,
+      "path": "tests/test_master_suite_operational.py",
+      "sha256": "5f213124f2ee1b270a77783ebbe825036ad903ad2ff503c560af9270129a1ab6"
     },
     {
       "bytes": 11391,
@@ -326,9 +581,9 @@
       "sha256": "97b76ef28594f9fdb0da5fdc537564788bfc5299210f39a1b2e18da1a2861b1f"
     },
     {
-      "bytes": 480,
+      "bytes": 666,
       "path": "tests/test_weight_manifest.py",
-      "sha256": "12d6230ea535acca5aa2d470f44896e23585513ab69a13b32c695e97714dfe9e"
+      "sha256": "ca415276d230f72e3c728eb30ffb8008bfd94c5803b2d7c2d2119b705498fed0"
     },
     {
       "bytes": 820,

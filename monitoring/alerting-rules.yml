@@ -31,8 +31,8 @@ groups:
           severity: critical
           service: gdw
         annotations:
-          summary: GDW missing receipt detected
-          description: A modeled decision completed without a local receipt.
+          summary: GDW missing input receipt detected
+          description: A modeled decision received no valid upstream receipt and failed closed.
           runbook: docs/RUNBOOKS.md#gdwmissingreceipts
 
       - alert: GDWTelemetryAbsent
@@ -45,4 +45,3 @@ groups:
           summary: GDW telemetry is absent
           description: The GDW target is down or its build marker is missing.
           runbook: docs/RUNBOOKS.md#gdwtelemetryabsent
-

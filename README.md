@@ -8,6 +8,53 @@ This repository turns the Wave 34 observability payload into a runnable, governe
 
 The block above is the required Wave 34 disclosure and must remain verbatim.
 
+## Wave 37: GDW-X modular control plane
+
+> GDW-X is a MODELED modular control-plane architecture for governed operational intelligence. It combines quant scoring, calibration, long-context incident memory, anomaly decoding, simulation, and policy-constrained execution. Inspired by NVIDIA Ising, Kimi K3, and runtime-governance research, it does not claim autonomous production safety or benchmark superiority beyond measured results and enforced controls.
+
+The block above is the required Wave 37 disclosure and must remain verbatim.
+
+Wave 37 extends the existing observability core instead of creating a parallel runtime:
+
+- Quant Core exposes monotonic, editable, non-negative scoring factors and a complete penalty breakdown.
+- Calibration Plane converts a typed diagnostic snapshot into reversible action proposals.
+- Governance Kernel separates proposals from execution, requires valid input receipts, routes approval-gated actions to review, and writes local audit receipts for allow, review, and withhold outcomes.
+- Long-Context Ops Memory stores incident snapshots, interventions, and outcomes in a separate append-only local hash chain and ranks retrieved exemplars by scaled similarity, trust, and risk.
+- Anomaly Decoder classifies receipt, artifact-weight, error-rate, latency, and cardinality failures.
+- Simulation and benchmark modules expose counterfactual release-score deltas, `OpCalEval`, `QuantCalEval`, and a fixed decoder benchmark.
+
+These modules are deterministic reference implementations. Calibration outputs and simulated deltas are proposals, not authority to mutate production systems.
+
+### Frontier posture
+
+Version `0.3.0` adds a policy-provenance and uncertainty boundary:
+
+- machine-readable policy is loaded from `app/policies/gdw-policy-bundle.json`;
+- callers cannot downgrade approval requirements encoded in that bundle;
+- every governance receipt binds the exact policy revision and SHA-256 digest to a canonical subject digest;
+- incident writes are idempotent and can carry temporal, source, tag, and causal-parent metadata;
+- counterfactuals expose conservative, central, and optimistic projections instead of a misleading point estimate;
+- conformal risk control refuses to emit an operating threshold when the supplied held-out sample is too small;
+- built-in decoder cases are labeled contract fixtures, not external benchmark evidence.
+
+This is a stronger control-plane foundation, not proof that GDW-X is state of the art. See `docs/FRONTIER_POSTURE.md` for the measured frontier and remaining gates.
+
+## SZL Calibration Intelligence Plane
+
+The modular `gdw_x` package implements the payload's paper/shadow control loop without adding market authority:
+
+```text
+formula proposal
+  -> deterministic replay
+  -> independent kernel decision
+  -> expiring authenticated manifest
+  -> parent-hash reconciliation
+  -> paper/shadow runtime acknowledgement
+  -> lake-backed outcome episode
+```
+
+The read-only operator console is available at `http://localhost:8080/calibration`. Canary, live trading, broker connectivity, protected risk-parameter tuning, and order submission are structurally unavailable. See `docs/CALIBRATION_INTELLIGENCE_PLANE.md`.
+
 ## What moved beyond the draft
 
 - Metrics use bounded route templates and enumerated labels. Request, session, proposal, trace, span, UUID, and hash values are banned as Prometheus labels.
@@ -117,12 +164,30 @@ python ci/validate_weights.py
 
 `POST /v1/gdw/step` exercises a minimal deterministic **MODELED** policy:
 
-- a missing local receipt fails closed to `withhold`;
+- a missing input receipt fails closed to `withhold` and the rejection receives a local audit receipt;
 - otherwise confidence at least `0.85` maps to `allow`;
 - confidence at least `0.60` maps to `review`;
 - lower confidence maps to `withhold`.
 
 This policy exists to exercise observable branches. It is not a universal trust model, benchmark, or production authorization rule. Raw session and proposal identifiers never enter metric labels; logs contain a one-way, truncated session reference.
+
+The GDW-X product surface adds:
+
+```text
+POST /v1/gdw/calibrate
+POST /v1/gdw/decode
+POST /v1/gdw/simulate
+GET  /v1/gdw/score/release
+GET  /v1/gdw/exemplars/search
+POST /v1/gdw/exemplars
+POST /v1/gdw/policy/check
+POST /v1/gdw/quant/calibrate
+POST /v1/gdw/quant/risk-control
+GET  /v1/gdw/benchmarks/decoder
+POST /v1/gdw/benchmarks/opcal
+```
+
+There is intentionally no autonomous execution endpoint. The policy surface evaluates and receipts proposals; a separately authorized actuator would be required for real mutations.
 
 ## Acceptance evidence
 

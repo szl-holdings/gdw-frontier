@@ -21,6 +21,7 @@ RUN groupadd --system --gid 10001 gdw \
 COPY pyproject.toml README.md ./
 COPY app ./app
 COPY ci ./ci
+COPY gdw_x ./gdw_x
 RUN python -m pip install --upgrade pip==26.1.2 \
     && python -m pip install .
 
