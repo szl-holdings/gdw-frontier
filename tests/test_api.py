@@ -157,6 +157,20 @@ def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
     os.environ.pop("GDW_API_TOKEN", None)
 
 
+def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "2")
+    monkeypatch.setattr(api.ledger, "validate_configuration", lambda: None)
+
+    try:
+        api._validate_runtime_configuration()
+    except RuntimeError as error:
+        assert "GDW_WORKERS must be 1" in str(error)
+    else:
+        raise AssertionError("unsupported multi-worker runtime unexpectedly started")
+
+
 def test_auth_token_file_takes_precedence_over_environment(
     tmp_path: Path,
     monkeypatch,

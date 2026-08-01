@@ -88,6 +88,12 @@ receipt chain so rejections remain inspectable. Under the production signing
 profile, these records inherit the file-backed ECDSA signing and continuity
 checks described above.
 
+Calibration and Master Suite workflow projections currently remain
+process-local. The supported runtime therefore requires `GDW_WORKERS=1`, and
+startup rejects any other worker count. The bronze journal also uses an
+interprocess file lock and refreshes its head before each append; that protects
+the hash chain but does not turn process-local workflow state into shared state.
+
 The exemplar vault uses a separate append-only hash chain. Readiness verifies
 both chains, but the exemplar chain is not independently signed, replicated,
 durable across volume deletion, or suitable as production release proof.

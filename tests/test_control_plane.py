@@ -11,6 +11,7 @@ from app import api
 from app.benchmarks import benchmark_decoder, quant_cal_eval
 from app.diagnostics import DiagnosticSnapshot
 from app.exemplar_store import ExemplarStore
+from app.persistence import ReceiptLedger
 from app.quant_core import release_score
 
 
@@ -63,14 +64,20 @@ def test_empty_exemplar_memory_gets_a_signed_genesis_record(
     monkeypatch.setenv("GDW_RECEIPT_SIGNING_REQUIRED", "1")
     monkeypatch.setenv("GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION", "1")
 
+    main_ledger = ReceiptLedger(tmp_path / "receipts.jsonl")
+    main_identity = {"source_sha": "a" * 40, "component": "receipt_ledger"}
+    assert main_ledger.ensure_signed_head(main_identity)
+
     store = ExemplarStore(tmp_path / "incident-exemplars.jsonl")
-    identity = {"source_sha": "a" * 40, "component": "incident_memory"}
-    first_head = store.ensure_signed_head(identity)
-    second_head = store.ensure_signed_head(identity)
+    exemplar_identity = {"source_sha": "a" * 40, "component": "incident_memory"}
+    first_head = store.ensure_signed_head(exemplar_identity)
+    second_head = store.ensure_signed_head(exemplar_identity)
 
     assert first_head == second_head
+    assert main_ledger.verify() == (True, 1)
     assert store.verify() == (True, 1)
     assert store.load() == []
+    assert main_ledger.signing_state_path != store._ledger().signing_state_path
 
 
 def test_calibration_decode_and_simulation_surface(tmp_path: Path) -> None:

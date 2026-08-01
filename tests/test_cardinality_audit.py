@@ -6,6 +6,8 @@ from pathlib import Path
 from app.api import app
 from ci.audit_cardinality import audit_live, audit_static, extract_metric_definitions
 from ci.redact_newman_report import redact_secret
+from gdw_x.apps.calibration_api.router import router as calibration_router
+from gdw_x.apps.master_suite_api.router import router as master_suite_router
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -29,6 +31,17 @@ def test_every_observed_application_route_is_governed() -> None:
             policy["metrics"][metric_name]["allowed_values"]["route"]
         )
         assert observed_routes <= allowed_routes
+
+
+def test_calibration_proposal_route_has_one_owner() -> None:
+    routes = [
+        route
+        for route in [*calibration_router.routes, *master_suite_router.routes]
+        if getattr(route, "path", None) == "/v1/calibration/proposals"
+        and "POST" in getattr(route, "methods", set())
+    ]
+    assert len(routes) == 1
+    assert routes[0].name == "create_proposal"
 
 
 def test_newman_report_redaction_removes_nested_bearer_token() -> None:

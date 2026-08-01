@@ -16,12 +16,20 @@ class ExemplarStore:
         data_dir = Path(os.getenv("GDW_DATA_DIR", "data"))
         self.path = path or data_dir / "incident-exemplars.jsonl"
 
+    def _ledger(self) -> ReceiptLedger:
+        return ReceiptLedger(
+            self.path,
+            signing_state_path=self.path.with_suffix(
+                self.path.suffix + ".signing-state.json"
+            ),
+        )
+
     def append(self, record: dict[str, Any]) -> str:
-        return ReceiptLedger(self.path).append({"kind": "incident_exemplar", "record": record})
+        return self._ledger().append({"kind": "incident_exemplar", "record": record})
 
     def ensure_signed_head(self, runtime_identity: dict[str, Any]) -> str | None:
         """Anchor an empty or legacy memory chain when receipt signing is required."""
-        return ReceiptLedger(self.path).ensure_signed_head(runtime_identity)
+        return self._ledger().ensure_signed_head(runtime_identity)
 
     def append_once(
         self,
@@ -30,7 +38,7 @@ class ExemplarStore:
         idempotency_key: str | None = None,
     ) -> tuple[str, bool]:
         record_digest = hashlib.sha256(canonical_json(record)).hexdigest()
-        return ReceiptLedger(self.path).append_once(
+        return self._ledger().append_once(
             {"kind": "incident_exemplar", "record": record, "record_digest": record_digest},
             idempotency_key=idempotency_key or record_digest,
         )
@@ -54,7 +62,7 @@ class ExemplarStore:
         return exemplars
 
     def verify(self) -> tuple[bool, int]:
-        return ReceiptLedger(self.path).verify()
+        return self._ledger().verify()
 
 
 def load_exemplars(path: Path | None = None) -> list[dict[str, Any]]:
