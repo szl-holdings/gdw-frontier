@@ -99,13 +99,14 @@ OpenTelemetry reference:
 
 ## Required environment
 
-`GDWX_MASTER_SUITE_SIGNING_KEY` must be provided through the runtime environment
-or an approved secret store before the governance kernel can accept proposals
-or issue manifests. No default signing secret is embedded. The runtime also
+`GDWX_MASTER_SUITE_SIGNING_KEY_FILE` (preferred) or
+`GDWX_MASTER_SUITE_SIGNING_KEY` must be provided through an approved secret
+store before the governance kernel can accept proposals or issue manifests.
+Compose mounts the file-backed key without exposing its value in container
+environment metadata. No default signing secret is embedded. The runtime also
 requires `GDW_WORKERS=1` while workflow state remains process-local. Optional
 settings:
 
-- `GDWX_MASTER_SUITE_SIGNING_KEY` (propagated by Compose; decisions fail closed when absent)
 - `GDWX_MASTER_SUITE_SIGNER`
 - `GDWX_MASTER_SUITE_DATA_ROOT` (overrides `GDW_DATA_DIR/master_suite`)
 - `GDWX_ACTIVE_RUNTIME_HASH`

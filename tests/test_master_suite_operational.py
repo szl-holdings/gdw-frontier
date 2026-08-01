@@ -4,7 +4,12 @@ import multiprocessing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from gdw_x.control_plane.master_suite_service import MasterSuiteService
+import pytest
+
+from gdw_x.control_plane.master_suite_service import (
+    MasterSuiteError,
+    MasterSuiteService,
+)
 from gdw_x.domain.dasc import DASCLocalizer
 from gdw_x.domain.master_suite import (
     DeploymentMode,
@@ -114,6 +119,40 @@ def test_master_suite_defaults_to_the_configured_writable_data_dir(
     assert (tmp_path / "master_suite" / ".lake-journal.lock").is_file()
 
 
+def test_master_suite_prefers_the_file_backed_signing_key(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    key_path = tmp_path / "master-suite-signing-key"
+    key_path.write_text("file-backed-governance-key\n", encoding="utf-8")
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_path))
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "environment-fallback")
+
+    service = MasterSuiteService(data_root=tmp_path / "service")
+
+    assert service._signing_key == "file-backed-governance-key"
+
+
+def test_strategy_mutation_hash_excludes_generated_identity_and_timestamp() -> None:
+    values = {
+        "strategy_id": "frontier-alpha-strategy",
+        "formula_id": "frontier-alpha",
+        "from_version": "1.0.0",
+        "candidate_version": "1.0.1",
+        "parameter_diff": {"signal_weight": 0.02},
+        "evidence_hashes": ["evidence-replay-001"],
+        "requested_mode": DeploymentMode.PAPER,
+        "parent_runtime_hash": "runtime-parent",
+        "requestor_identity": "strategy-lab",
+        "reversibility_plan": "Restore the prior version.",
+    }
+    first = StrategyMutation(**values)
+    second = StrategyMutation(**values)
+
+    assert first.mutation_id != second.mutation_id
+    assert first.proposal_hash() == second.proposal_hash()
+
+
 def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
@@ -184,6 +223,31 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
     assert "runtime_ack_missing" in before_ack.reason_codes
     assert "active_runtime_hash_mismatch" in before_ack.reason_codes
 
+    original_runtime_hash = service._active_runtime_hash
+    service._active_runtime_hash = "f" * 64
+    rejected_ack = service.acknowledge(
+        manifest.manifest_hash,
+        "rejecting-runtime",
+        correlation_id="test-rejected-ack",
+    )
+    assert rejected_ack.status == "rejected"
+    blocked_outcome = OutcomeObservation(
+        proposal_hash=proposal_hash,
+        forecast_loss=0.04,
+        calibration_error=0.03,
+        latency_p95_ms=8.2,
+        error_rate=0.0,
+        risk_events=0,
+        realized_utility=0.71,
+    )
+    with pytest.raises(MasterSuiteError) as outcome_error:
+        service.record_outcome(
+            blocked_outcome,
+            correlation_id="test-rejected-ack",
+        )
+    assert outcome_error.value.code == "applied_runtime_ack_required"
+    service._active_runtime_hash = original_runtime_hash
+
     ack = service.acknowledge(
         manifest.manifest_hash,
         "paper-runtime-1",
@@ -228,15 +292,7 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         **service._acks,
     }
     recorded = service.record_outcome(
-        OutcomeObservation(
-            proposal_hash=proposal_hash,
-            forecast_loss=0.04,
-            calibration_error=0.03,
-            latency_p95_ms=8.2,
-            error_rate=0.0,
-            risk_events=0,
-            realized_utility=0.71,
-        ),
+        blocked_outcome,
         correlation_id="test-lifecycle",
     )
     assert recorded["gold_exemplar"]["deployment_mode"] == DeploymentMode.PAPER.value
@@ -252,6 +308,6 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         "simulations": 1,
         "decisions": 1,
         "manifests": 1,
-        "acks": 1,
+        "acks": 2,
         "outcomes": 1,
     }

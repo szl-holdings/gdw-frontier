@@ -56,7 +56,10 @@ class ExemplarStore:
             return []
         valid, _ = self.verify()
         if not valid:
-            raise RuntimeError("incident exemplar ledger integrity verification failed")
+            raise RuntimeError(
+                "incident exemplar ledger integrity verification failed; "
+                "failed integrity or signature verification"
+            )
         exemplars: list[dict[str, Any]] = []
         for raw_line in self.path.read_text(encoding="utf-8").splitlines():
             envelope = json.loads(raw_line)

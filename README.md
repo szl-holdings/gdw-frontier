@@ -100,10 +100,12 @@ Requirements: Docker Desktop with Compose v2. The stack binds ports `3000`, `310
 ```bash
 openssl rand -base64 -out /secure/gdw-api-token 48
 openssl rand -base64 -out /secure/gdw-grafana-password 48
+openssl rand -hex -out /secure/gdwx-master-suite-signing-key 32
 python ci/generate_signing_key.py --output /secure/gdw-receipt-signing-key.pem
 export GDW_API_TOKEN_SOURCE_FILE="/secure/gdw-api-token"
 export GRAFANA_ADMIN_PASSWORD_SOURCE_FILE="/secure/gdw-grafana-password"
 export GDW_SIGNING_KEY_SOURCE_FILE="/secure/gdw-receipt-signing-key.pem"
+export GDWX_MASTER_SUITE_SIGNING_KEY_SOURCE_FILE="/secure/gdwx-master-suite-signing-key"
 export GDW_RECEIPT_SIGNING_REQUIRED=1
 export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1
 python ci/worker_calc.py
@@ -238,7 +240,7 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 ## Security boundaries
 
 - The local Grafana password is intentionally development-only and is sourced from `GRAFANA_ADMIN_PASSWORD_SOURCE_FILE`.
-- Compose mounts the GDW token and Grafana password as files; it does not place either secret in container environment metadata.
+- Compose mounts the GDW token, Grafana password, and Master Suite HMAC key as files; it does not place their values in container environment metadata.
 - Compose also mounts the P-256 private signing key as a file. The key generator refuses to overwrite an existing key, and live signing fails closed when the configured key is missing or invalid.
 - A one-shot password-sync container applies the mounted Grafana secret to both new and existing local Grafana databases before Terraform provisioning runs.
 - All published Compose ports bind to `127.0.0.1` unless `GDW_BIND_ADDRESS` is deliberately overridden.

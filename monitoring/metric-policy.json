@@ -149,10 +149,10 @@
         ],
         "route": [
           "/build-info",
+          "/calibration",
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",
-          "/calibration",
           "/master-suite",
           "/openapi.json",
           "/readyz",
@@ -210,10 +210,10 @@
         ],
         "route": [
           "/build-info",
+          "/calibration",
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",
-          "/calibration",
           "/master-suite",
           "/openapi.json",
           "/readyz",

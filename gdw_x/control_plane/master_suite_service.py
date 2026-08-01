@@ -68,8 +68,14 @@ class MasterSuiteService:
                 else shared_data_root / "master_suite"
             )
         )
-        self._signing_key = (
-            signing_key or os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
+        signing_key_file = os.getenv(
+            "GDWX_MASTER_SUITE_SIGNING_KEY_FILE",
+            "",
+        ).strip()
+        self._signing_key = signing_key or (
+            Path(signing_key_file).read_text(encoding="utf-8").strip()
+            if signing_key_file
+            else os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
         )
         self._signer = os.getenv(
             "GDWX_MASTER_SUITE_SIGNER",
@@ -108,7 +114,7 @@ class MasterSuiteService:
         if not self._signing_key:
             raise MasterSuiteError(
                 "signing_key_unavailable",
-                "GDWX_MASTER_SUITE_SIGNING_KEY is required for signed decisions.",
+                "GDWX_MASTER_SUITE_SIGNING_KEY_FILE or GDWX_MASTER_SUITE_SIGNING_KEY is required for signed decisions.",
             )
         return hmac.new(
             self._signing_key.encode("utf-8"),
@@ -669,6 +675,24 @@ class MasterSuiteService:
         with self._lock:
             if outcome.proposal_hash not in self._mutations:
                 raise MasterSuiteError("proposal_not_found", "Unknown proposal.")
+            matching_ack = next(
+                (
+                    ack
+                    for ack in self._acks.values()
+                    if ack.get("status") == "applied"
+                    and self._manifests.get(
+                        ack["manifest_hash"],
+                        {},
+                    ).get("proposal_hash")
+                    == outcome.proposal_hash
+                ),
+                None,
+            )
+            if matching_ack is None:
+                raise MasterSuiteError(
+                    "applied_runtime_ack_required",
+                    "An applied runtime acknowledgement is required before recording an outcome.",
+                )
             payload = outcome.model_dump(mode="json")
             self._record(
                 event_type="OutcomeObserved",
@@ -679,19 +703,6 @@ class MasterSuiteService:
             )
             mutation = self._mutations[outcome.proposal_hash]
             decision = self._decisions.get(outcome.proposal_hash, {})
-            matching_ack = next(
-                (
-                    ack
-                    for ack in self._acks.values()
-                    if self._manifests.get(
-                        ack["manifest_hash"],
-                        {},
-                    ).get("proposal_hash")
-                    == outcome.proposal_hash
-                    and ack.get("status") == "applied"
-                ),
-                {},
-            )
             exemplar = {
                 "episode_id": str(outcome.outcome_id),
                 "proposal_hash": outcome.proposal_hash,
@@ -708,9 +719,8 @@ class MasterSuiteService:
                     mutation["parameter_diff"]
                 ),
                 "decision_id": decision.get("decision_id"),
-                "deployment_mode": matching_ack.get("deployment_mode"),
-                "rollback_flag": matching_ack.get("status")
-                == "rolled_back",
+                "deployment_mode": matching_ack["deployment_mode"],
+                "rollback_flag": False,
                 "outcome_quality": max(
                     0.0,
                     1.0 - outcome.calibration_error - outcome.error_rate,

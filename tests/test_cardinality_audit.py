@@ -23,7 +23,11 @@ def test_every_observed_application_route_is_governed() -> None:
     policy = json.loads((ROOT / "monitoring" / "metric-policy.json").read_text(encoding="utf-8"))
     observed_routes = {
         str(route.path)
-        for route in app.routes
+        for route in [
+            *app.routes,
+            *calibration_router.routes,
+            *master_suite_router.routes,
+        ]
         if getattr(route, "path", None) and route.path != "/metrics"
     }
     for metric_name in ("gdw_request_latency_seconds", "gdw_request_total"):
