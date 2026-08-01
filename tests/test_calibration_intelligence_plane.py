@@ -73,11 +73,19 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
     assert first_ack.active_mode == DeploymentMode.PAPER
     assert service.status()["runtime"]["active_mode"] == "paper"
 
+    replacement_manifest = service.issue_manifest(proposal_hash)
+    replacement_manifest_hash = replacement_manifest.canonical_hash()
+    assert replacement_manifest_hash != manifest.canonical_hash()
+    noop_ack = service.apply_manifest(replacement_manifest_hash)
+    assert noop_ack.status == "applied"
+    assert noop_ack.active_runtime_hash == first_ack.active_runtime_hash
+    assert service.runtime.applied_manifest_hash == replacement_manifest_hash
+
     outcome = service.record_outcome(
         proposal_hash=proposal_hash,
-        manifest_hash=manifest.canonical_hash(),
-        runtime_instance=first_ack.runtime_instance,
-        observed_runtime_hash=first_ack.active_runtime_hash,
+        manifest_hash=replacement_manifest_hash,
+        runtime_instance=noop_ack.runtime_instance,
+        observed_runtime_hash=noop_ack.active_runtime_hash,
         regime_id="recurring",
         parameter_hash="b" * 64,
         observed_utility=0.03,

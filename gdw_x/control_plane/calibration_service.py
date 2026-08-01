@@ -232,6 +232,9 @@ class CalibrationService:
                 status = "applied"
             elif result["action"] == "noop":
                 state = self.states[manifest.proposal_hash]
+                self.runtime = self.runtime.model_copy(
+                    update={"applied_manifest_hash": manifest_hash}
+                )
                 status = "applied"
             else:
                 state = ProposalState.QUARANTINED
