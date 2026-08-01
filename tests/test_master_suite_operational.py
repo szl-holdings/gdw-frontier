@@ -140,6 +140,20 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         correlation_id="test-lifecycle",
     )
     proposal_hash = submitted["proposal_hash"]
+    retry_mutation = StrategyMutation.model_validate(
+        mutation.model_dump(
+            mode="python",
+            exclude={"mutation_id", "created_at"},
+        )
+    )
+    retried = service.submit_mutation(
+        retry_mutation,
+        observation,
+        reference,
+        correlation_id="test-lifecycle-retry",
+    )
+    assert retried["proposal_hash"] == proposal_hash
+    assert retried["idempotent"] is True
 
     assert service.simulate(
         proposal_hash,
@@ -205,7 +219,15 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
     )
     assert live_request.allow is False
     assert "live_execution_authority_unavailable" in live_request.reason_codes
-    service.record_outcome(
+    service._acks = {
+        "rejected-ack": {
+            "manifest_hash": manifest.manifest_hash,
+            "status": "rejected",
+            "deployment_mode": DeploymentMode.LIVE.value,
+        },
+        **service._acks,
+    }
+    recorded = service.record_outcome(
         OutcomeObservation(
             proposal_hash=proposal_hash,
             forecast_loss=0.04,
@@ -217,6 +239,8 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         ),
         correlation_id="test-lifecycle",
     )
+    assert recorded["gold_exemplar"]["deployment_mode"] == DeploymentMode.PAPER.value
+    assert recorded["gold_exemplar"]["rollback_flag"] is False
 
     replayed = MasterSuiteService(
         data_root=tmp_path,
