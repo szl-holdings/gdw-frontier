@@ -51,6 +51,17 @@ class LakeExemplarStore:
             candidate = CalibrationEpisode.model_validate(
                 {key: value for key, value in row.items() if key != "record_hash"}
             )
+            runtime_binding_status = (
+                "BOUND"
+                if all(
+                    (
+                        candidate.manifest_hash,
+                        candidate.runtime_instance,
+                        candidate.observed_runtime_hash,
+                    )
+                )
+                else "LEGACY_UNBOUND"
+            )
             regime_score = 1.0 if candidate.regime_id == regime_id else 0.0
             formula_score = 1.0 if candidate.formula_id == formula_id else 0.0
             candidate_drift = candidate.drift.model_dump()
@@ -72,7 +83,9 @@ class LakeExemplarStore:
                 (
                     score,
                     {
-                        **row,
+                        **candidate.model_dump(mode="json"),
+                        "record_hash": row["record_hash"],
+                        "runtime_binding_status": runtime_binding_status,
                         "retrieval_score": round(score, 6),
                         "score_components": {
                             "regime": regime_score,

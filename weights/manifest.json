@@ -371,9 +371,9 @@
       "sha256": "a0f7fd3febfcc2cab5b83ffa4a432876a33cd2c07b269b63c77f42559f159b6c"
     },
     {
-      "bytes": 6861,
+      "bytes": 6903,
       "path": "gdw_x/domain/contracts.py",
-      "sha256": "2f7583b4aa3409ccde4d082b7e09b49252b4f48feb52e422e1570e5dd5613e7a"
+      "sha256": "3cf842adf2a7e8b0247ec91021bc87b4bfae449dc5c4f094b1bd284b326ac2bc"
     },
     {
       "bytes": 8362,
@@ -386,9 +386,9 @@
       "sha256": "95a70246e35e28763289aeaeeb3911bbef4cc6eba8b7010975afa34ceb2784bf"
     },
     {
-      "bytes": 7813,
+      "bytes": 8145,
       "path": "gdw_x/domain/master_suite.py",
-      "sha256": "1ed9167481b5c2da61711c4bc88462b3a23222b174b454451b257054e762a1e1"
+      "sha256": "dca8a928064133e4beae400fa191013abd2cb259695c0698e8139023b4dd8528"
     },
     {
       "bytes": 1069,
@@ -421,9 +421,9 @@
       "sha256": "b778d25330f5987c4a475cc7e7a5547f5f3f68d45b8c390698a85ef78bcbb1c4"
     },
     {
-      "bytes": 3609,
+      "bytes": 4131,
       "path": "gdw_x/memory/exemplar_store.py",
-      "sha256": "fe6050120bd00e4c3035fe7815d23a5efe5559f99476e4bbdea9b42c3a6b4865"
+      "sha256": "c8bd974ef5f20716d862fcd16ca6fa95bac31d11c3b55dc3bda4309acf9862ce"
     },
     {
       "bytes": 8520,
@@ -551,9 +551,9 @@
       "sha256": "cff6de27702ad78bbaa175283905e4a7410e1706bee585fa30a60e38c204fe27"
     },
     {
-      "bytes": 7869,
+      "bytes": 9058,
       "path": "tests/test_calibration_intelligence_plane.py",
-      "sha256": "2dc596afd767d9f9a1e699871967dbad36c91a693afe0ae91991b189390d4f81"
+      "sha256": "22e95cac5cf23b60775310b2ff9bb674367441ce5763bfacc3f70dc6cf36ae9f"
     },
     {
       "bytes": 4045,
@@ -581,9 +581,9 @@
       "sha256": "82f309968506acd65c895c9d7b8a24533964257c62b732f77b22c294a3ec917d"
     },
     {
-      "bytes": 15950,
+      "bytes": 16502,
       "path": "tests/test_master_suite_operational.py",
-      "sha256": "9aa68aed42e9bc3f7b6987cfaede94a854660b7480ed35245e8d6c44ab914041"
+      "sha256": "bd8bd1e6050664cb293300866a186e5b7b0f767c38740e246062024c66417682"
     },
     {
       "bytes": 12862,

@@ -8,7 +8,13 @@ from fastapi.testclient import TestClient
 from app import api
 from gdw_x.apps.calibration_api import router as calibration_router
 from gdw_x.control_plane.calibration_service import CalibrationService
-from gdw_x.domain.contracts import CalibrationProposal, Decision, DeploymentMode, DriftVector
+from gdw_x.domain.contracts import (
+    CalibrationEpisode,
+    CalibrationProposal,
+    Decision,
+    DeploymentMode,
+    DriftVector,
+)
 
 
 def _proposal(**overrides) -> CalibrationProposal:
@@ -85,6 +91,39 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
         k=3,
     )
     assert matches[0]["proposal_hash"] == proposal_hash
+    assert matches[0]["runtime_binding_status"] == "BOUND"
+
+    legacy_episode = CalibrationEpisode(
+        episode_id="legacy-frontier-episode",
+        recorded_at=datetime(2026, 7, 29, tzinfo=timezone.utc),
+        formula_id="formula-a",
+        formula_version="1.0.0",
+        regime_id="recurring",
+        parameter_hash="c" * 64,
+        drift=service.proposals[proposal_hash].drift,
+        proposal_hash=proposal_hash,
+        decision=Decision.ACCEPT,
+        deployment_mode=DeploymentMode.PAPER,
+        observed_utility=0.02,
+        predicted_utility=0.03,
+        rollback_status="not_required",
+        evidence_hashes=["a" * 64],
+        uncertainty=0.15,
+    )
+    service.lake.store(legacy_episode)
+    legacy_matches = service.search_exemplars(
+        formula_id="formula-a",
+        regime_id="recurring",
+        proposal_hash=proposal_hash,
+        k=3,
+    )
+    legacy_match = next(
+        item
+        for item in legacy_matches
+        if item["episode_id"] == legacy_episode.episode_id
+    )
+    assert legacy_match["manifest_hash"] is None
+    assert legacy_match["runtime_binding_status"] == "LEGACY_UNBOUND"
 
     successor = _proposal(
         proposal_id="proposal-frontier-2",

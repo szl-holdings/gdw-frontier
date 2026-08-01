@@ -255,6 +255,22 @@ def test_strategy_mutation_hash_excludes_generated_identity_and_timestamp() -> N
     assert first.proposal_hash() == second.proposal_hash()
 
 
+def test_outcome_rejects_timezone_naive_observed_at() -> None:
+    with pytest.raises(ValueError, match="must include a timezone offset"):
+        OutcomeObservation(
+            proposal_hash="a" * 64,
+            manifest_hash="b" * 64,
+            runtime_instance="paper-runtime-1",
+            observed_runtime_hash="c" * 64,
+            forecast_loss=0.04,
+            calibration_error=0.03,
+            latency_p95_ms=8.2,
+            error_rate=0.0,
+            risk_events=0,
+            observed_at=datetime(2026, 7, 29, 12, 0),
+        )
+
+
 def test_fresh_evidence_objects_preserve_mutation_idempotency(tmp_path: Path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
