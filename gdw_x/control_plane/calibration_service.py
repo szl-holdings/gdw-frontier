@@ -204,7 +204,15 @@ class CalibrationService:
     def apply_manifest(self, manifest_hash: str) -> RuntimeAck:
         with self._lock:
             if manifest_hash in self.acks:
-                return self.acks[manifest_hash]
+                cached_ack = self.acks[manifest_hash]
+                if (
+                    cached_ack.status == "applied"
+                    and self.runtime.applied_manifest_hash != manifest_hash
+                ):
+                    raise PermissionError(
+                        "manifest acknowledgement is superseded by the current runtime binding"
+                    )
+                return cached_ack
             manifest = self.manifests.get(manifest_hash)
             if manifest is None:
                 raise KeyError("unknown manifest")

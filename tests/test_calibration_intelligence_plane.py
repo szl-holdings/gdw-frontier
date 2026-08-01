@@ -81,6 +81,14 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
     assert noop_ack.active_runtime_hash == first_ack.active_runtime_hash
     assert service.runtime.applied_manifest_hash == replacement_manifest_hash
 
+    try:
+        service.apply_manifest(manifest.canonical_hash())
+    except PermissionError as exc:
+        assert "superseded by the current runtime binding" in str(exc)
+    else:
+        raise AssertionError("superseded manifest acknowledgement must fail closed")
+    assert service.runtime.applied_manifest_hash == replacement_manifest_hash
+
     outcome = service.record_outcome(
         proposal_hash=proposal_hash,
         manifest_hash=replacement_manifest_hash,
