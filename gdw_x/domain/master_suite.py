@@ -222,6 +222,9 @@ class RiskGateDecision(StrictModel):
 class OutcomeObservation(StrictModel):
     outcome_id: UUID = Field(default_factory=uuid4)
     proposal_hash: str
+    manifest_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    runtime_instance: str = Field(min_length=1, max_length=128)
+    observed_runtime_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     forecast_loss: float = Field(ge=0.0)
     calibration_error: float = Field(ge=0.0)
     latency_p95_ms: float = Field(ge=0.0)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime, timezone
 from statistics import median
 
 from gdw_x.domain.master_suite import (
@@ -28,6 +29,15 @@ def _robust_scores(values: list[float]) -> tuple[float, float, list[float]]:
     absolute_deviations = [abs(value - center) for value in values]
     scale = max(1.4826 * median(absolute_deviations), 1e-9)
     return center, scale, [abs(value - center) / scale for value in values]
+
+
+def _freshness_epoch(timestamp: datetime) -> str:
+    normalized = (
+        timestamp.replace(tzinfo=timezone.utc)
+        if timestamp.tzinfo is None
+        else timestamp.astimezone(timezone.utc)
+    )
+    return normalized.replace(second=0, microsecond=0).isoformat()
 
 
 class DASCLocalizer:
@@ -177,6 +187,7 @@ class DASCLocalizer:
                 "method": "empirical_conformal_robust_nonconformity",
                 "dimension_count": len(dimensions),
                 "adaptive_alpha": adaptive_alpha,
+                "observation_epoch_utc": _freshness_epoch(observation.timestamp),
             },
         )
         limitations = [
@@ -185,10 +196,13 @@ class DASCLocalizer:
             "No runtime eligibility is granted when the reference pool is insufficient",
         ]
         reference_evidence = [
-            item.model_dump(
-                mode="json",
-                exclude={"observation_id", "timestamp"},
-            )
+            {
+                "observation": item.model_dump(
+                    mode="json",
+                    exclude={"observation_id", "timestamp"},
+                ),
+                "freshness_epoch_utc": _freshness_epoch(item.timestamp),
+            }
             for item in comparable
         ]
         reference_evidence.sort(key=canonical_hash)

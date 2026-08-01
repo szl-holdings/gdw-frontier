@@ -256,6 +256,9 @@ class CalibrationService:
         self,
         *,
         proposal_hash: str,
+        manifest_hash: str,
+        runtime_instance: str,
+        observed_runtime_hash: str,
         regime_id: str,
         parameter_hash: str,
         observed_utility: float,
@@ -267,24 +270,37 @@ class CalibrationService:
             decision = self.decisions.get(proposal_hash)
             if proposal is None or decision is None:
                 raise KeyError("unknown proposal or decision")
-            matching_ack = next(
-                (
-                    ack
-                    for manifest_hash, ack in self.acks.items()
-                    if ack.status == "applied"
-                    and manifest_hash in self.manifests
-                    and self.manifests[manifest_hash].proposal_hash == proposal_hash
-                    and ack.proposal_hash == proposal_hash
-                ),
-                None,
-            )
-            if matching_ack is None:
+            matching_ack = self.acks.get(manifest_hash)
+            manifest = self.manifests.get(manifest_hash)
+            if (
+                matching_ack is None
+                or manifest is None
+                or matching_ack.status != "applied"
+                or manifest.proposal_hash != proposal_hash
+                or matching_ack.proposal_hash != proposal_hash
+            ):
                 raise PermissionError(
                     "an applied runtime acknowledgement is required before recording an outcome"
                 )
+            if (
+                matching_ack.manifest_hash != manifest_hash
+                or matching_ack.runtime_instance != runtime_instance
+                or matching_ack.active_runtime_hash != observed_runtime_hash
+                or manifest.target_runtime_hash != observed_runtime_hash
+                or self.runtime.runtime_instance != runtime_instance
+                or self.runtime.active_runtime_hash != observed_runtime_hash
+                or self.runtime.active_proposal_hash != proposal_hash
+                or self.runtime.applied_manifest_hash != manifest_hash
+            ):
+                raise PermissionError(
+                    "outcome binding does not match the current applied runtime"
+                )
             episode = CalibrationEpisode(
                 episode_id=hashlib.sha256(
-                    f"{proposal_hash}:{regime_id}:{parameter_hash}".encode("utf-8")
+                    (
+                        f"{proposal_hash}:{manifest_hash}:{runtime_instance}:"
+                        f"{observed_runtime_hash}:{regime_id}:{parameter_hash}"
+                    ).encode("utf-8")
                 ).hexdigest(),
                 recorded_at=datetime.now(timezone.utc),
                 formula_id=proposal.formula_id,
@@ -293,6 +309,9 @@ class CalibrationService:
                 parameter_hash=parameter_hash,
                 drift=proposal.drift,
                 proposal_hash=proposal_hash,
+                manifest_hash=manifest_hash,
+                runtime_instance=runtime_instance,
+                observed_runtime_hash=observed_runtime_hash,
                 decision=decision.decision,
                 deployment_mode=matching_ack.active_mode,
                 observed_utility=observed_utility,

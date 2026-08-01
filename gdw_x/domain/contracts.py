@@ -198,6 +198,9 @@ class CalibrationEpisode(BaseModel):
     parameter_hash: str
     drift: DriftVector
     proposal_hash: str
+    manifest_hash: str
+    runtime_instance: str
+    observed_runtime_hash: str
     decision: Decision
     deployment_mode: DeploymentMode
     observed_utility: float
