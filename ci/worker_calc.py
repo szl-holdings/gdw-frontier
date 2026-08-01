@@ -22,6 +22,7 @@ class WorkerPlan:
     reserve_memory_gib: float
     cpu_per_worker: float
     memory_gib_per_worker: float
+    state_coordination: str = "process_local_single_worker"
     status: str = "MODELED"
 
 
@@ -68,7 +69,7 @@ def calculate_workers(
     usable_memory = max(0.0, memory_gib - reserve_memory_gib)
     cpu_limit = max(1, math.floor(usable_cpu / cpu_per_worker))
     memory_limit = max(1, math.floor(usable_memory / memory_gib_per_worker))
-    workers = max(1, min(cpu_limit, memory_limit, maximum))
+    workers = 1
     return WorkerPlan(
         workers=workers,
         cpu_limit=cpu_limit,
@@ -83,7 +84,9 @@ def calculate_workers(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Calculate a bounded MODELED GDW worker count.")
+    parser = argparse.ArgumentParser(
+        description="Report GDW capacity under the enforced single-worker state topology."
+    )
     parser.add_argument("--cpu", type=float, default=float(os.cpu_count() or 1))
     parser.add_argument("--memory-gib", type=float, default=detected_memory_gib())
     parser.add_argument("--reserve-cpu", type=float, default=1.0)
@@ -111,4 +114,3 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

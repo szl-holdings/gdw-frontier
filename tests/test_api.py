@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app import api
@@ -97,6 +98,8 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
         assert client.get("/readyz").status_code == 200
         assert client.get("/build-info").status_code == 200
         assert client.get("/metrics").status_code == 200
+        assert client.get("/calibration").status_code == 200
+        assert client.get("/master-suite").status_code == 200
 
         unauthorized = client.get("/v1/gdw/ledger")
         assert unauthorized.status_code == 401
@@ -130,7 +133,7 @@ def test_build_info_reports_exact_runtime_identity(tmp_path: Path, monkeypatch) 
         assert response.status_code == 200
         assert response.json() == {
             "service": "gdw",
-            "version": "0.1.0",
+            "version": "0.3.0",
             "source_sha": "a" * 40,
             "image_digest": "sha256:" + "b" * 64,
             "deployment_mode": "SINGLE_NODE_LIVE",
@@ -155,6 +158,14 @@ def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
 
     os.environ.pop("GDW_REQUIRE_AUTH", None)
     os.environ.pop("GDW_API_TOKEN", None)
+
+
+def test_asgi_lifespan_rejects_multiple_workers(monkeypatch) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "2")
+
+    with pytest.raises(RuntimeError, match="GDW_WORKERS must be 1"):
+        with TestClient(api.app):
+            pass
 
 
 def test_auth_token_file_takes_precedence_over_environment(

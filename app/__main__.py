@@ -5,6 +5,8 @@ from pathlib import Path
 
 import uvicorn
 
+from .runtime import governed_worker_count
+
 
 def prepare_multiprocess_metrics() -> None:
     configured = os.getenv("PROMETHEUS_MULTIPROC_DIR")
@@ -15,19 +17,6 @@ def prepare_multiprocess_metrics() -> None:
     for shard in directory.iterdir():
         if shard.is_file() and shard.suffix == ".db":
             shard.unlink()
-
-
-def governed_worker_count() -> int:
-    configured = os.getenv("GDW_WORKERS", "1")
-    try:
-        workers = int(configured)
-    except ValueError as error:
-        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
-    if workers != 1:
-        raise RuntimeError(
-            "GDW_WORKERS must be 1 while Master Suite state is process-local"
-        )
-    return workers
 
 
 def main() -> None:

@@ -71,6 +71,8 @@ The journal defaults to `GDW_DATA_DIR/master_suite`, which places it on the
 shipped writable data volume. `GDWX_MASTER_SUITE_DATA_ROOT` remains an explicit
 override. The current service keeps its replayed state in process memory, so the
 runtime enforces `GDW_WORKERS=1` and fails startup closed for any other value.
+FastAPI lifespan also acquires an exclusive OS lease in that data root, so an
+external multi-worker ASGI launcher cannot create concurrent stale writers.
 
 ## API
 
@@ -93,14 +95,21 @@ decision state. Application-level FastAPI instrumentation is registered through
 `opentelemetry-instrumentation-fastapi`; if that package is absent, the app
 reports telemetry as `UNAVAILABLE` instead of claiming instrumentation.
 
+The `/calibration` and `/master-suite` routes serve static operator shells. In
+authenticated deployments, protected API requests prompt for a bearer token and
+retain it only in page memory; the token is not placed in URLs or browser
+storage.
+
 OpenTelemetry reference:
 <https://opentelemetry.io/docs/zero-code/python/>
 
 ## Required environment
 
-`GDWX_MASTER_SUITE_SIGNING_KEY` must be provided through the runtime environment
-or an approved secret store before the governance kernel can accept proposals
-or issue manifests. No default signing secret is embedded. Optional settings:
+`GDWX_MASTER_SUITE_SIGNING_KEY_FILE` must point to an approved secret file before
+the governance kernel can accept proposals or issue manifests. The shipped
+Compose stack mounts this from `GDWX_MASTER_SUITE_SIGNING_KEY_SOURCE_FILE`.
+`GDWX_MASTER_SUITE_SIGNING_KEY` remains a non-Compose environment fallback. No
+default signing secret is embedded. Optional settings:
 
 - `GDWX_MASTER_SUITE_SIGNER`
 - `GDWX_MASTER_SUITE_DATA_ROOT` (overrides `GDW_DATA_DIR/master_suite`)

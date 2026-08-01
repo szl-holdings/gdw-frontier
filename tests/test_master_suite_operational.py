@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.__main__ import governed_worker_count
+from app.runtime import MasterSuiteProcessLease, governed_worker_count
 from gdw_x.apps.calibration_api import router as calibration_router
 from gdw_x.apps.master_suite_api import router as master_suite_router
 from gdw_x.control_plane.master_suite_service import MasterSuiteService
@@ -80,6 +80,25 @@ def test_master_suite_defaults_to_shared_data_volume(
     assert service._journal.root == tmp_path / "master_suite"
 
 
+def test_master_suite_signing_key_file_precedes_environment(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    key_file = tmp_path / "master-suite-signing-key"
+    key_file.write_text("file-backed-master-suite-signing-key", encoding="utf-8")
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_file))
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "wrong-environment-key")
+
+    service = MasterSuiteService(data_root=tmp_path / "journal")
+
+    assert (
+        service.dashboard_state()["sections"]["receipt_validity"][
+            "signing_key_source"
+        ]
+        == "file"
+    )
+
+
 def test_master_suite_runtime_fails_closed_with_multiple_workers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -89,6 +108,17 @@ def test_master_suite_runtime_fails_closed_with_multiple_workers(
     monkeypatch.setenv("GDW_WORKERS", "2")
     with pytest.raises(RuntimeError, match="must be 1"):
         governed_worker_count()
+
+
+def test_master_suite_process_lease_blocks_external_asgi_workers(tmp_path) -> None:
+    first = MasterSuiteProcessLease(tmp_path)
+    second = MasterSuiteProcessLease(tmp_path)
+    first.acquire()
+    try:
+        with pytest.raises(RuntimeError, match="already owns"):
+            second.acquire()
+    finally:
+        first.release()
 
 
 def test_master_suite_proposal_alias_is_unique() -> None:
