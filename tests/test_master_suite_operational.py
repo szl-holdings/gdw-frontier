@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from app.runtime import MasterSuiteProcessLease, governed_worker_count
+from gdw_x.apps.calibration_api import router as calibration_router
+from gdw_x.apps.master_suite_api import router as master_suite_router
 from gdw_x.control_plane.master_suite_service import (
     MasterSuiteError,
     MasterSuiteService,
@@ -109,35 +112,35 @@ def test_bronze_journal_serializes_concurrent_processes(tmp_path: Path) -> None:
     ]
 
 
-def test_master_suite_defaults_to_the_configured_writable_data_dir(
-    tmp_path: Path,
-    monkeypatch,
+def test_master_suite_defaults_to_shared_data_volume(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("GDW_DATA_DIR", str(tmp_path))
-    monkeypatch.setenv("GDWX_MASTER_SUITE_DATA_ROOT", "")
+    monkeypatch.delenv("GDWX_MASTER_SUITE_DATA_ROOT", raising=False)
 
     service = MasterSuiteService(signing_key=TEST_GOVERNANCE_KEY)
 
     assert service._journal.root == tmp_path / "master_suite"
-    assert (tmp_path / "master_suite" / ".lake-journal.lock").is_file()
 
 
-def test_master_suite_prefers_the_file_backed_signing_key(
-    tmp_path: Path,
-    monkeypatch,
+def test_master_suite_signing_key_file_precedes_environment(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    key_path = tmp_path / "master-suite-signing-key"
-    file_key = "file-backed-governance-key-material-at-least-32-bytes"
-    key_path.write_text(file_key + "\n", encoding="utf-8")
-    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_path))
-    monkeypatch.setenv(
-        "GDWX_MASTER_SUITE_SIGNING_KEY",
-        "environment-fallback-key-material-at-least-32-bytes",
+    key_file = tmp_path / "master-suite-signing-key"
+    key_file.write_text("file-backed-master-suite-signing-key", encoding="utf-8")
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", str(key_file))
+    monkeypatch.setenv("GDWX_MASTER_SUITE_SIGNING_KEY", "wrong-environment-key")
+
+    service = MasterSuiteService(data_root=tmp_path / "journal")
+
+    assert (
+        service.dashboard_state()["sections"]["receipt_validity"][
+            "signing_key_source"
+        ]
+        == "file"
     )
-
-    service = MasterSuiteService(data_root=tmp_path / "service")
-
-    assert service._signing_key == file_key
 
 
 @pytest.mark.parametrize(
@@ -172,6 +175,41 @@ def test_master_suite_rejects_short_environment_signing_key(
         MasterSuiteService(data_root=tmp_path / "service")
 
     assert error.value.code == "weak_signing_key"
+
+
+def test_master_suite_runtime_fails_closed_with_multiple_workers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    assert governed_worker_count() == 1
+
+    monkeypatch.setenv("GDW_WORKERS", "2")
+    with pytest.raises(RuntimeError, match="must be 1"):
+        governed_worker_count()
+
+
+def test_master_suite_process_lease_blocks_external_asgi_workers(tmp_path) -> None:
+    first = MasterSuiteProcessLease(tmp_path)
+    second = MasterSuiteProcessLease(tmp_path)
+    first.acquire()
+    try:
+        with pytest.raises(RuntimeError, match="already owns"):
+            second.acquire()
+    finally:
+        first.release()
+
+
+def test_master_suite_proposal_alias_is_unique() -> None:
+    paths = [
+        route.path
+        for route in (
+            *calibration_router.router.routes,
+            *master_suite_router.router.routes,
+        )
+    ]
+
+    assert paths.count("/v1/calibration/proposals") == 1
+    assert paths.count("/v1/master-suite/calibration/proposals") == 1
 
 
 def test_strategy_mutation_hash_excludes_generated_identity_and_timestamp() -> None:

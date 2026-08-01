@@ -16,6 +16,19 @@ WINDOWS_LOCK_TIMEOUT_SECONDS = 30.0
 WINDOWS_LOCK_RETRY_SECONDS = 0.01
 
 
+def resolve_master_suite_data_root(data_root: Path | None = None) -> Path:
+    if data_root is not None:
+        return data_root
+    configured = os.getenv("GDWX_MASTER_SUITE_DATA_ROOT", "").strip()
+    if configured:
+        return Path(configured)
+    project_root = Path(__file__).resolve().parents[2]
+    shared_data_root = Path(
+        os.getenv("GDW_DATA_DIR", str(project_root / "data"))
+    )
+    return shared_data_root / "master_suite"
+
+
 class JournalIntegrityError(RuntimeError):
     pass
 

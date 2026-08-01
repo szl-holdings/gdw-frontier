@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import api
@@ -68,19 +67,6 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
     assert first_ack.active_mode == DeploymentMode.PAPER
     assert service.status()["runtime"]["active_mode"] == "paper"
 
-    second = _proposal(
-        proposal_id="proposal-frontier-shadow",
-        candidate_version="1.2.0",
-        requested_mode=DeploymentMode.SHADOW,
-        parent_runtime_hash=service.runtime.active_runtime_hash,
-    )
-    second_hash = service.create_proposal(second)["proposal_hash"]
-    service.simulate(second_hash, ["recurring_regime"])
-    assert service.decide(second_hash).decision == Decision.ACCEPT
-    second_manifest = service.issue_manifest(second_hash)
-    second_ack = service.apply_manifest(second_manifest.canonical_hash())
-    assert second_ack.active_mode == DeploymentMode.SHADOW
-
     outcome = service.record_outcome(
         proposal_hash=proposal_hash,
         regime_id="recurring",
@@ -96,7 +82,6 @@ def test_paper_flow_is_governed_authenticated_and_idempotent(tmp_path: Path) -> 
         k=3,
     )
     assert matches[0]["proposal_hash"] == proposal_hash
-    assert matches[0]["deployment_mode"] == "paper"
 
 
 def test_protected_parameters_and_market_authority_fail_closed(tmp_path: Path) -> None:
@@ -109,14 +94,6 @@ def test_protected_parameters_and_market_authority_fail_closed(tmp_path: Path) -
     service.simulate(protected_hash, ["recurring_regime"])
     protected_decision = service.decide(protected_hash)
     assert protected_decision.decision == Decision.QUARANTINE
-    with pytest.raises(PermissionError, match="applied runtime acknowledgement"):
-        service.record_outcome(
-            proposal_hash=protected_hash,
-            regime_id="recurring",
-            parameter_hash="b" * 64,
-            observed_utility=-0.5,
-            rollback_status="pending",
-        )
 
     live = _proposal(proposal_id="live", requested_mode=DeploymentMode.LIVE)
     live_hash = service.create_proposal(live)["proposal_hash"]

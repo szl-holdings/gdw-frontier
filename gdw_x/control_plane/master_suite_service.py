@@ -25,7 +25,22 @@ from gdw_x.domain.master_suite import (
     canonical_json,
     utc_now,
 )
-from gdw_x.memory.lake_journal import JournalIntegrityError, LakeJournal
+from gdw_x.memory.lake_journal import (
+    JournalIntegrityError,
+    LakeJournal,
+    resolve_master_suite_data_root,
+)
+
+
+def _configured_signing_key(explicit: str | None) -> tuple[str | None, str]:
+    if explicit is not None:
+        return explicit, "argument"
+    key_file = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", "").strip()
+    if key_file:
+        key = Path(key_file).read_text(encoding="utf-8").strip()
+        return (key or None), "file"
+    key = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY", "").strip()
+    return (key or None), ("environment" if key else "UNAVAILABLE")
 
 
 class MasterSuiteError(RuntimeError):
@@ -56,43 +71,26 @@ class MasterSuiteService:
         data_root: Path | None = None,
         signing_key: str | None = None,
     ) -> None:
-        project_root = Path(__file__).resolve().parents[2]
-        shared_data_root = Path(
-            os.getenv("GDW_DATA_DIR", str(project_root / "data"))
+        self._journal = LakeJournal(resolve_master_suite_data_root(data_root))
+        (
+            self._signing_key,
+            self._signing_key_source,
+        ) = _configured_signing_key(
+            signing_key
         )
-        configured_data_root = os.getenv("GDWX_MASTER_SUITE_DATA_ROOT")
-        self._journal = LakeJournal(
-            data_root
-            or (
-                Path(configured_data_root)
-                if configured_data_root
-                else shared_data_root / "master_suite"
+        if self._signing_key_source in {"argument", "file"} and not self._signing_key:
+            raise MasterSuiteError(
+                "signing_key_unavailable",
+                "The configured Master Suite signing key is empty.",
             )
-        )
-        signing_key_file = os.getenv(
-            "GDWX_MASTER_SUITE_SIGNING_KEY_FILE",
-            "",
-        ).strip()
-        if signing_key is not None:
-            configured_signing_key = signing_key
-        elif signing_key_file:
-            configured_signing_key = Path(signing_key_file).read_text(
-                encoding="utf-8"
-            ).strip()
-        else:
-            configured_signing_key = os.getenv("GDWX_MASTER_SUITE_SIGNING_KEY")
-        if configured_signing_key is not None:
-            if not configured_signing_key:
-                raise MasterSuiteError(
-                    "signing_key_unavailable",
-                    "The configured Master Suite signing key is empty.",
-                )
-            if len(configured_signing_key.encode("utf-8")) < self.MINIMUM_SIGNING_KEY_BYTES:
-                raise MasterSuiteError(
-                    "weak_signing_key",
-                    "The Master Suite signing key must contain at least 32 UTF-8 bytes.",
-                )
-        self._signing_key = configured_signing_key
+        if (
+            self._signing_key is not None
+            and len(self._signing_key.encode("utf-8")) < self.MINIMUM_SIGNING_KEY_BYTES
+        ):
+            raise MasterSuiteError(
+                "weak_signing_key",
+                "The Master Suite signing key must contain at least 32 UTF-8 bytes.",
+            )
         self._signer = os.getenv(
             "GDWX_MASTER_SUITE_SIGNER",
             "local-governance-kernel",
@@ -130,7 +128,7 @@ class MasterSuiteService:
         if not self._signing_key:
             raise MasterSuiteError(
                 "signing_key_unavailable",
-                "GDWX_MASTER_SUITE_SIGNING_KEY_FILE or GDWX_MASTER_SUITE_SIGNING_KEY is required for signed decisions.",
+                "A Master Suite signing key file or environment key is required for signed decisions.",
             )
         return hmac.new(
             self._signing_key.encode("utf-8"),
@@ -877,11 +875,7 @@ class MasterSuiteService:
                             "unsafe" if invalid_receipts else "watch"
                         ),
                         "truth_status": "MODELED",
-                        "signing_key_source": (
-                            "environment"
-                            if self._signing_key
-                            else "UNAVAILABLE"
-                        ),
+                        "signing_key_source": self._signing_key_source,
                     },
                     "kill_switch_readiness": {
                         "status": "watch",

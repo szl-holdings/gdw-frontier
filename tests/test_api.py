@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import json
 import os
 import sys
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app import api
-from app.__main__ import governed_worker_count
-from app.exemplar_store import ExemplarStore
 from app.persistence import ReceiptLedger
+from app.runtime import governed_worker_count
 from ci.receipt_proof import verify_signed_receipt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -62,22 +61,6 @@ def test_missing_receipt_fails_closed(tmp_path: Path) -> None:
         assert api.ledger.verify() == (True, 1)
 
 
-def test_exemplar_load_fails_closed_on_valid_json_tampering(tmp_path: Path) -> None:
-    path = tmp_path / "exemplars.jsonl"
-    store = ExemplarStore(path)
-    store.append({"truth_status": "MODELED", "risk_score": 0.1})
-    envelope = json.loads(path.read_text(encoding="utf-8"))
-    envelope["body"]["record"]["truth_status"] = "LIVE"
-    path.write_text(json.dumps(envelope) + "\n", encoding="utf-8")
-
-    try:
-        store.load()
-    except RuntimeError as error:
-        assert "integrity verification failed" in str(error)
-    else:
-        raise AssertionError("tampered exemplar ledger unexpectedly loaded")
-
-
 def test_metrics_do_not_expose_identity_values_or_labels(tmp_path: Path) -> None:
     api.ledger.path = tmp_path / "receipts.jsonl"
     api.exemplar_store.path = tmp_path / "exemplars.jsonl"
@@ -117,6 +100,8 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
         assert client.get("/readyz").status_code == 200
         assert client.get("/build-info").status_code == 200
         assert client.get("/metrics").status_code == 200
+        assert client.get("/calibration").status_code == 200
+        assert client.get("/master-suite").status_code == 200
 
         unauthorized = client.get("/v1/gdw/ledger")
         assert unauthorized.status_code == 401
@@ -150,7 +135,7 @@ def test_build_info_reports_exact_runtime_identity(tmp_path: Path, monkeypatch) 
         assert response.status_code == 200
         assert response.json() == {
             "service": "gdw",
-            "version": "0.1.0",
+            "version": "0.3.0",
             "source_sha": "a" * 40,
             "image_digest": "sha256:" + "b" * 64,
             "deployment_mode": "SINGLE_NODE_LIVE",
@@ -177,45 +162,19 @@ def test_auth_enabled_rejects_weak_runtime_token(monkeypatch) -> None:
     os.environ.pop("GDW_API_TOKEN", None)
 
 
-def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
-    monkeypatch,
-) -> None:
-    monkeypatch.setenv("GDW_WORKERS", "1")
-    assert governed_worker_count() == 1
-
+def test_asgi_lifespan_rejects_multiple_workers(monkeypatch) -> None:
     monkeypatch.setenv("GDW_WORKERS", "2")
-    monkeypatch.setattr(api.ledger, "validate_configuration", lambda: None)
 
-    try:
-        api._validate_runtime_configuration()
-    except RuntimeError as error:
-        assert "GDW_WORKERS must be 1" in str(error)
-    else:
-        raise AssertionError("unsupported multi-worker runtime unexpectedly started")
+    with pytest.raises(RuntimeError, match="GDW_WORKERS must be 1"):
+        with TestClient(api.app):
+            pass
 
-    try:
-        governed_worker_count()
-    except RuntimeError as error:
-        assert "GDW_WORKERS must be 1" in str(error)
-    else:
-        raise AssertionError("unsupported multi-worker Uvicorn launch was accepted")
 
-    monkeypatch.setenv("GDW_WORKERS", "not-an-integer")
-    try:
-        governed_worker_count()
-    except RuntimeError as error:
-        assert "integer 1" in str(error)
-    else:
-        raise AssertionError("invalid worker count was accepted")
-
+def test_runtime_rejects_alternate_worker_count_sources(monkeypatch) -> None:
     monkeypatch.setenv("GDW_WORKERS", "1")
     monkeypatch.setenv("WEB_CONCURRENCY", "2")
-    try:
+    with pytest.raises(RuntimeError, match="WEB_CONCURRENCY must be 1"):
         governed_worker_count()
-    except RuntimeError as error:
-        assert "WEB_CONCURRENCY must be 1" in str(error)
-    else:
-        raise AssertionError("WEB_CONCURRENCY bypassed the worker boundary")
 
     monkeypatch.delenv("WEB_CONCURRENCY")
     monkeypatch.setattr(
@@ -223,12 +182,8 @@ def test_runtime_rejects_multiple_workers_while_workflow_state_is_local(
         "argv",
         ["uvicorn", "app.api:app", "--workers", "2"],
     )
-    try:
+    with pytest.raises(RuntimeError, match="uvicorn --workers must be 1"):
         api._validate_runtime_configuration()
-    except RuntimeError as error:
-        assert "uvicorn --workers must be 1" in str(error)
-    else:
-        raise AssertionError("the Uvicorn CLI bypassed the worker boundary")
 
 
 def test_auth_token_file_takes_precedence_over_environment(

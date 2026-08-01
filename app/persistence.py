@@ -116,7 +116,7 @@ class ReceiptLedger:
                 return self._audit_with_signing_state_locked()
 
     def verified_records(self) -> list[dict[str, Any]]:
-        """Return the exact ledger snapshot that passed integrity verification."""
+        """Return the ledger snapshot while its integrity locks remain held."""
         with self._lock:
             with self._process_lock():
                 audit = self._audit_with_signing_state_locked()

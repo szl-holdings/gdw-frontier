@@ -14,7 +14,6 @@ from typing import Iterable
 @dataclass(frozen=True)
 class WorkerPlan:
     workers: int
-    replica_capacity: int
     cpu_limit: int
     memory_limit: int
     detected_cpu: float
@@ -23,6 +22,7 @@ class WorkerPlan:
     reserve_memory_gib: float
     cpu_per_worker: float
     memory_gib_per_worker: float
+    state_coordination: str = "process_local_single_worker"
     status: str = "MODELED"
 
 
@@ -69,10 +69,9 @@ def calculate_workers(
     usable_memory = max(0.0, memory_gib - reserve_memory_gib)
     cpu_limit = max(1, math.floor(usable_cpu / cpu_per_worker))
     memory_limit = max(1, math.floor(usable_memory / memory_gib_per_worker))
-    replica_capacity = max(1, min(cpu_limit, memory_limit, maximum))
+    workers = 1
     return WorkerPlan(
-        workers=1,
-        replica_capacity=replica_capacity,
+        workers=workers,
         cpu_limit=cpu_limit,
         memory_limit=memory_limit,
         detected_cpu=round(cpu, 2),
@@ -86,10 +85,7 @@ def calculate_workers(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=(
-            "Report the required single-process GDW worker setting and a bounded "
-            "MODELED horizontal replica capacity."
-        )
+        description="Report GDW capacity under the enforced single-worker state topology."
     )
     parser.add_argument("--cpu", type=float, default=float(os.cpu_count() or 1))
     parser.add_argument("--memory-gib", type=float, default=detected_memory_gib())

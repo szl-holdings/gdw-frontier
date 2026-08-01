@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from app.__main__ import governed_worker_count
+from app.runtime import governed_worker_count
 from ci.worker_calc import calculate_workers
 
 
@@ -21,7 +21,7 @@ def test_worker_count_is_bounded_by_cpu_memory_and_maximum() -> None:
     assert plan.cpu_limit == 7
     assert plan.memory_limit == 3
     assert plan.workers == 1
-    assert plan.replica_capacity == 3
+    assert plan.state_coordination == "process_local_single_worker"
     assert plan.status == "MODELED"
 
 
