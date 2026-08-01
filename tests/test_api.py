@@ -115,6 +115,8 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
         assert client.get("/healthz").status_code == 200
         assert client.get("/readyz").status_code == 200
         assert client.get("/build-info").status_code == 200
+        assert client.get("/calibration").status_code == 200
+        assert client.get("/master-suite").status_code == 200
         assert client.get("/metrics").status_code == 200
 
         unauthorized = client.get("/v1/gdw/ledger")
@@ -149,7 +151,7 @@ def test_build_info_reports_exact_runtime_identity(tmp_path: Path, monkeypatch) 
         assert response.status_code == 200
         assert response.json() == {
             "service": "gdw",
-            "version": "0.1.0",
+            "version": "0.3.0",
             "source_sha": "a" * 40,
             "image_digest": "sha256:" + "b" * 64,
             "deployment_mode": "SINGLE_NODE_LIVE",

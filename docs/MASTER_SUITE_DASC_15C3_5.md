@@ -71,6 +71,10 @@ The journal defaults to `GDW_DATA_DIR/master_suite`, which places it on the
 shipped writable data volume. `GDWX_MASTER_SUITE_DATA_ROOT` remains an explicit
 override. The current service keeps its replayed state in process memory, so the
 runtime enforces `GDW_WORKERS=1` and fails startup closed for any other value.
+FastAPI lifespan also acquires an exclusive operating-system process lease in
+the durable data root. That second boundary prevents an external multi-worker
+ASGI invocation from creating competing stale writers even when its launcher
+does not propagate the declared worker count.
 
 ## API
 
@@ -96,6 +100,11 @@ reports telemetry as `UNAVAILABLE` instead of claiming instrumentation.
 
 OpenTelemetry reference:
 <https://opentelemetry.io/docs/zero-code/python/>
+
+The `/master-suite` and `/calibration` HTML shells remain public documentation
+surfaces, but protected API calls require an operator-provided bearer token.
+The browser keeps that token in page memory only: it is never embedded in the
+HTML, written to local storage, or included in URLs.
 
 ## Required environment
 

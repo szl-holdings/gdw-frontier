@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from app.runtime import MasterSuiteProcessLease
 from gdw_x.control_plane.master_suite_service import (
     MasterSuiteError,
     MasterSuiteService,
@@ -117,6 +118,17 @@ def test_master_suite_defaults_to_the_configured_writable_data_dir(
 
     assert service._journal.root == tmp_path / "master_suite"
     assert (tmp_path / "master_suite" / ".lake-journal.lock").is_file()
+
+
+def test_master_suite_process_lease_blocks_external_asgi_workers(tmp_path: Path) -> None:
+    first = MasterSuiteProcessLease(tmp_path)
+    second = MasterSuiteProcessLease(tmp_path)
+    first.acquire()
+    try:
+        with pytest.raises(RuntimeError, match="already owns"):
+            second.acquire()
+    finally:
+        first.release()
 
 
 def test_master_suite_prefers_the_file_backed_signing_key(

@@ -55,6 +55,7 @@ from .persistence import ReceiptLedger
 from .provenance import governance_envelope, subject_digest
 from .quant_core import release_score_breakdown
 from .risk_control import conformal_risk_threshold
+from .runtime import MasterSuiteProcessLease, governed_worker_count
 from .simulator import simulate_intervention
 from .telemetry import (
     DECISION_TOTAL,
@@ -67,13 +68,21 @@ from .telemetry import (
 )
 from .tracing import configure_tracing, current_trace_fields, traced_span
 from .workspace import WorkspaceState
-from .version import VERSION
 from gdw_x.apps.calibration_api.router import router as calibration_router
 from gdw_x.apps.master_suite_api.router import router as master_suite_router
 from gdw_x.telemetry.otel import instrument_fastapi
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
-AUTH_EXEMPT_PATHS = frozenset({"/build-info", "/healthz", "/metrics", "/readyz"})
+AUTH_EXEMPT_PATHS = frozenset(
+    {
+        "/build-info",
+        "/calibration",
+        "/healthz",
+        "/master-suite",
+        "/metrics",
+        "/readyz",
+    }
+)
 TRUE_VALUES = frozenset({"1", "true", "yes"})
 logger = configure_logging()
 configure_tracing()
@@ -85,36 +94,41 @@ workspace = WorkspaceState()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    _validate_runtime_configuration()
-    ledger.ensure_signed_head(_runtime_identity())
-    exemplar_store.ensure_signed_head(_runtime_identity())
-    audit = ledger.audit()
-    memory_valid, memory_records = exemplar_store.verify()
-    log_event(
-        logger,
-        logging.INFO,
-        "service_started",
-        event="service_started",
-        ledger_valid=audit.valid,
-        ledger_records=audit.records,
-        receipt_signature_status=audit.signature_status,
-        receipt_signing_key_id=audit.signing_key_id,
-        memory_valid=memory_valid,
-        memory_records=memory_records,
-        policy_revision=policy_bundle.revision,
-        policy_digest=policy_bundle.digest,
-    )
+    lease = MasterSuiteProcessLease()
+    lease.acquire()
     try:
-        yield
+        _validate_runtime_configuration()
+        ledger.ensure_signed_head(_runtime_identity())
+        exemplar_store.ensure_signed_head(_runtime_identity())
+        audit = ledger.audit()
+        memory_valid, memory_records = exemplar_store.verify()
+        log_event(
+            logger,
+            logging.INFO,
+            "service_started",
+            event="service_started",
+            ledger_valid=audit.valid,
+            ledger_records=audit.records,
+            receipt_signature_status=audit.signature_status,
+            receipt_signing_key_id=audit.signing_key_id,
+            memory_valid=memory_valid,
+            memory_records=memory_records,
+            policy_revision=policy_bundle.revision,
+            policy_digest=policy_bundle.digest,
+        )
+        try:
+            yield
+        finally:
+            if os.getenv("PROMETHEUS_MULTIPROC_DIR"):
+                multiprocess.mark_process_dead(os.getpid())
+            log_event(logger, logging.INFO, "service_stopped", event="service_stopped")
     finally:
-        if os.getenv("PROMETHEUS_MULTIPROC_DIR"):
-            multiprocess.mark_process_dead(os.getpid())
-        log_event(logger, logging.INFO, "service_stopped", event="service_stopped")
+        lease.release()
 
 
 app = FastAPI(
     title="GDW-X Governed Decision Workspace",
-    version=VERSION,
+    version=__version__,
     description="MODELED modular control plane for governed operational intelligence.",
     lifespan=lifespan,
 )
@@ -150,15 +164,8 @@ def _configured_api_token() -> str:
 
 
 def _validate_runtime_configuration() -> None:
+    governed_worker_count()
     ledger.validate_configuration()
-    try:
-        workers = int(os.getenv("GDW_WORKERS", "1"))
-    except ValueError as error:
-        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
-    if workers != 1:
-        raise RuntimeError(
-            "GDW_WORKERS must be 1 while calibration and Master Suite workflow state is process-local"
-        )
     if not _auth_required():
         return
     token = _configured_api_token()
