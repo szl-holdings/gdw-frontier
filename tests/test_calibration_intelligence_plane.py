@@ -188,6 +188,56 @@ def test_protected_parameters_and_market_authority_fail_closed(tmp_path: Path) -
     assert "mode_requires_independent_approval" in live_decision.reason_codes
 
 
+def test_calibration_api_translates_superseded_apply_to_403(tmp_path: Path) -> None:
+    calibration_router.service = CalibrationService(
+        tmp_path,
+        signing_key=b"test-key",
+        signing_key_source="environment",
+    )
+    app = FastAPI()
+    app.include_router(calibration_router.router)
+
+    with TestClient(app) as client:
+        proposal = _proposal(proposal_id="superseded-api-apply")
+        created = client.post(
+            "/v1/calibration/proposals",
+            json=proposal.model_dump(mode="json"),
+        )
+        proposal_hash = created.json()["proposal_hash"]
+        client.post(
+            "/v1/calibration/simulate",
+            json={"proposal_hash": proposal_hash, "scenario_ids": ["recurring_regime"]},
+        )
+        client.post(
+            "/v1/calibration/decisions",
+            json={"proposal_hash": proposal_hash},
+        )
+        first_manifest = client.post(
+            "/v1/calibration/manifests",
+            json={"proposal_hash": proposal_hash, "ttl_seconds": 300},
+        ).json()["manifest_hash"]
+        assert client.post(
+            "/v1/calibration/apply",
+            json={"manifest_hash": first_manifest},
+        ).status_code == 200
+
+        replacement_manifest = client.post(
+            "/v1/calibration/manifests",
+            json={"proposal_hash": proposal_hash, "ttl_seconds": 600},
+        ).json()["manifest_hash"]
+        assert client.post(
+            "/v1/calibration/apply",
+            json={"manifest_hash": replacement_manifest},
+        ).status_code == 200
+
+        superseded = client.post(
+            "/v1/calibration/apply",
+            json={"manifest_hash": first_manifest},
+        )
+        assert superseded.status_code == 403
+        assert "superseded" in superseded.json()["detail"]
+
+
 def test_calibration_api_exposes_status_and_paper_flow(tmp_path: Path) -> None:
     calibration_router.service = CalibrationService(
         tmp_path,

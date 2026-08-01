@@ -136,8 +136,9 @@ async def apply_manifest(payload: ApplyRequest) -> dict:
     started = time.perf_counter()
     try:
         ack = service.apply_manifest(payload.manifest_hash)
-    except KeyError as error:
-        CALIBRATION_RECEIPT_FAILURES.labels(reason="unknown_manifest").inc()
+    except (KeyError, PermissionError) as error:
+        reason = "unknown_manifest" if isinstance(error, KeyError) else "superseded_manifest"
+        CALIBRATION_RECEIPT_FAILURES.labels(reason=reason).inc()
         raise _error(error) from error
     if ack.active_mode.value in {"paper", "shadow"}:
         RUNTIME_CONVERGENCE.labels(mode=ack.active_mode.value).observe(time.perf_counter() - started)
