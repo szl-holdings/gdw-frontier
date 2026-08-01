@@ -118,6 +118,15 @@ python ci/audit_cardinality.py \
   --baseline weights/cardinality-baseline.json
 ```
 
+The Master Suite HMAC secret must contain at least 32 UTF-8 bytes. The worker
+calculator reports `workers: 1`, the only supported runtime setting while
+workflow state is process-local; its CPU and memory fields are capacity
+observations, not permission to start additional workers or replicas. Direct
+ASGI launches must keep lifespan enabled because the governed startup audit and
+exclusive process lease run there. CLI or `UVICORN_LIFESPAN=off` configuration
+fails at import, and a programmatic server that suppresses lifespan can serve
+only `503 governed runtime startup incomplete` responses.
+
 Open:
 
 - API docs: `http://localhost:8080/docs`

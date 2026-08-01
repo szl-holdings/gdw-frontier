@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import json
-import os
 import hashlib
+import os
 from pathlib import Path
 from typing import Any
 
@@ -52,11 +51,15 @@ class ExemplarStore:
         )
 
     def load(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
+        try:
+            records = self._ledger().verified_records()
+        except RuntimeError as error:
+            raise RuntimeError(
+                "incident exemplar ledger integrity verification failed; "
+                "failed integrity or signature verification"
+            ) from error
         exemplars: list[dict[str, Any]] = []
-        for raw_line in self.path.read_text(encoding="utf-8").splitlines():
-            envelope = json.loads(raw_line)
+        for envelope in records:
             body = envelope.get("body", {})
             if body.get("kind") != "incident_exemplar" or not isinstance(body.get("record"), dict):
                 continue

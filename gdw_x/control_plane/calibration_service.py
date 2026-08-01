@@ -267,6 +267,21 @@ class CalibrationService:
             decision = self.decisions.get(proposal_hash)
             if proposal is None or decision is None:
                 raise KeyError("unknown proposal or decision")
+            matching_ack = next(
+                (
+                    ack
+                    for manifest_hash, ack in self.acks.items()
+                    if ack.status == "applied"
+                    and manifest_hash in self.manifests
+                    and self.manifests[manifest_hash].proposal_hash == proposal_hash
+                    and ack.proposal_hash == proposal_hash
+                ),
+                None,
+            )
+            if matching_ack is None:
+                raise PermissionError(
+                    "an applied runtime acknowledgement is required before recording an outcome"
+                )
             episode = CalibrationEpisode(
                 episode_id=hashlib.sha256(
                     f"{proposal_hash}:{regime_id}:{parameter_hash}".encode("utf-8")
@@ -279,7 +294,7 @@ class CalibrationService:
                 drift=proposal.drift,
                 proposal_hash=proposal_hash,
                 decision=decision.decision,
-                deployment_mode=self.runtime.active_mode,
+                deployment_mode=matching_ack.active_mode,
                 observed_utility=observed_utility,
                 predicted_utility=proposal.expected_utility_delta,
                 rollback_status=rollback_status,

@@ -156,7 +156,7 @@ async def record_outcome(payload: OutcomeRequest) -> dict:
             rollback_status=payload.rollback_status,
             parent_episode_hash=payload.parent_episode_hash,
         )
-    except KeyError as error:
+    except (KeyError, PermissionError) as error:
         raise _error(error) from error
 
 

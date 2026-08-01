@@ -51,6 +51,7 @@ class MasterSuiteError(RuntimeError):
 
 class MasterSuiteService:
     POLICY_VERSION = "gdw-x-master-suite-2026-07-29"
+    MINIMUM_SIGNING_KEY_BYTES = 32
     PROTECTED_PARAMETERS = frozenset(
         {
             "max_order_size",
@@ -77,6 +78,19 @@ class MasterSuiteService:
         ) = _configured_signing_key(
             signing_key
         )
+        if self._signing_key_source in {"argument", "file"} and not self._signing_key:
+            raise MasterSuiteError(
+                "signing_key_unavailable",
+                "The configured Master Suite signing key is empty.",
+            )
+        if (
+            self._signing_key is not None
+            and len(self._signing_key.encode("utf-8")) < self.MINIMUM_SIGNING_KEY_BYTES
+        ):
+            raise MasterSuiteError(
+                "weak_signing_key",
+                "The Master Suite signing key must contain at least 32 UTF-8 bytes.",
+            )
         self._signer = os.getenv(
             "GDWX_MASTER_SUITE_SIGNER",
             "local-governance-kernel",
@@ -615,20 +629,28 @@ class MasterSuiteService:
             manifest_valid = bool(
                 manifest and self._manifest_integrity_valid(manifest)
             )
+            matching_applied_ack = bool(
+                manifest
+                and any(
+                    ack.get("manifest_hash") == manifest_hash
+                    and ack.get("status") == "applied"
+                    and ack.get("active_runtime_hash")
+                    == self._active_runtime_hash
+                    for ack in self._acks.values()
+                )
+            )
             decision = self._risk_gate.evaluate(
                 intent,
                 manifest_valid=manifest_valid,
                 manifest_expired=bool(
                     manifest is None or manifest.expires_at <= utc_now()
                 ),
-                parent_hash_matches=bool(
+                runtime_hash_matches=bool(
                     manifest
-                    and self._active_runtime_hash
-                    in {
-                        manifest.parent_runtime_hash,
-                        manifest.target_runtime_hash,
-                    }
+                    and manifest.target_runtime_hash
+                    == self._active_runtime_hash
                 ),
+                runtime_ack_applied=matching_applied_ack,
                 approved_mode=(
                     manifest.approved_mode if manifest else None
                 ),
@@ -667,6 +689,24 @@ class MasterSuiteService:
         with self._lock:
             if outcome.proposal_hash not in self._mutations:
                 raise MasterSuiteError("proposal_not_found", "Unknown proposal.")
+            matching_ack = next(
+                (
+                    ack
+                    for ack in self._acks.values()
+                    if ack.get("status") == "applied"
+                    and self._manifests.get(
+                        ack["manifest_hash"],
+                        {},
+                    ).get("proposal_hash")
+                    == outcome.proposal_hash
+                ),
+                None,
+            )
+            if matching_ack is None:
+                raise MasterSuiteError(
+                    "applied_runtime_ack_required",
+                    "An applied runtime acknowledgement is required before recording an outcome.",
+                )
             payload = outcome.model_dump(mode="json")
             self._record(
                 event_type="OutcomeObserved",
@@ -677,18 +717,6 @@ class MasterSuiteService:
             )
             mutation = self._mutations[outcome.proposal_hash]
             decision = self._decisions.get(outcome.proposal_hash, {})
-            matching_ack = next(
-                (
-                    ack
-                    for ack in self._acks.values()
-                    if self._manifests.get(
-                        ack["manifest_hash"],
-                        {},
-                    ).get("proposal_hash")
-                    == outcome.proposal_hash
-                ),
-                {},
-            )
             exemplar = {
                 "episode_id": str(outcome.outcome_id),
                 "proposal_hash": outcome.proposal_hash,
@@ -705,9 +733,8 @@ class MasterSuiteService:
                     mutation["parameter_diff"]
                 ),
                 "decision_id": decision.get("decision_id"),
-                "deployment_mode": matching_ack.get("deployment_mode"),
-                "rollback_flag": matching_ack.get("status")
-                == "rolled_back",
+                "deployment_mode": matching_ack["deployment_mode"],
+                "rollback_flag": False,
                 "outcome_quality": max(
                     0.0,
                     1.0 - outcome.calibration_error - outcome.error_rate,

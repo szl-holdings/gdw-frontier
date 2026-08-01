@@ -6,6 +6,8 @@ from pathlib import Path
 from app.api import app
 from ci.audit_cardinality import audit_live, audit_static, extract_metric_definitions
 from ci.redact_newman_report import redact_secret
+from gdw_x.apps.calibration_api.router import router as calibration_router
+from gdw_x.apps.master_suite_api.router import router as master_suite_router
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,7 +23,11 @@ def test_every_observed_application_route_is_governed() -> None:
     policy = json.loads((ROOT / "monitoring" / "metric-policy.json").read_text(encoding="utf-8"))
     observed_routes = {
         str(route.path)
-        for route in app.routes
+        for route in [
+            *app.routes,
+            *calibration_router.routes,
+            *master_suite_router.routes,
+        ]
         if getattr(route, "path", None) and route.path != "/metrics"
     }
     for metric_name in ("gdw_request_latency_seconds", "gdw_request_total"):
@@ -29,6 +35,26 @@ def test_every_observed_application_route_is_governed() -> None:
             policy["metrics"][metric_name]["allowed_values"]["route"]
         )
         assert observed_routes <= allowed_routes
+
+
+def test_calibration_proposal_route_has_one_owner() -> None:
+    calibration_routes = [
+        route
+        for route in [*calibration_router.routes, *master_suite_router.routes]
+        if getattr(route, "path", None) == "/v1/calibration/proposals"
+        and "POST" in getattr(route, "methods", set())
+    ]
+    master_suite_routes = [
+        route
+        for route in master_suite_router.routes
+        if getattr(route, "path", None)
+        == "/v1/master-suite/calibration/proposals"
+        and "POST" in getattr(route, "methods", set())
+    ]
+    assert len(calibration_routes) == 1
+    assert calibration_routes[0].name == "create_proposal"
+    assert len(master_suite_routes) == 1
+    assert master_suite_routes[0].name == "submit_mutation"
 
 
 def test_newman_report_redaction_removes_nested_bearer_token() -> None:

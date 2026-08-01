@@ -140,6 +140,19 @@ def test_calibration_api_exposes_status_and_paper_flow(tmp_path: Path) -> None:
         )
         assert manifest.status_code == 200
 
+        blocked_outcome = client.post(
+            "/v1/calibration/outcomes",
+            json={
+                "proposal_hash": proposal_hash,
+                "regime_id": "recurring",
+                "parameter_hash": "b" * 64,
+                "observed_utility": 0.03,
+                "rollback_status": "pending",
+            },
+        )
+        assert blocked_outcome.status_code == 403
+        assert "applied runtime acknowledgement" in blocked_outcome.json()["detail"]
+
         applied = client.post(
             "/v1/calibration/apply",
             json={"manifest_hash": manifest.json()["manifest_hash"]},

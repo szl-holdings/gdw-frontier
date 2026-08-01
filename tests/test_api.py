@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app import api
 from app.persistence import ReceiptLedger
+from app.runtime import governed_worker_count
 from ci.receipt_proof import verify_signed_receipt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -166,6 +170,109 @@ def test_asgi_lifespan_rejects_multiple_workers(monkeypatch) -> None:
     with pytest.raises(RuntimeError, match="GDW_WORKERS must be 1"):
         with TestClient(api.app):
             pass
+
+
+def test_runtime_rejects_alternate_worker_count_sources(monkeypatch) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    monkeypatch.setenv("WEB_CONCURRENCY", "2")
+    with pytest.raises(RuntimeError, match="WEB_CONCURRENCY must be 1"):
+        governed_worker_count()
+
+    monkeypatch.delenv("WEB_CONCURRENCY")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["uvicorn", "app.api:app", "--workers", "2"],
+    )
+    with pytest.raises(RuntimeError, match="uvicorn --workers must be 1"):
+        api._validate_runtime_configuration()
+
+
+def test_runtime_rejects_uvicorn_environment_bypasses(monkeypatch) -> None:
+    monkeypatch.setenv("GDW_WORKERS", "1")
+    monkeypatch.setenv("UVICORN_WORKERS", "2")
+    with pytest.raises(RuntimeError, match="UVICORN_WORKERS must be 1"):
+        governed_worker_count()
+
+    monkeypatch.setenv("UVICORN_WORKERS", "1")
+    monkeypatch.setenv("UVICORN_LIFESPAN", "off")
+    with pytest.raises(RuntimeError, match="UVICORN_LIFESPAN=off is unsupported"):
+        governed_worker_count()
+
+
+def test_programmatic_lifespan_disablement_serves_only_unavailable() -> None:
+    api._GOVERNED_RUNTIME_READY.clear()
+    client = TestClient(api.app)
+    try:
+        response = client.get("/healthz")
+    finally:
+        client.close()
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "governed runtime startup incomplete"}
+
+
+@pytest.mark.parametrize(
+    ("ledger_valid", "memory_valid"),
+    [(False, True), (True, False)],
+)
+def test_lifespan_rejects_invalid_startup_audits(
+    tmp_path: Path,
+    monkeypatch,
+    ledger_valid: bool,
+    memory_valid: bool,
+) -> None:
+    api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
+    monkeypatch.setattr(
+        api.ledger,
+        "audit",
+        lambda: SimpleNamespace(
+            valid=ledger_valid,
+            records=0,
+            signature_status="UNAVAILABLE",
+            signing_key_id=None,
+        ),
+    )
+    monkeypatch.setattr(api.exemplar_store, "verify", lambda: (memory_valid, 0))
+
+    with pytest.raises(RuntimeError, match="governed runtime startup audit failed"):
+        with TestClient(api.app):
+            pass
+
+    assert not api._GOVERNED_RUNTIME_READY.is_set()
+
+
+def test_direct_asgi_import_rejects_disabled_lifespan(
+    tmp_path: Path,
+) -> None:
+    environment = os.environ.copy()
+    environment["GDW_DATA_DIR"] = str(tmp_path)
+    environment["GDW_WORKERS"] = "1"
+    environment.pop("GDWX_MASTER_SUITE_SIGNING_KEY_FILE", None)
+    environment.pop("GDWX_MASTER_SUITE_SIGNING_KEY", None)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import app.api",
+            "uvicorn",
+            "app.api:app",
+            "--workers",
+            "1",
+            "--lifespan",
+            "off",
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "uvicorn --lifespan off is unsupported" in result.stderr
 
 
 def test_auth_token_file_takes_precedence_over_environment(

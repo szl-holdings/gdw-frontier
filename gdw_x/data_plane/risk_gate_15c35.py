@@ -43,7 +43,8 @@ class RiskGate15c35:
         *,
         manifest_valid: bool,
         manifest_expired: bool,
-        parent_hash_matches: bool,
+        runtime_hash_matches: bool,
+        runtime_ack_applied: bool,
         approved_mode: DeploymentMode | None,
     ) -> RiskGateDecision:
         reasons: list[str] = []
@@ -59,8 +60,10 @@ class RiskGate15c35:
             reasons.append("invalid_manifest_signature")
         if manifest_expired:
             reasons.append("manifest_expired")
-        if not parent_hash_matches:
-            reasons.append("parent_runtime_hash_mismatch")
+        if not runtime_hash_matches:
+            reasons.append("active_runtime_hash_mismatch")
+        if not runtime_ack_applied:
+            reasons.append("runtime_ack_missing")
         if approved_mode is None or intent.requested_mode != approved_mode:
             reasons.append("deployment_mode_mismatch")
         if intent.requested_mode in {

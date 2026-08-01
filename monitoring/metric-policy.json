@@ -149,6 +149,7 @@
         ],
         "route": [
           "/build-info",
+          "/calibration",
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",
@@ -209,6 +210,7 @@
         ],
         "route": [
           "/build-info",
+          "/calibration",
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",

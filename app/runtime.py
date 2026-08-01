@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import BinaryIO
 
@@ -8,16 +9,46 @@ from gdw_x.memory.lake_journal import resolve_master_suite_data_root
 
 
 def governed_worker_count() -> int:
-    configured = os.getenv("GDW_WORKERS", "1")
-    try:
-        workers = int(configured)
-    except ValueError as error:
-        raise RuntimeError("GDW_WORKERS must be the integer 1") from error
-    if workers != 1:
+    signals: list[tuple[str, str]] = []
+    for name in ("GDW_WORKERS", "WEB_CONCURRENCY", "UVICORN_WORKERS"):
+        configured = os.getenv(name, "").strip()
+        if configured:
+            signals.append((name, configured))
+
+    if os.getenv("UVICORN_LIFESPAN", "").strip().casefold() == "off":
         raise RuntimeError(
-            "GDW_WORKERS must be 1 while Master Suite state is process-local"
+            "UVICORN_LIFESPAN=off is unsupported because governed startup controls require lifespan"
         )
-    return workers
+
+    arguments = sys.argv[1:]
+    for index, argument in enumerate(arguments):
+        if argument == "--lifespan":
+            value = arguments[index + 1] if index + 1 < len(arguments) else ""
+            if value.casefold() == "off":
+                raise RuntimeError(
+                    "uvicorn --lifespan off is unsupported because governed startup controls require lifespan"
+                )
+        elif argument.startswith("--lifespan="):
+            if argument.split("=", 1)[1].casefold() == "off":
+                raise RuntimeError(
+                    "uvicorn --lifespan off is unsupported because governed startup controls require lifespan"
+                )
+        elif argument == "--workers":
+            value = arguments[index + 1] if index + 1 < len(arguments) else ""
+            signals.append(("uvicorn --workers", value))
+        elif argument.startswith("--workers="):
+            signals.append(("uvicorn --workers", argument.split("=", 1)[1]))
+
+    for source, configured in signals or [("GDW_WORKERS", "1")]:
+        try:
+            workers = int(configured)
+        except ValueError as error:
+            raise RuntimeError(f"{source} must be the integer 1") from error
+        if workers != 1:
+            raise RuntimeError(
+                f"{source} must be 1 while Master Suite state is process-local"
+            )
+    return 1
 
 
 class MasterSuiteProcessLease:

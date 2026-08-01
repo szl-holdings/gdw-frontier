@@ -45,11 +45,17 @@ def test_receipt_chain_verifies_and_detects_tampering(tmp_path: Path) -> None:
 
     assert first_hash != second_hash
     assert ledger.verify() == (True, 2)
+    assert [record["body"]["decision"] for record in ledger.verified_records()] == [
+        "allow",
+        "review",
+    ]
 
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     records[0]["body"]["decision"] = "withhold"
     path.write_text("\n".join(json.dumps(record) for record in records) + "\n", encoding="utf-8")
     assert ledger.verify()[0] is False
+    with pytest.raises(RuntimeError, match="integrity or signature verification"):
+        ledger.verified_records()
 
 
 def test_receipt_chain_is_safe_across_worker_processes(tmp_path: Path) -> None:
@@ -69,6 +75,41 @@ def test_receipt_chain_is_safe_across_worker_processes(tmp_path: Path) -> None:
         signing_required=False,
         use_configured_signing_key=False,
     ).verify() == (True, 20)
+
+
+def test_verified_records_returns_the_snapshot_it_audited(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    path = tmp_path / "ledger.jsonl"
+    ledger = ReceiptLedger(
+        path,
+        signing_key_path=_signing_key(tmp_path / "signing-key.pem"),
+        signing_required=True,
+        allow_unsigned_migration=True,
+    )
+    ledger.ensure_signed_head({"service": "test"})
+    ledger.append({"decision": "allow"})
+    valid_snapshot = path.read_text(encoding="utf-8")
+    tampered = [json.loads(line) for line in valid_snapshot.splitlines()]
+    tampered[-1]["body"]["decision"] = "withhold"
+    tampered_snapshot = "\n".join(json.dumps(record) for record in tampered) + "\n"
+    original_read_text = Path.read_text
+    ledger_reads = 0
+
+    def changing_read_text(target: Path, *args, **kwargs) -> str:
+        nonlocal ledger_reads
+        if target == path:
+            ledger_reads += 1
+            return valid_snapshot if ledger_reads == 1 else tampered_snapshot
+        return original_read_text(target, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", changing_read_text)
+
+    records = ledger.verified_records()
+
+    assert records[-1]["body"]["decision"] == "allow"
+    assert ledger_reads == 1
 
 
 def test_signed_head_anchors_legacy_history_and_detects_downgrade(tmp_path: Path) -> None:

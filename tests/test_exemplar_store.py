@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -43,3 +44,8 @@ def test_signed_exemplar_memory_has_independent_continuity_state(
     assert len(record_hash) == 64
     assert store.verify() == (True, 2)
     assert len(store.load()) == 1
+
+    store.path.unlink()
+    assert store.signing_state_path.exists()
+    with pytest.raises(RuntimeError, match="integrity verification failed"):
+        store.load()
