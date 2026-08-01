@@ -122,6 +122,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
             policy_revision=policy_bundle.revision,
             policy_digest=policy_bundle.digest,
         )
+        if not audit.valid or not memory_valid:
+            raise RuntimeError("governed runtime startup audit failed")
         _GOVERNED_RUNTIME_READY.set()
         try:
             yield

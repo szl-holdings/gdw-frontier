@@ -41,9 +41,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 24089,
+      "bytes": 24209,
       "path": "app/api.py",
-      "sha256": "e9dcc863fc43f2ddbd0d14dd595d26a3eac392967625ca06dc5adc8405a54569"
+      "sha256": "6d00898f6db212ef57b71461d99e23bda9284c4262ea6f2368943593616c2486"
     },
     {
       "bytes": 5066,
@@ -546,9 +546,9 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 11287,
+      "bytes": 12195,
       "path": "tests/test_api.py",
-      "sha256": "f2709656a389335a4c6baaed46860f76677ead2c749ff79f39a8460f3124fd35"
+      "sha256": "cff6de27702ad78bbaa175283905e4a7410e1706bee585fa30a60e38c204fe27"
     },
     {
       "bytes": 6348,

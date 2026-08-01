@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -209,6 +210,37 @@ def test_programmatic_lifespan_disablement_serves_only_unavailable() -> None:
 
     assert response.status_code == 503
     assert response.json() == {"detail": "governed runtime startup incomplete"}
+
+
+@pytest.mark.parametrize(
+    ("ledger_valid", "memory_valid"),
+    [(False, True), (True, False)],
+)
+def test_lifespan_rejects_invalid_startup_audits(
+    tmp_path: Path,
+    monkeypatch,
+    ledger_valid: bool,
+    memory_valid: bool,
+) -> None:
+    api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
+    monkeypatch.setattr(
+        api.ledger,
+        "audit",
+        lambda: SimpleNamespace(
+            valid=ledger_valid,
+            records=0,
+            signature_status="UNAVAILABLE",
+            signing_key_id=None,
+        ),
+    )
+    monkeypatch.setattr(api.exemplar_store, "verify", lambda: (memory_valid, 0))
+
+    with pytest.raises(RuntimeError, match="governed runtime startup audit failed"):
+        with TestClient(api.app):
+            pass
+
+    assert not api._GOVERNED_RUNTIME_READY.is_set()
 
 
 def test_direct_asgi_import_rejects_disabled_lifespan(
