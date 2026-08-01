@@ -606,17 +606,28 @@ class MasterSuiteService:
             manifest_valid = bool(
                 manifest and self._manifest_integrity_valid(manifest)
             )
+            matching_applied_ack = bool(
+                manifest
+                and any(
+                    ack.get("manifest_hash") == manifest_hash
+                    and ack.get("status") == "applied"
+                    and ack.get("active_runtime_hash")
+                    == self._active_runtime_hash
+                    for ack in self._acks.values()
+                )
+            )
             decision = self._risk_gate.evaluate(
                 intent,
                 manifest_valid=manifest_valid,
                 manifest_expired=bool(
                     manifest is None or manifest.expires_at <= utc_now()
                 ),
-                parent_hash_matches=bool(
+                runtime_hash_matches=bool(
                     manifest
-                    and manifest.parent_runtime_hash
+                    and manifest.target_runtime_hash
                     == self._active_runtime_hash
                 ),
+                runtime_ack_applied=matching_applied_ack,
                 approved_mode=(
                     manifest.approved_mode if manifest else None
                 ),

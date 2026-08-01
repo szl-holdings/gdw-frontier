@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import multiprocessing
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from gdw_x.control_plane.master_suite_service import MasterSuiteService
 from gdw_x.domain.dasc import DASCLocalizer
@@ -11,6 +13,19 @@ from gdw_x.domain.master_suite import (
     OutcomeObservation,
     StrategyMutation,
 )
+from gdw_x.memory.lake_journal import LakeJournal
+
+
+def _append_journal_events(root: str, worker: int, count: int) -> None:
+    journal = LakeJournal(Path(root))
+    for index in range(count):
+        journal.append(
+            event_type="ConcurrentAppend",
+            aggregate_type="test",
+            aggregate_id=f"{worker}-{index}",
+            payload={"worker": worker, "index": index},
+            correlation_id=f"worker-{worker}",
+        )
 
 
 def _evidence_window() -> tuple[FormulaObservation, list[FormulaObservation]]:
@@ -63,6 +78,29 @@ def test_stable_window_does_not_false_quarantine() -> None:
     assert result.abstain is False
 
 
+def test_bronze_journal_serializes_concurrent_processes(tmp_path: Path) -> None:
+    context = multiprocessing.get_context("spawn")
+    processes = [
+        context.Process(
+            target=_append_journal_events,
+            args=(str(tmp_path), worker, 5),
+        )
+        for worker in range(4)
+    ]
+    for process in processes:
+        process.start()
+    for process in processes:
+        process.join(timeout=30)
+        assert process.exitcode == 0
+
+    events = LakeJournal(tmp_path).read_events()
+    assert [event["sequence"] for event in events] == list(range(1, 21))
+    assert [event["previous_event_hash"] for event in events] == [
+        "GENESIS",
+        *[event["event_hash"] for event in events[:-1]],
+    ]
+
+
 def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
@@ -103,6 +141,29 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
         expires_in_seconds=900,
         correlation_id="test-lifecycle",
     )
+    before_ack = service.evaluate_risk(
+        OrderIntent(
+            actor_identity="paper-runtime",
+            symbol="TEST",
+            size=10.0,
+            price=100.0,
+            price_deviation=0.01,
+            requested_mode=DeploymentMode.PAPER,
+        ),
+        manifest.manifest_hash,
+        correlation_id="test-lifecycle",
+    )
+    assert before_ack.allow is False
+    assert "runtime_ack_missing" in before_ack.reason_codes
+    assert "active_runtime_hash_mismatch" in before_ack.reason_codes
+
+    ack = service.acknowledge(
+        manifest.manifest_hash,
+        "paper-runtime-1",
+        correlation_id="test-lifecycle",
+    )
+    assert ack.status == "applied"
+
     permitted = service.evaluate_risk(
         OrderIntent(
             actor_identity="paper-runtime",
@@ -131,13 +192,6 @@ def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> Non
     )
     assert live_request.allow is False
     assert "live_execution_authority_unavailable" in live_request.reason_codes
-
-    ack = service.acknowledge(
-        manifest.manifest_hash,
-        "paper-runtime-1",
-        correlation_id="test-lifecycle",
-    )
-    assert ack.status == "applied"
     service.record_outcome(
         OutcomeObservation(
             proposal_hash=proposal_hash,

@@ -70,7 +70,7 @@ event hash, parent hash, or sequence fails the service closed.
 ## API
 
 - `POST /v1/strategy/mutations`
-- `POST /v1/calibration/proposals`
+- `POST /v1/calibration/proposals` (Calibration Intelligence Plane proposals only)
 - `POST /v1/calibration/simulate/{proposal_hash}`
 - `POST /v1/governance/decisions/{proposal_hash}`
 - `POST /v1/runtime/manifests`
@@ -95,7 +95,9 @@ OpenTelemetry reference:
 
 `GDWX_MASTER_SUITE_SIGNING_KEY` must be provided through the runtime environment
 or an approved secret store before the governance kernel can accept proposals
-or issue manifests. No default signing secret is embedded. Optional settings:
+or issue manifests. No default signing secret is embedded. The runtime also
+requires `GDW_WORKERS=1` while workflow state remains process-local. Optional
+settings:
 
 - `GDWX_MASTER_SUITE_SIGNER`
 - `GDWX_MASTER_SUITE_DATA_ROOT`
