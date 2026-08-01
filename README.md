@@ -100,10 +100,12 @@ Requirements: Docker Desktop with Compose v2. The stack binds ports `3000`, `310
 ```bash
 openssl rand -base64 -out /secure/gdw-api-token 48
 openssl rand -base64 -out /secure/gdw-grafana-password 48
+openssl rand -base64 -out /secure/gdw-master-suite-signing-key 48
 python ci/generate_signing_key.py --output /secure/gdw-receipt-signing-key.pem
 export GDW_API_TOKEN_SOURCE_FILE="/secure/gdw-api-token"
 export GRAFANA_ADMIN_PASSWORD_SOURCE_FILE="/secure/gdw-grafana-password"
 export GDW_SIGNING_KEY_SOURCE_FILE="/secure/gdw-receipt-signing-key.pem"
+export GDWX_MASTER_SUITE_SIGNING_KEY_SOURCE_FILE="/secure/gdw-master-suite-signing-key"
 export GDW_RECEIPT_SIGNING_REQUIRED=1
 export GDW_ALLOW_UNSIGNED_LEDGER_MIGRATION=1
 python ci/worker_calc.py
