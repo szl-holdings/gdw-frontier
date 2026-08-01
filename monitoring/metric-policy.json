@@ -18,7 +18,7 @@
           "MODELED"
         ],
         "version": [
-          "0.1.0"
+          "0.3.0"
         ]
       },
       "labels": [
@@ -39,6 +39,76 @@
         "decision"
       ],
       "max_series": 12
+    },
+    "gdw_calibration_drift": {
+      "allowed_values": {
+        "band": [
+          "high",
+          "low",
+          "watch"
+        ],
+        "dimension": [
+          "calibration_drift",
+          "execution_drift",
+          "input_drift",
+          "parameter_drift",
+          "regime_novelty",
+          "residual_drift"
+        ]
+      },
+      "labels": [
+        "dimension",
+        "band"
+      ],
+      "max_series": 36
+    },
+    "gdw_calibration_events_total": {
+      "allowed_values": {
+        "event": [
+          "apply",
+          "decision",
+          "manifest",
+          "proposal",
+          "simulation"
+        ],
+        "mode": [
+          "canary",
+          "live",
+          "offline",
+          "paper",
+          "quarantined",
+          "shadow"
+        ],
+        "outcome": [
+          "accept",
+          "accepted",
+          "quarantine",
+          "reject",
+          "rejected",
+          "review"
+        ]
+      },
+      "labels": [
+        "event",
+        "outcome",
+        "mode"
+      ],
+      "max_series": 900
+    },
+    "gdw_calibration_receipt_failures_total": {
+      "allowed_values": {
+        "reason": [
+          "approval_expired",
+          "invalid_manifest_signature",
+          "market_authority_unavailable",
+          "runtime_parent_hash_mismatch",
+          "unknown_manifest"
+        ]
+      },
+      "labels": [
+        "reason"
+      ],
+      "max_series": 10
     },
     "gdw_inflight_requests": {
       "labels": [],
@@ -82,12 +152,43 @@
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",
+          "/master-suite",
           "/openapi.json",
           "/readyz",
           "/redoc",
+          "/v1/calibration/apply",
+          "/v1/calibration/decisions",
+          "/v1/calibration/exemplars/search",
+          "/v1/calibration/manifests",
+          "/v1/calibration/outcomes",
+          "/v1/calibration/proposals",
+          "/v1/calibration/simulate",
+          "/v1/calibration/simulate/{proposal_hash}",
+          "/v1/calibration/status",
+          "/v1/dashboard/alerts",
+          "/v1/dashboard/state",
           "/v1/gdw/backup",
+          "/v1/gdw/benchmarks/decoder",
+          "/v1/gdw/benchmarks/opcal",
+          "/v1/gdw/calibrate",
+          "/v1/gdw/decode",
+          "/v1/gdw/exemplars",
+          "/v1/gdw/exemplars/search",
           "/v1/gdw/ledger",
+          "/v1/gdw/policy/check",
+          "/v1/gdw/quant/calibrate",
+          "/v1/gdw/quant/risk-control",
           "/v1/gdw/receipt",
+          "/v1/gdw/score/release",
+          "/v1/gdw/simulate",
+          "/v1/governance/decisions/{proposal_hash}",
+          "/v1/lake/exemplars",
+          "/v1/master-suite/status",
+          "/v1/outcomes",
+          "/v1/risk-gate/evaluate",
+          "/v1/runtime/acks",
+          "/v1/runtime/manifests",
+          "/v1/strategy/mutations",
           "/v1/gdw/state",
           "/v1/gdw/step",
           "unmatched"
@@ -97,7 +198,7 @@
         "method",
         "route"
       ],
-      "max_series": 180
+      "max_series": 240
     },
     "gdw_request_total": {
       "allowed_values": {
@@ -110,12 +211,43 @@
           "/docs",
           "/docs/oauth2-redirect",
           "/healthz",
+          "/master-suite",
           "/openapi.json",
           "/readyz",
           "/redoc",
+          "/v1/calibration/apply",
+          "/v1/calibration/decisions",
+          "/v1/calibration/exemplars/search",
+          "/v1/calibration/manifests",
+          "/v1/calibration/outcomes",
+          "/v1/calibration/proposals",
+          "/v1/calibration/simulate",
+          "/v1/calibration/simulate/{proposal_hash}",
+          "/v1/calibration/status",
+          "/v1/dashboard/alerts",
+          "/v1/dashboard/state",
           "/v1/gdw/backup",
+          "/v1/gdw/benchmarks/decoder",
+          "/v1/gdw/benchmarks/opcal",
+          "/v1/gdw/calibrate",
+          "/v1/gdw/decode",
+          "/v1/gdw/exemplars",
+          "/v1/gdw/exemplars/search",
           "/v1/gdw/ledger",
+          "/v1/gdw/policy/check",
+          "/v1/gdw/quant/calibrate",
+          "/v1/gdw/quant/risk-control",
           "/v1/gdw/receipt",
+          "/v1/gdw/score/release",
+          "/v1/gdw/simulate",
+          "/v1/governance/decisions/{proposal_hash}",
+          "/v1/lake/exemplars",
+          "/v1/master-suite/status",
+          "/v1/outcomes",
+          "/v1/risk-gate/evaluate",
+          "/v1/runtime/acks",
+          "/v1/runtime/manifests",
+          "/v1/strategy/mutations",
           "/v1/gdw/state",
           "/v1/gdw/step",
           "unmatched"
@@ -131,7 +263,19 @@
         "route",
         "status_class"
       ],
-      "max_series": 80
+      "max_series": 360
+    },
+    "gdw_runtime_convergence_seconds": {
+      "allowed_values": {
+        "mode": [
+          "paper",
+          "shadow"
+        ]
+      },
+      "labels": [
+        "mode"
+      ],
+      "max_series": 30
     },
     "gdw_scheduler_mode_total": {
       "allowed_values": {
@@ -158,5 +302,5 @@
       "max_series": 32
     }
   },
-  "total_series_budget": 350
+  "total_series_budget": 1500
 }

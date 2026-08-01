@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from prometheus_client import Counter, Gauge, Histogram
 
+from .version import VERSION
 REQUEST_TOTAL = Counter(
     "gdw_request_total",
     "Completed GDW HTTP requests.",
@@ -50,6 +51,29 @@ BUILD_INFO = Gauge(
     ["version", "model_status"],
     multiprocess_mode="livesum",
 )
-BUILD_INFO.labels(version="0.1.0", model_status="MODELED").set(1)
+BUILD_INFO.labels(version=VERSION, model_status="MODELED").set(1)
+
+CALIBRATION_DRIFT = Gauge(
+    "gdw_calibration_drift",
+    "MODELED calibration drift by bounded dimension and band.",
+    ["dimension", "band"],
+    multiprocess_mode="livemostrecent",
+)
+CALIBRATION_EVENTS = Counter(
+    "gdw_calibration_events_total",
+    "Calibration control-plane events.",
+    ["event", "outcome", "mode"],
+)
+RUNTIME_CONVERGENCE = Histogram(
+    "gdw_runtime_convergence_seconds",
+    "Paper or shadow runtime convergence latency.",
+    ["mode"],
+    buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5),
+)
+CALIBRATION_RECEIPT_FAILURES = Counter(
+    "gdw_calibration_receipt_failures_total",
+    "Calibration manifest or reconciliation failures.",
+    ["reason"],
+)
 
 EXEMPLAR_LABEL = "trace_id"
