@@ -101,6 +101,19 @@ def test_bronze_journal_serializes_concurrent_processes(tmp_path: Path) -> None:
     ]
 
 
+def test_master_suite_defaults_to_the_configured_writable_data_dir(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("GDW_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("GDWX_MASTER_SUITE_DATA_ROOT", raising=False)
+
+    service = MasterSuiteService(signing_key="test-governance-key")
+
+    assert service._journal.root == tmp_path / "master_suite"
+    assert (tmp_path / "master_suite" / ".lake-journal.lock").is_file()
+
+
 def test_signed_modeled_lifecycle_is_replayable_and_fail_closed(tmp_path) -> None:
     service = MasterSuiteService(
         data_root=tmp_path,
