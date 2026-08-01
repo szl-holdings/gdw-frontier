@@ -87,6 +87,7 @@ workspace = WorkspaceState()
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     _validate_runtime_configuration()
     ledger.ensure_signed_head(_runtime_identity())
+    exemplar_store.ensure_signed_head(_runtime_identity())
     audit = ledger.audit()
     memory_valid, memory_records = exemplar_store.verify()
     log_event(

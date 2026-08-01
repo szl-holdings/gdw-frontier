@@ -88,9 +88,11 @@ receipt chain so rejections remain inspectable. Under the production signing
 profile, these records inherit the file-backed ECDSA signing and continuity
 checks described above.
 
-The exemplar vault uses a separate append-only hash chain. Readiness verifies
-both chains, but the exemplar chain is not independently signed, replicated,
-durable across volume deletion, or suitable as production release proof.
+The exemplar vault uses a separate append-only hash chain and signing-continuity
+file. Under the signing-required profile it is anchored with the configured
+receipt key before readiness can pass. It shares that local trust root and is
+not independently witnessed, replicated, durable across volume deletion, or
+suitable as production release proof.
 
 The fixed decoder cases and `OpCalEval`/`QuantCalEval` functions establish benchmark interfaces. Their checked-in examples are MODELED regression fixtures, not evidence of benchmark superiority.
 

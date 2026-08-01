@@ -41,9 +41,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 23041,
+      "bytes": 23100,
       "path": "app/api.py",
-      "sha256": "a5619e9d967cc0ebac716fa812d487aa84abf5dafd5fbd9268d1a96bd7415c93"
+      "sha256": "6259b858b5d73e4a56f1033c4a076640a5cd1f6c28fac0a97103502e7b111f97"
     },
     {
       "bytes": 5066,
@@ -61,9 +61,9 @@
       "sha256": "332eb0f5a9c24e22c50c5d9719906d76f4dd27f93da9dde0cbc24521e6887e69"
     },
     {
-      "bytes": 1972,
+      "bytes": 2565,
       "path": "app/exemplar_store.py",
-      "sha256": "f16f9f7b47b2d9c68835ddf09125bc6477b34ad743156f27e216cd32937a4376"
+      "sha256": "ac1dbe932d40b60c41de75697d7656ef34f4d70241cb7dd2c9634d4c1256ea0e"
     },
     {
       "bytes": 350,
@@ -251,9 +251,9 @@
       "sha256": "9eba8a9835da383e5aa66491f3aae173ca724b7443f4e368fd3481314817bcad"
     },
     {
-      "bytes": 5582,
+      "bytes": 5703,
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "99a2e3550e31b3729ad45f2b26b4079015c9d46cdf5d8b530c44795f0e619519"
+      "sha256": "91b034aecd13253c00bec988f93420c0913151996855bb26121b35a428677a24"
     },
     {
       "bytes": 3232,
@@ -559,6 +559,11 @@
       "bytes": 6161,
       "path": "tests/test_control_plane.py",
       "sha256": "c1ed1aaef906f76a241e72a73926672bda95ce0bfd2d302081fab5328d8b7773"
+    },
+    {
+      "bytes": 1544,
+      "path": "tests/test_exemplar_store.py",
+      "sha256": "3722d02e75cbe7c65999ff25f3e579dca02ce149e42a2d7143be6fde5d7a0e35"
     },
     {
       "bytes": 5509,
