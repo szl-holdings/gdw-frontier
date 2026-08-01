@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SZL Calibration Intelligence Plane</title>
+  <style>
+    :root {
+      --ink: #17211c;
+      --muted: #667068;
+      --paper: #f2f0e8;
+      --panel: #fbfaf5;
+      --line: #c9cdc4;
+      --accent: #e75d3c;
+      --safe: #1e7555;
+      --warn: #a26a16;
+      --shadow: 0 14px 36px rgba(23, 33, 28, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23,33,28,.035) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(rgba(23,33,28,.035) 1px, transparent 1px) 0 0 / 32px 32px,
+        var(--paper);
+      font-family: "Aptos Narrow", "Bahnschrift", sans-serif;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      padding: 28px 34px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(242, 240, 232, .92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    h1 {
+      margin: 0;
+      font-family: "Rockwell Condensed", "Roboto Slab", serif;
+      font-size: clamp(28px, 4vw, 52px);
+      letter-spacing: -.035em;
+      line-height: .95;
+    }
+    .eyebrow { color: var(--accent); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .status { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 6px rgba(30,117,85,.13); }
+    main { padding: 24px 34px 48px; }
+    .ribbon {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      box-shadow: var(--shadow);
+    }
+    .ribbon section, .card { background: var(--panel); }
+    .ribbon section { padding: 14px 16px; min-height: 78px; }
+    label { display: block; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    strong { display: block; margin-top: 8px; font-size: 18px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .card {
+      grid-column: span 3;
+      min-height: 142px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 18px rgba(23,33,28,.04);
+      animation: rise .45s ease both;
+    }
+    .card.wide { grid-column: span 6; }
+    .card h2 { margin: 6px 0 12px; font-size: 21px; }
+    .metric { font-family: "Cascadia Mono", monospace; font-size: 30px; font-weight: 700; }
+    .sub { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .bar { height: 7px; background: #e3e5de; margin-top: 17px; overflow: hidden; }
+    .bar span { display: block; height: 100%; width: var(--value, 0%); background: var(--accent); }
+    .modes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .chip { border: 1px solid var(--line); padding: 5px 8px; font: 700 11px "Cascadia Mono", monospace; text-transform: uppercase; }
+    .chip.off { color: var(--muted); text-decoration: line-through; }
+    .alert { color: var(--warn); }
+    footer { padding: 0 34px 30px; color: var(--muted); font-size: 12px; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+    @media (max-width: 900px) {
+      header { position: static; grid-template-columns: 1fr; }
+      .ribbon { grid-template-columns: 1fr 1fr; }
+      .card, .card.wide { grid-column: span 6; }
+    }
+    @media (max-width: 580px) {
+      header, main, footer { padding-left: 18px; padding-right: 18px; }
+      .ribbon { grid-template-columns: 1fr; }
+      .card, .card.wide { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="eyebrow">Governed control surface / MODELED</div>
+      <h1>Calibration Intelligence Plane</h1>
+    </div>
+    <div class="status"><span class="pulse"></span><span id="connection">Connecting</span></div>
+  </header>
+  <main>
+    <div class="ribbon">
+      <section><label>Active mode</label><strong id="mode">-</strong></section>
+      <section><label>Runtime hash</label><strong id="runtime">-</strong></section>
+      <section><label>Policy</label><strong id="policy">-</strong></section>
+      <section><label>Signing source</label><strong id="signing">-</strong></section>
+      <section><label>Alert state</label><strong id="alert">-</strong></section>
+    </div>
+    <div class="grid">
+      <section class="card wide"><label>Promotion authority</label><h2>Paper and shadow only</h2><div class="modes"><span class="chip">Offline</span><span class="chip">Paper</span><span class="chip">Shadow</span><span class="chip off">Canary</span><span class="chip off">Live</span></div><p class="sub">No broker connectivity or order authority is present in this service.</p></section>
+      <section class="card wide"><label>Proposal state</label><h2>Governed queue</h2><div class="metric" id="proposal-count">0</div><p class="sub" id="proposal-mix">No proposals observed.</p></section>
+      <section class="card"><label>Input drift</label><h2>Telemetry band</h2><div class="metric">MODELED</div><div class="bar" style="--value: 18%"><span></span></div></section>
+      <section class="card"><label>Calibration drift</label><h2>Coverage state</h2><div class="metric">UNKNOWN</div><div class="bar" style="--value: 0%"><span></span></div></section>
+      <section class="card"><label>Execution drift</label><h2>Market boundary</h2><div class="metric">N/A</div><p class="sub">No execution adapter is implemented.</p></section>
+      <section class="card"><label>Regime novelty</label><h2>Episode support</h2><div class="metric" id="scenarios">0</div><p class="sub">Deterministic replay scenarios available.</p></section>
+      <section class="card wide"><label>Control doctrine</label><h2>Evolution proposes. The kernel disposes.</h2><p class="sub">Calibration can diagnose, retrieve, simulate, and propose. It cannot change protected risk parameters, issue orders, or promote itself into canary or live authority.</p></section>
+      <section class="card wide"><label>Truth boundary</label><h2>Evidence before color</h2><p class="sub" id="truth">Loading current boundary.</p></section>
+    </div>
+  </main>
+  <footer>Refresh interval: 5 seconds. Hashes are truncated for display. Full governance records remain in the local append-only ledger.</footer>
+  <script>
+    const shortHash = value => value ? `${value.slice(0, 8)}...${value.slice(-6)}` : "none";
+    async function refresh() {
+      try {
+        const response = await fetch("/v1/calibration/status", {cache: "no-store"});
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        document.querySelector("#connection").textContent = "Control plane reachable";
+        document.querySelector("#mode").textContent = data.runtime.active_mode.toUpperCase();
+        document.querySelector("#runtime").textContent = shortHash(data.runtime.active_runtime_hash);
+        document.querySelector("#policy").textContent = data.policy_version;
+        document.querySelector("#signing").textContent = data.signing_key_source;
+        document.querySelector("#alert").textContent = data.alerts.length ? data.alerts.join(", ") : "CLEAR";
+        document.querySelector("#alert").className = data.alerts.length ? "alert" : "";
+        const counts = data.proposal_state_counts;
+        document.querySelector("#proposal-count").textContent = Object.values(counts).reduce((a, b) => a + b, 0);
+        document.querySelector("#proposal-mix").textContent = Object.entries(counts).map(([k, v]) => `${k}: ${v}`).join(" / ") || "No proposals observed.";
+        document.querySelector("#scenarios").textContent = data.scenario_count;
+        document.querySelector("#truth").textContent = data.truth_boundary;
+      } catch (error) {
+        document.querySelector("#connection").textContent = "Control plane unavailable";
+        document.querySelector("#alert").textContent = String(error);
+        document.querySelector("#alert").className = "alert";
+      }
+    }
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

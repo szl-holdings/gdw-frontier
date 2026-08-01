@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GDW-X Master Suite</title>
+  <style>
+    :root {
+      --ink: #10243f;
+      --muted: #607086;
+      --paper: #f6f2e8;
+      --panel: rgba(255, 255, 255, 0.76);
+      --line: rgba(16, 36, 63, 0.13);
+      --signal: #006f68;
+      --signal-soft: #c9ebe2;
+      --watch: #d17716;
+      --danger: #bb3e31;
+      --blue: #3067bd;
+      --shadow: 0 20px 60px rgba(24, 45, 72, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(0, 111, 104, 0.15), transparent 26rem),
+        radial-gradient(circle at 86% 10%, rgba(209, 119, 22, 0.13), transparent 24rem),
+        linear-gradient(145deg, #f9f6ee 0%, #eef2ed 56%, #f7f0e3 100%);
+      font-family: "Aptos", "Segoe UI Variable", sans-serif;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(16, 36, 63, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 36, 63, 0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    .shell {
+      width: min(1480px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 60px;
+      position: relative;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 24px;
+      padding: 22px 0 30px;
+      animation: rise 550ms ease both;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--signal);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--watch);
+      box-shadow: 0 0 0 6px rgba(209, 119, 22, 0.13);
+    }
+
+    h1 {
+      margin: 10px 0 0;
+      font-family: "Bahnschrift", "Aptos Display", sans-serif;
+      font-size: clamp(40px, 7vw, 92px);
+      font-weight: 650;
+      line-height: 0.91;
+      letter-spacing: -0.055em;
+      max-width: 980px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-family: "Cascadia Mono", monospace;
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+
+    .truth-rail {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--ink);
+      color: white;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      animation: rise 620ms 80ms ease both;
+    }
+
+    .truth-cell {
+      padding: 17px 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.13);
+    }
+
+    .truth-cell:last-child { border-right: 0; }
+    .truth-cell span { display: block; color: #aebdd0; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .truth-cell strong { display: block; margin-top: 6px; font-family: "Cascadia Mono", monospace; font-size: 13px; }
+    .truth-cell strong.watch { color: #ffbe70; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(330px, .65fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .stack { display: grid; gap: 18px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.88);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(15px);
+      padding: 23px;
+      animation: rise 650ms ease both;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 0;
+      font-family: "Bahnschrift", sans-serif;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .tag {
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font: 700 10px "Cascadia Mono", monospace;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .tag.watch { color: var(--watch); border-color: rgba(209, 119, 22, .35); background: rgba(209, 119, 22, .08); }
+    .tag.unsafe, .tag.degraded { color: var(--danger); border-color: rgba(187, 62, 49, .3); background: rgba(187, 62, 49, .08); }
+    .tag.modeled { color: var(--blue); background: rgba(48, 103, 189, .08); }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .score {
+      min-height: 132px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, .58);
+    }
+
+    .score label {
+      display: block;
+      min-height: 33px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .score strong {
+      display: block;
+      margin: 15px 0 4px;
+      font: 650 31px "Bahnschrift", sans-serif;
+      letter-spacing: -.04em;
+    }
+
+    .score small { color: var(--muted); font: 11px "Cascadia Mono", monospace; }
+
+    .chain {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+      align-items: stretch;
+    }
+
+    .node {
+      padding: 15px 9px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.65);
+      text-align: center;
+      position: relative;
+    }
+
+    .node:not(:last-child)::after {
+      content: ">";
+      position: absolute;
+      right: -7px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      z-index: 2;
+      font-family: monospace;
+    }
+
+    .node b { display: block; font: 650 22px "Bahnschrift", sans-serif; }
+    .node span { display: block; margin-top: 7px; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+
+    .drift-list { display: grid; gap: 13px; }
+    .drift-row { display: grid; grid-template-columns: 145px 1fr 48px; align-items: center; gap: 12px; }
+    .drift-row label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .bar { height: 9px; background: #e1e5e1; border-radius: 999px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--signal), var(--watch), var(--danger)); border-radius: inherit; transition: width 700ms cubic-bezier(.2,.8,.2,1); }
+    .drift-row output { font: 11px "Cascadia Mono", monospace; text-align: right; }
+
+    .control-list { display: grid; gap: 8px; }
+    .control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .control:last-child { border-bottom: 0; }
+    .control strong { font-size: 12px; }
+    .control span { color: var(--muted); font: 10px "Cascadia Mono", monospace; }
+
+    .alerts { display: grid; gap: 10px; }
+    .alert {
+      border-left: 4px solid var(--watch);
+      background: rgba(209, 119, 22, .07);
+      border-radius: 5px 13px 13px 5px;
+      padding: 13px 14px;
+    }
+    .alert.unsafe, .alert.degraded { border-left-color: var(--danger); background: rgba(187, 62, 49, .07); }
+    .alert b { display: block; font-size: 12px; text-transform: uppercase; }
+    .alert p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .empty { padding: 20px; color: var(--muted); text-align: center; font-size: 12px; border: 1px dashed var(--line); border-radius: 14px; }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 18px;
+      color: var(--muted);
+      font: 10px/1.6 "Cascadia Mono", monospace;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .truth-rail { grid-template-columns: repeat(2, 1fr); }
+      .truth-cell:nth-child(2) { border-right: 0; }
+      .truth-cell:nth-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.13); }
+      .chain { grid-template-columns: repeat(3, 1fr); }
+      .node:nth-child(3)::after { display: none; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 24px, 1480px); padding-top: 10px; }
+      header { grid-template-columns: 1fr; align-items: start; }
+      .header-meta { text-align: left; }
+      h1 { font-size: 48px; }
+      .truth-rail { grid-template-columns: 1fr; }
+      .truth-cell { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.13); }
+      .score-grid { grid-template-columns: 1fr; }
+      .chain { grid-template-columns: repeat(2, 1fr); }
+      .node:nth-child(2n)::after { display: none; }
+      .drift-row { grid-template-columns: 105px 1fr 40px; }
+      .panel { padding: 18px; border-radius: 19px; }
+      .footer { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow"><i class="pulse"></i> Governed runtime observatory</div>
+        <h1>Control the edge.<br>Remember the evidence.</h1>
+      </div>
+      <div class="header-meta">
+        GDW-X / MASTER SUITE<br>
+        DASC + CONTROL ISOLATION<br>
+        <span id="updated">AWAITING STATE</span>
+      </div>
+    </header>
+
+    <section class="truth-rail">
+      <div class="truth-cell"><span>Truth status</span><strong class="watch" id="truth">MODELED</strong></div>
+      <div class="truth-cell"><span>Regulatory claim</span><strong id="regulatory">NOT_ASSESSED</strong></div>
+      <div class="truth-cell"><span>Execution authority</span><strong id="authority">UNAVAILABLE</strong></div>
+      <div class="truth-cell"><span>Journal integrity</span><strong id="integrity">EMPTY</strong></div>
+    </section>
+
+    <section class="layout">
+      <div class="stack">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Estate scorecard</h2>
+            <span class="tag modeled" id="overall">MODELED</span>
+          </div>
+          <div class="score-grid">
+            <div class="score"><label>Signed runtime transitions</label><strong id="signed">0%</strong><small>valid + non-expired</small></div>
+            <div class="score"><label>Proposals simulated</label><strong id="simulated">0%</strong><small>modeled replay</small></div>
+            <div class="score"><label>Risk-gate rejection</label><strong id="rejection">0%</strong><small>fail-closed rate</small></div>
+            <div class="score"><label>Calibration abstention</label><strong id="abstention">0%</strong><small>insufficient / unsafe</small></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Mutation evidence chain</h2>
+            <span class="tag modeled">append-only</span>
+          </div>
+          <div class="chain" id="chain"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Localized drift surface</h2>
+            <span class="tag watch" id="drift-status">NO WINDOW</span>
+          </div>
+          <div class="drift-list" id="drift"></div>
+        </article>
+      </div>
+
+      <aside class="stack">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Control isolation</h2>
+            <span class="tag watch">paper / shadow</span>
+          </div>
+          <div class="control-list" id="controls"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Runtime alerts</h2>
+            <span class="tag watch" id="alert-count">0 active</span>
+          </div>
+          <div class="alerts" id="alerts"></div>
+        </article>
+      </aside>
+    </section>
+
+    <div class="footer">
+      <span>DASC-STYLE LOCALIZATION IS MODELED. NO FORMAL COVERAGE GUARANTEE.</span>
+      <span>NO BROKER CONNECTOR / NO CANARY OR LIVE AUTHORITY / NO COMPLIANCE CLAIM</span>
+    </div>
+  </main>
+
+  <script>
+    const percent = value => `${(Number(value || 0) * (value > 1 ? 1 : 100)).toFixed(1)}%`;
+    const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    })[char]);
+
+    function renderChain(counts = {}) {
+      const labels = [
+        ["mutations", "Mutations"], ["simulations", "Simulations"],
+        ["decisions", "Decisions"], ["manifests", "Manifests"],
+        ["acks", "Runtime acks"], ["outcomes", "Outcomes"]
+      ];
+      document.querySelector("#chain").innerHTML = labels.map(([key, label]) =>
+        `<div class="node"><b>${Number(counts[key] || 0)}</b><span>${label}</span></div>`
+      ).join("");
+    }
+
+    function renderDrift(latest) {
+      const container = document.querySelector("#drift");
+      const dimensions = latest?.dimensions || {};
+      const entries = Object.entries(dimensions);
+      if (!entries.length) {
+        container.innerHTML = '<div class="empty">No conformal reference window has been evaluated.</div>';
+        return;
+      }
+      container.innerHTML = entries.slice(0, 12).map(([name, item]) => {
+        const severity = Math.max(0, Math.min(1, Number(item.severity || 0)));
+        return `<div class="drift-row">
+          <label>${esc(name)}</label>
+          <div class="bar"><i style="width:${severity * 100}%"></i></div>
+          <output>${severity.toFixed(2)}</output>
+        </div>`;
+      }).join("");
+    }
+
+    function renderControls(state) {
+      const sections = state.sections || {};
+      const items = [
+        ["Strategy writes risk controls", sections.control_isolation?.strategy_write_path ? "AVAILABLE" : "BLOCKED"],
+        ["Risk control owner", sections.control_isolation?.risk_control_owner || "UNAVAILABLE"],
+        ["Signed manifest source", sections.receipt_validity?.signing_key_source || "UNAVAILABLE"],
+        ["Paper / shadow apply", sections.runtime_apply_ack?.paper_shadow_only ? "MODELED" : "UNAVAILABLE"],
+        ["Broker enforcement", sections.kill_switch_readiness?.broker_enforcement || "UNAVAILABLE"],
+        ["Kill switch", sections.kill_switch_readiness?.engaged ? "ENGAGED" : "MODELED / IDLE"]
+      ];
+      document.querySelector("#controls").innerHTML = items.map(([name, value]) =>
+        `<div class="control"><strong>${esc(name)}</strong><span>${esc(value)}</span></div>`
+      ).join("");
+    }
+
+    function renderAlerts(items = []) {
+      document.querySelector("#alert-count").textContent = `${items.length} active`;
+      document.querySelector("#alerts").innerHTML = items.length
+        ? items.slice(0, 8).map(item => `<div class="alert ${esc(item.severity)}">
+            <b>${esc(item.family)}</b>
+            <p>${esc(item.recommended_next_step)} / ${esc(item.truth_status)}</p>
+          </div>`).join("")
+        : '<div class="empty">No runtime alerts recorded.</div>';
+    }
+
+    async function refresh() {
+      try {
+        const [stateResponse, alertResponse] = await Promise.all([
+          fetch("/v1/dashboard/state", { cache: "no-store" }),
+          fetch("/v1/dashboard/alerts", { cache: "no-store" })
+        ]);
+        if (!stateResponse.ok || !alertResponse.ok) throw new Error("state unavailable");
+        const state = await stateResponse.json();
+        const alertState = await alertResponse.json();
+        document.querySelector("#truth").textContent = state.truth_status;
+        document.querySelector("#regulatory").textContent = state.regulatory_claim;
+        document.querySelector("#authority").textContent = state.execution_authority;
+        document.querySelector("#integrity").textContent = state.journal?.integrity_status || state.journal?.status;
+        document.querySelector("#overall").textContent = state.overall_status;
+        document.querySelector("#overall").className = `tag ${state.overall_status}`;
+        document.querySelector("#updated").textContent = new Date(state.generated_at).toLocaleString();
+        document.querySelector("#signed").textContent = `${Number(state.metrics.runtime_transitions_with_valid_signed_manifest_pct || 0).toFixed(1)}%`;
+        document.querySelector("#simulated").textContent = `${Number(state.metrics.proposals_with_simulation_pct || 0).toFixed(1)}%`;
+        document.querySelector("#rejection").textContent = percent(state.metrics.risk_gate_rejection_rate);
+        document.querySelector("#abstention").textContent = percent(state.metrics.abstention_rate);
+        const driftStatus = state.sections?.drift_localization?.status || "watch";
+        document.querySelector("#drift-status").textContent = driftStatus;
+        document.querySelector("#drift-status").className = `tag ${driftStatus}`;
+        renderChain(state.chain_counts);
+        renderDrift(state.sections?.drift_localization?.latest);
+        renderControls(state);
+        renderAlerts(alertState.alerts);
+      } catch (error) {
+        document.querySelector("#updated").textContent = "STATE UNAVAILABLE";
+        document.querySelector("#integrity").textContent = "UNAVAILABLE";
+        renderChain({});
+        renderDrift(null);
+        renderControls({ sections: {} });
+        renderAlerts([]);
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 15000);
+  </script>
+</body>
+</html>

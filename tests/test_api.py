@@ -27,6 +27,7 @@ def _payload(**overrides):
 
 def test_health_and_step_are_truth_labeled(tmp_path: Path) -> None:
     api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
     with TestClient(api.app) as client:
         health = client.get("/healthz")
         assert health.status_code == 200
@@ -45,6 +46,7 @@ def test_health_and_step_are_truth_labeled(tmp_path: Path) -> None:
 
 def test_missing_receipt_fails_closed(tmp_path: Path) -> None:
     api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
     with TestClient(api.app) as client:
         response = client.post(
             "/v1/gdw/step",
@@ -52,11 +54,13 @@ def test_missing_receipt_fails_closed(tmp_path: Path) -> None:
         )
         assert response.status_code == 200
         assert response.json()["decision"] == "withhold"
-        assert response.json()["receipt_hash"] is None
+        assert len(response.json()["receipt_hash"]) == 64
+        assert api.ledger.verify() == (True, 1)
 
 
 def test_metrics_do_not_expose_identity_values_or_labels(tmp_path: Path) -> None:
     api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
     with TestClient(api.app) as client:
         client.post("/v1/gdw/step", json=_payload())
         metrics = client.get("/metrics").text
@@ -72,6 +76,7 @@ def test_metrics_do_not_expose_identity_values_or_labels(tmp_path: Path) -> None
 
 def test_validation_rejects_unknown_fields(tmp_path: Path) -> None:
     api.ledger.path = tmp_path / "receipts.jsonl"
+    api.exemplar_store.path = tmp_path / "exemplars.jsonl"
     with TestClient(api.app) as client:
         response = client.post("/v1/gdw/step", json=_payload(user_id="unsafe"))
         assert response.status_code == 422
