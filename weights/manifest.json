@@ -6,9 +6,9 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
-      "bytes": 1918,
+      "bytes": 3343,
       "path": ".github/workflows/gdw-production-witness.yml",
-      "sha256": "44a106c9d9f8e7b1abd46fbf73686ddb876bf9b7ff3946202eb2ce0a4e03eab4"
+      "sha256": "059263ead9e766045bf577d296a5197ad91c79d5891bead355ebe0a2e6ff91c7"
     },
     {
       "bytes": 6167,
@@ -291,9 +291,9 @@
       "sha256": "d98b7250c45442f8d832a14830d5271c9a27c248f66a1334b00de0f5062d5ac5"
     },
     {
-      "bytes": 7451,
+      "bytes": 8351,
       "path": "docs/SINGLE_NODE_LIVE.md",
-      "sha256": "d480e4ad6080c53a8a60d666f1257f3e903ee9257cf07faf63ab9ab0549ab20b"
+      "sha256": "b767aada3691895e99b378b5d923ca1b3af691d40fe998a6605b37606bfc8893"
     },
     {
       "bytes": 91,
@@ -591,9 +591,9 @@
       "sha256": "35177bf9451b89be532e8edf34a3404ee225e691479181ede9cf2c8cdead475f"
     },
     {
-      "bytes": 3904,
+      "bytes": 8858,
       "path": "tests/test_remote_witness.py",
-      "sha256": "97b76ef28594f9fdb0da5fdc537564788bfc5299210f39a1b2e18da1a2861b1f"
+      "sha256": "818e6a9c830c7b5763b8f16aa1696363e80d6a6f8298d4789fb9685a9198f61e"
     },
     {
       "bytes": 666,

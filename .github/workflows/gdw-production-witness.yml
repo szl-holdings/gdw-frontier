@@ -1,7 +1,9 @@
 name: gdw-production-witness
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - gdw-production-witness
 
 permissions:
   contents: read
@@ -12,11 +14,41 @@ concurrency:
 
 jobs:
   witness:
+    if: >-
+      github.event_name == 'repository_dispatch' &&
+      github.event.action == 'gdw-production-witness' &&
+      github.repository == 'szl-holdings/gdw-frontier' &&
+      github.event.repository.full_name == 'szl-holdings/gdw-frontier' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Verify trusted default-branch workflow source
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EVENT_ACTION: ${{ github.event.action }}
+          EVENT_REPOSITORY: ${{ github.event.repository.full_name }}
+          EXPECTED_REPOSITORY: szl-holdings/gdw-frontier
+          OBSERVED_REF: ${{ github.ref }}
+          OBSERVED_REPOSITORY: ${{ github.repository }}
+          OBSERVED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = "repository_dispatch"
+          test "$EVENT_ACTION" = "gdw-production-witness"
+          test "$EXPECTED_REPOSITORY" = "$OBSERVED_REPOSITORY"
+          test "$EXPECTED_REPOSITORY" = "$EVENT_REPOSITORY"
+          test "$OBSERVED_REF" = "refs/heads/$DEFAULT_BRANCH"
+          test "$(git rev-parse HEAD)" = "$OBSERVED_SHA"
+          test -z "$(git status --porcelain=v1)"
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
