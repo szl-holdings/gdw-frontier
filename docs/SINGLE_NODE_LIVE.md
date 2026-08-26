@@ -133,11 +133,36 @@ one bounded single-node measurement, not a universal capacity or HA claim.
 
 ## 6. Capture an independent read-only witness
 
+Before storing any production value, configure the `production` environment's
+deployment branch and tag rule to admit only the protected `main` branch. Do
+not leave the environment unrestricted: any workflow job that names an
+unrestricted environment can otherwise request its secrets, including from
+pull-request-controlled repository code. Keep any intended required-reviewer
+gate enabled as a separate approval boundary, and verify both rules in the
+environment settings after every protection change.
+
 Configure the `production` GitHub environment with the protected
 `GDW_PRODUCTION_API_TOKEN` secret and the `GDW_PRODUCTION_URL`,
 `GDW_PRODUCTION_SOURCE_SHA`, and `GDW_PRODUCTION_IMAGE_DIGEST` variables.
-Dispatch `gdw-production-witness` only after the exact deployed identity has
-been verified locally.
+After the exact deployed identity has been verified locally, dispatch the
+trusted default-branch witness event:
+
+```bash
+gh api --method POST \
+  repos/szl-holdings/gdw-frontier/dispatches \
+  -f event_type=gdw-production-witness
+```
+
+The production witness deliberately uses `repository_dispatch` rather than
+`workflow_dispatch`. GitHub binds this event to the current default-branch
+commit, so a caller cannot select a feature branch or tag whose repository code
+would receive the production credential. The workflow independently checks the
+repository, default-branch ref, checked-out commit, and clean checkout before
+materializing that credential. Do not add `client_payload` fields: the workflow
+consumes no client-supplied source, image, URL, ref, or payload; those values
+remain protected environment variables. An HTTP `204` from the dispatch API
+means only that GitHub accepted the event. It is not witness success; retain and
+verify the resulting exact-SHA Actions run and proof artifact.
 
 The hosted verifier checks public health, readiness, ingress denial for
 `/metrics`, fail-closed operator authentication, exact source/image identity,
