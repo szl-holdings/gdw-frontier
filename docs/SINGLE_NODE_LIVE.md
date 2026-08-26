@@ -133,6 +133,14 @@ one bounded single-node measurement, not a universal capacity or HA claim.
 
 ## 6. Capture an independent read-only witness
 
+Before storing any production value, configure the `production` environment's
+deployment branch and tag rule to admit only the protected `main` branch. Do
+not leave the environment unrestricted: any workflow job that names an
+unrestricted environment can otherwise request its secrets, including from
+pull-request-controlled repository code. Keep any intended required-reviewer
+gate enabled as a separate approval boundary, and verify both rules in the
+environment settings after every protection change.
+
 Configure the `production` GitHub environment with the protected
 `GDW_PRODUCTION_API_TOKEN` secret and the `GDW_PRODUCTION_URL`,
 `GDW_PRODUCTION_SOURCE_SHA`, and `GDW_PRODUCTION_IMAGE_DIGEST` variables.
