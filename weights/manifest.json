@@ -16,6 +16,11 @@
       "sha256": "7ebae9edca4ad653e81f66c06022d38884bad476194aefbfb24e72f6c188cbc0"
     },
     {
+      "bytes": 1543,
+      "path": ".github/workflows/regenerate-weight-manifest.yml",
+      "sha256": "db97319c9ead74ac9b6f6c466935d1d2c087645c19ac51fde5df3e999afe832e"
+    },
+    {
       "bytes": 1092,
       "path": "Dockerfile",
       "sha256": "7d93440d10ac310c967010abd2e2082640fcae2c4b044d8eeb7e1dca55c66595"
@@ -41,9 +46,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 24209,
+      "bytes": 24899,
       "path": "app/api.py",
-      "sha256": "6d00898f6db212ef57b71461d99e23bda9284c4262ea6f2368943593616c2486"
+      "sha256": "0030ff45da3b6fae4814ca51396f25a01dc434587cfea80c829d7fb29d1ceedd"
     },
     {
       "bytes": 5066,
@@ -476,9 +481,9 @@
       "sha256": "0cc8f5a4e5f552ebf50dc85f865e714718181bf063e6fea3b032e0ac8c6c91c5"
     },
     {
-      "bytes": 7091,
+      "bytes": 7157,
       "path": "monitoring/metric-policy.json",
-      "sha256": "ad67800f8d54d09883101f978830228bb50326517096f43bc2ab9c1e1be9131a"
+      "sha256": "665335449d8e220800f92d00ea094352d5a154c95741d7b12b64da3ae151a265"
     },
     {
       "bytes": 505,
@@ -546,9 +551,9 @@
       "sha256": "03037be899a8f038c57ca0824914c67957d92de9cc61c2bf6b9faa3b0041cfd2"
     },
     {
-      "bytes": 12195,
+      "bytes": 12703,
       "path": "tests/test_api.py",
-      "sha256": "cff6de27702ad78bbaa175283905e4a7410e1706bee585fa30a60e38c204fe27"
+      "sha256": "ab7a33a32af7ecebc625081d5fb46d07a419e30951ed5e0e839c26fbbce483ba"
     },
     {
       "bytes": 11683,
