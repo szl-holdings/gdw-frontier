@@ -145,9 +145,11 @@
       "allowed_values": {
         "method": [
           "GET",
+          "HEAD",
           "POST"
         ],
         "route": [
+          "/",
           "/build-info",
           "/calibration",
           "/docs",
@@ -206,9 +208,11 @@
       "allowed_values": {
         "method": [
           "GET",
+          "HEAD",
           "POST"
         ],
         "route": [
+          "/",
           "/build-info",
           "/calibration",
           "/docs",
