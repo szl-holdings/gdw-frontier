@@ -3,15 +3,19 @@
 """Apply the reviewed GDW public-root operability repair.
 
 The mutation is deliberately exact: expose only `/` as a read-only service
-landing while preserving bearer authentication on every operator endpoint.
+landing while preserving bearer authentication on every operator endpoint. The
+new route and its GET/HEAD methods are added to the bounded metric-cardinality
+policy rather than bypassing observability governance.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 API = ROOT / "app" / "api.py"
 TESTS = ROOT / "tests" / "test_api.py"
+POLICY = ROOT / "monitoring" / "metric-policy.json"
 
 AUTH_OLD = '''AUTH_EXEMPT_PATHS = frozenset(
     {
@@ -84,10 +88,25 @@ def replace_once(path: Path, old: str, new: str) -> None:
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+def govern_metric_cardinality() -> None:
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    for metric_name in ("gdw_request_latency_seconds", "gdw_request_total"):
+        allowed = policy["metrics"][metric_name]["allowed_values"]
+        routes = allowed["route"]
+        methods = allowed["method"]
+        if "/" in routes:
+            raise RuntimeError(f"{metric_name} already governs the public root")
+        routes.insert(0, "/")
+        if "HEAD" not in methods:
+            methods.insert(methods.index("GET") + 1, "HEAD")
+    POLICY.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     replace_once(API, AUTH_OLD, AUTH_NEW)
     replace_once(API, ROUTE_ANCHOR, ROUTE_BLOCK)
     replace_once(TESTS, TEST_OLD, TEST_NEW)
+    govern_metric_cardinality()
     return 0
 
 
