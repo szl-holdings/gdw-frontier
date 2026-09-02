@@ -1,0 +1,52 @@
+name: Regenerate GDW manifest without self-reference
+
+on:
+  push:
+    branches:
+      - fix/public-root-operability
+    paths:
+      - .github/workflows/regenerate-weight-manifest-clean.yaml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gdw-weight-manifest-clean-regeneration
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    name: Bind permanent repository artifacts only
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Check out exact branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/public-root-operability
+          fetch-depth: 0
+
+      - name: Regenerate after the tracked temporary workflow is absent
+        run: |
+          set -euo pipefail
+          test ! -e .github/workflows/regenerate-weight-manifest.yml
+          python ci/update_weight_manifest.py --write
+          python ci/update_weight_manifest.py --check
+
+      - name: Commit generated manifest and remove untracked-class helper
+        env:
+          BRANCH: fix/public-root-operability
+        run: |
+          set -euo pipefail
+          git config user.name "SZL Holdings Automation"
+          git config user.email "eng@szlholdings.com"
+          git add weights/manifest.json
+          git rm .github/workflows/regenerate-weight-manifest-clean.yaml
+          git diff --cached --check
+          git commit -s -m "chore(weights): bind permanent public-root artifacts"
+          git push origin "HEAD:${BRANCH}"
