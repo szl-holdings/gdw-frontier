@@ -98,6 +98,22 @@ def test_required_auth_protects_operator_endpoints_and_leaves_probes_public(
     api.ledger.path = tmp_path / "receipts.jsonl"
 
     with TestClient(api.app) as client:
+        root = client.get("/")
+        assert root.status_code == 200
+        assert root.json() == {
+            "service": "gdw",
+            "status": "ready",
+            "model_status": "MODELED",
+            "operator_api": "bearer-protected",
+            "public_probes": [
+                "/healthz",
+                "/readyz",
+                "/build-info",
+                "/calibration",
+                "/master-suite",
+            ],
+        }
+        assert client.head("/").status_code == 200
         assert client.get("/healthz").status_code == 200
         assert client.get("/readyz").status_code == 200
         assert client.get("/build-info").status_code == 200

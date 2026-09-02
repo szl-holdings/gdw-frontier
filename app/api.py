@@ -79,6 +79,7 @@ governed_worker_count()
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 AUTH_EXEMPT_PATHS = frozenset(
     {
+        "/",
         "/build-info",
         "/calibration",
         "/healthz",
@@ -285,6 +286,28 @@ async def enforce_governed_startup(request: Request, call_next: Callable) -> Res
             content={"detail": "governed runtime startup incomplete"},
         )
     return await call_next(request)
+
+
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+async def public_landing() -> JSONResponse:
+    """Public, read-only service landing; operator APIs remain bearer-protected."""
+    return JSONResponse(
+        {
+            "service": "gdw",
+            "status": "ready",
+            "model_status": "MODELED",
+            "operator_api": (
+                "bearer-protected" if _auth_required() else "deployment-configured"
+            ),
+            "public_probes": [
+                "/healthz",
+                "/readyz",
+                "/build-info",
+                "/calibration",
+                "/master-suite",
+            ],
+        }
+    )
 
 
 @app.get("/healthz", response_model=ReadinessResponse)
