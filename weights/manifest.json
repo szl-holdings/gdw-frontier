@@ -16,6 +16,11 @@
       "sha256": "7ebae9edca4ad653e81f66c06022d38884bad476194aefbfb24e72f6c188cbc0"
     },
     {
+      "bytes": 4663,
+      "path": ".github/workflows/hf-sync.yml",
+      "sha256": "c8337293b11cb90aa04f8de48354c8cbdbcf8e7cbc6f2735472fe83f2e2afc0a"
+    },
+    {
       "bytes": 1092,
       "path": "Dockerfile",
       "sha256": "7d93440d10ac310c967010abd2e2082640fcae2c4b044d8eeb7e1dca55c66595"
