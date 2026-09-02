@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           git config user.name "SZL Holdings Automation"
           git config user.email "eng@szlholdings.com"
-          git add app/api.py tests/test_api.py
+          git add app/api.py tests/test_api.py monitoring/metric-policy.json
           git diff --cached --check
-          git commit -s -m "fix(api): expose read-only public root"
+          git commit -s -m "fix(api): expose governed read-only public root"
           git push origin "HEAD:${BRANCH}"
