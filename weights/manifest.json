@@ -21,9 +21,9 @@
       "sha256": "7ebae9edca4ad653e81f66c06022d38884bad476194aefbfb24e72f6c188cbc0"
     },
     {
-      "bytes": 1092,
+      "bytes": 1091,
       "path": "Dockerfile",
-      "sha256": "7d93440d10ac310c967010abd2e2082640fcae2c4b044d8eeb7e1dca55c66595"
+      "sha256": "68786950ae284fb5a40ea14f15fd3939e9f6631799bd088d3d4f7eff8b03899e"
     },
     {
       "bytes": 16775,
@@ -506,9 +506,9 @@
       "sha256": "b0a707e86bc8bf06c970cb0fa50c017fd2a08ea05de9fb43b5b6eb3eb430865d"
     },
     {
-      "bytes": 928,
+      "bytes": 927,
       "path": "pyproject.toml",
-      "sha256": "b4aff6c6ed0ba0f1e386d15c5cabae2d96f8dde610a805b6b9d475262f5fb678"
+      "sha256": "5cd491293260b7d7ad74dcd74fc2e862082d9a0de9b5b556730b8ba09899e570"
     },
     {
       "bytes": 1708,
