@@ -6,6 +6,11 @@
       "sha256": "5608560dcd616e120a53be672e92edf3f2d5e4c3058c2ff35b3fa2fdb0934304"
     },
     {
+      "bytes": 529,
+      "path": ".github/workflows/codeql.yml",
+      "sha256": "603e535942fff0f931398c301cc3701201c0ad1ede00eb60b315d34285afaf36"
+    },
+    {
       "bytes": 3343,
       "path": ".github/workflows/gdw-production-witness.yml",
       "sha256": "059263ead9e766045bf577d296a5197ad91c79d5891bead355ebe0a2e6ff91c7"
