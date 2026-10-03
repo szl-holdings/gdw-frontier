@@ -57,6 +57,7 @@ from .provenance import governance_envelope, subject_digest
 from .quant_core import release_score_breakdown
 from .risk_control import conformal_risk_threshold
 from .runtime import MasterSuiteProcessLease, governed_worker_count
+from .source_identity import deployed_source_sha
 from .simulator import simulate_intervention
 from .telemetry import (
     DECISION_TOTAL,
@@ -99,11 +100,18 @@ _GOVERNED_RUNTIME_READY = Event()
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     _GOVERNED_RUNTIME_READY.clear()
+    application.state.source_revision_path = None
+    application.state.source_revision_sha = None
     lease = MasterSuiteProcessLease()
     lease.acquire()
     try:
+        configured_path = os.environ.get("GDW_SOURCE_REVISION_FILE")
+        observed_sha = deployed_source_sha()
+        application.state.source_revision_path = configured_path
+        if configured_path is not None:
+            application.state.source_revision_sha = observed_sha
         _validate_runtime_configuration()
         ledger.ensure_signed_head(_runtime_identity())
         exemplar_store.ensure_signed_head(_runtime_identity())
@@ -134,6 +142,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
                 multiprocess.mark_process_dead(os.getpid())
             log_event(logger, logging.INFO, "service_stopped", event="service_stopped")
     finally:
+        application.state.source_revision_path = None
+        application.state.source_revision_sha = None
         lease.release()
 
 
@@ -146,6 +156,8 @@ app = FastAPI(
 app.include_router(calibration_router)
 app.include_router(master_suite_router)
 instrument_fastapi(app)
+app.state.source_revision_path = None
+app.state.source_revision_sha = None
 
 
 def _request_id(request: Request) -> str:
@@ -176,6 +188,7 @@ def _configured_api_token() -> str:
 
 def _validate_runtime_configuration() -> None:
     governed_worker_count()
+    _checked_source_sha()
     ledger.validate_configuration()
     if not _auth_required():
         return
@@ -184,11 +197,22 @@ def _validate_runtime_configuration() -> None:
         raise RuntimeError("GDW_API_TOKEN must contain at least 32 characters when GDW_REQUIRE_AUTH is enabled")
 
 
+def _checked_source_sha() -> str:
+    configured_path = os.environ.get("GDW_SOURCE_REVISION_FILE")
+    if configured_path != app.state.source_revision_path:
+        raise RuntimeError("GDW_SOURCE_REVISION_FILE changed after startup")
+    observed_sha = deployed_source_sha()
+    startup_sha = app.state.source_revision_sha
+    if startup_sha is not None and observed_sha != startup_sha:
+        raise RuntimeError("GDW_SOURCE_REVISION_FILE content changed after startup")
+    return startup_sha if startup_sha is not None else observed_sha
+
+
 def _runtime_identity() -> dict[str, str]:
     return {
         "service": "gdw",
         "version": __version__,
-        "source_sha": os.getenv("GDW_SOURCE_SHA", "UNAVAILABLE"),
+        "source_sha": _checked_source_sha(),
         "image_digest": os.getenv("GDW_IMAGE_DIGEST", "UNAVAILABLE"),
         "deployment_mode": os.getenv("GDW_DEPLOYMENT_MODE", "MODELED_LOCAL"),
     }
@@ -285,6 +309,13 @@ async def enforce_governed_startup(request: Request, call_next: Callable) -> Res
             status_code=503,
             content={"detail": "governed runtime startup incomplete"},
         )
+    try:
+        _checked_source_sha()
+    except RuntimeError:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "source revision binding invalid"},
+        )
     return await call_next(request)
 
 
@@ -328,7 +359,7 @@ async def build_info() -> BuildInfoResponse:
     signing_algorithm, signing_key_id = ledger.signing_identity()
     return BuildInfoResponse(
         version=__version__,
-        source_sha=os.getenv("GDW_SOURCE_SHA", "UNAVAILABLE"),
+        source_sha=_checked_source_sha(),
         image_digest=os.getenv("GDW_IMAGE_DIGEST", "UNAVAILABLE"),
         deployment_mode=os.getenv("GDW_DEPLOYMENT_MODE", "MODELED_LOCAL"),
         receipt_signing=signing_algorithm or "UNAVAILABLE",

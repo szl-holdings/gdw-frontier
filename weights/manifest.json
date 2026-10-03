@@ -46,9 +46,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 24899,
+      "bytes": 26248,
       "path": "app/api.py",
-      "sha256": "0030ff45da3b6fae4814ca51396f25a01dc434587cfea80c829d7fb29d1ceedd"
+      "sha256": "0b2c66ae14e9f47fb9c557e92a1f1899eefeab0b13f6d74a1fa0396fdff99c7b"
     },
     {
       "bytes": 5066,
@@ -141,9 +141,9 @@
       "sha256": "3cd13a2674a01734ef51e565c78c4cac00de2ee59c162e5d7c37930232d1f947"
     },
     {
-      "bytes": 643,
+      "bytes": 1908,
       "path": "app/source_identity.py",
-      "sha256": "f3eca38a196a76feb6d3664efb18d5c896ec31e54ec77d08e727f7bb6bc57577"
+      "sha256": "1e825acceb81439f3266a989ac3371ec2d5c18939b82fc147c05c8919b3773a0"
     },
     {
       "bytes": 9178,
@@ -599,6 +599,11 @@
       "bytes": 8858,
       "path": "tests/test_remote_witness.py",
       "sha256": "818e6a9c830c7b5763b8f16aa1696363e80d6a6f8298d4789fb9685a9198f61e"
+    },
+    {
+      "bytes": 7973,
+      "path": "tests/test_source_revision_binding.py",
+      "sha256": "afad6f0914259a278f6d82377a86a5fdde518bba21524bbd408675531604107b"
     },
     {
       "bytes": 666,
