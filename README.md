@@ -134,13 +134,20 @@ Open:
 - Prometheus: `http://localhost:9090`
 - Alloy: `http://localhost:12345`
 
-Stop and remove local volumes:
+Stop the local stack while preserving its containers and persistent volumes:
 
 ```bash
-docker compose -f monitoring/docker-compose.yml down --volumes
+docker compose -f monitoring/docker-compose.yml stop
 ```
 
-That command removes only this Compose project’s local telemetry and Terraform state volumes.
+The Compose file sets the project name to `gdw`. Its named volumes include receipt
+data (`gdw-data`) and backups (`gdw-backups`), as well as logs, telemetry, Grafana,
+and Terraform state. `down --volumes` deletes these volumes; it is not a routine
+stop command. Never use it against the default `gdw` project or production volumes.
+Destructive cleanup is only appropriate for a separately isolated, explicitly
+disposable test project whose volumes contain no evidence or backups to retain.
+If the stack was started with a project-name override, use that same override when
+stopping it; changing directories alone does not isolate the fixed `gdw` project.
 
 For a credential-backed HTTPS deployment on one Docker host, follow
 [`docs/SINGLE_NODE_LIVE.md`](docs/SINGLE_NODE_LIVE.md). The live verifier
