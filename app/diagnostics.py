@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class DiagnosticSnapshot(BaseModel):
     """Bounded operational inputs for MODELED GDW-X decisions."""
 
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, allow_inf_nan=False)
 
     snapshot_id: str = Field(min_length=1, max_length=128)
     p50_latency_ms: float = Field(ge=0.0)

@@ -12,6 +12,20 @@ Status: **MODELED**
 6. Calibration includes descriptive scoring and a held-out conformal threshold path that returns `UNAVAILABLE` when evidence is insufficient.
 7. Benchmark outputs identify whether they are contract fixtures, supplied-observation metrics, or modeled counterfactuals.
 
+### Numerical evidence boundary
+
+Release scoring rejects non-finite, negative, or out-of-range measurements and
+non-finite weights before calculating a score. Arithmetic overflow is an error,
+not a release result. Calibration scores must be finite values in `[0, 1]`.
+
+For `n` held-out scores and target miscoverage `alpha`, the conformal order
+statistic has rank `ceil((n + 1) * (1 - alpha))`. If that rank exceeds `n`, this
+implementation returns `UNAVAILABLE` with a null threshold. It does not substitute
+the largest observed score: for example, 20 scores cannot supply an empirical
+order statistic for a 99% target. The reported target is a requested coverage
+level under the stated exchangeability assumptions, not measured performance or
+an expected-loss guarantee.
+
 ## What still blocks a cutting-edge claim
 
 1. Policy bundles are hashed but not signed, remotely distributed, independently verified, or evaluated by an external policy engine.

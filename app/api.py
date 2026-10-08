@@ -510,7 +510,7 @@ async def simulate(payload: SimulationRequest) -> SimulationResponse:
 
 @app.get("/v1/gdw/score/release")
 async def score_release(
-    p95_latency_ms: float = Query(ge=0.0),
+    p95_latency_ms: float = Query(ge=0.0, allow_inf_nan=False),
     error_rate: float = Query(ge=0.0, le=1.0),
     missing_receipt_rate: float = Query(ge=0.0, le=1.0),
     weight_validation_passed: bool = True,
@@ -531,9 +531,9 @@ async def score_release(
 @app.get("/v1/gdw/exemplars/search")
 async def search_exemplars(
     snapshot_id: str = Query(min_length=1, max_length=128),
-    p50_latency_ms: float = Query(ge=0.0),
-    p95_latency_ms: float = Query(ge=0.0),
-    p99_latency_ms: float = Query(ge=0.0),
+    p50_latency_ms: float = Query(ge=0.0, allow_inf_nan=False),
+    p95_latency_ms: float = Query(ge=0.0, allow_inf_nan=False),
+    p99_latency_ms: float = Query(ge=0.0, allow_inf_nan=False),
     error_rate: float = Query(ge=0.0, le=1.0),
     inflight_requests: int = Query(ge=0),
     missing_receipt_rate: float = Query(ge=0.0, le=1.0),
