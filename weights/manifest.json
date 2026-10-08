@@ -46,9 +46,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 26248,
+      "bytes": 26332,
       "path": "app/api.py",
-      "sha256": "0b2c66ae14e9f47fb9c557e92a1f1899eefeab0b13f6d74a1fa0396fdff99c7b"
+      "sha256": "ff4a781571e39a33326c95bbe905b4b0af9f4570c6be898cab61b2b7b0cea059"
     },
     {
       "bytes": 5066,
@@ -61,9 +61,9 @@
       "sha256": "de50d7e84da413fdc56ba5b83ba2a32180aa64d0e522c2a8fff5437ab382178e"
     },
     {
-      "bytes": 896,
+      "bytes": 917,
       "path": "app/diagnostics.py",
-      "sha256": "332eb0f5a9c24e22c50c5d9719906d76f4dd27f93da9dde0cbc24521e6887e69"
+      "sha256": "8af1129cd49dd9eedb9705494b7ded53f39bd2cd5a22d0cc78ca433f646e7503"
     },
     {
       "bytes": 2709,
@@ -96,9 +96,9 @@
       "sha256": "f2a6b01c836358446cd6806298b89d2ed9e4c8022dadddfd124ef2999624fa12"
     },
     {
-      "bytes": 6868,
+      "bytes": 7021,
       "path": "app/models.py",
-      "sha256": "86413b975062c7562d3a481ee6f93b3b0bbb2a6dc28523a908370a6b1ab5f116"
+      "sha256": "cdc5671e033d9adc13a7c2726e6788f7cb7e02b2b0b79d3d39b9ecad0f12baaf"
     },
     {
       "bytes": 32144,
@@ -121,14 +121,14 @@
       "sha256": "67c952350bf77855b2a7cf00f11142d31a32e108c0adac75864d3de958689db2"
     },
     {
-      "bytes": 2289,
+      "bytes": 3113,
       "path": "app/quant_core.py",
-      "sha256": "b3de372a22e54c7154173500e2c665779931ee498f9642387ca3ddd61f17e6ae"
+      "sha256": "aba7bacc67969adc202512c6013ccb0ab8282299aeb70c071faebe52777cce26"
     },
     {
-      "bytes": 1657,
+      "bytes": 2294,
       "path": "app/risk_control.py",
-      "sha256": "879fba30d841ba092691cf046915ad0b51ec933cd1346e1986f3823d639fa5f5"
+      "sha256": "e39367fa0c53e048bd766840da99c83388351f8ea62c10399b2158021803e59e"
     },
     {
       "bytes": 3678,
@@ -276,9 +276,9 @@
       "sha256": "4efafd6226ee00b60276b2b2ddf4835b01145a1372dff0cb6fe845d6de52dd3f"
     },
     {
-      "bytes": 3548,
+      "bytes": 4322,
       "path": "docs/FRONTIER_POSTURE.md",
-      "sha256": "53226c7c6f4e68031d3e198d601979c47f53101179b6630fce923188d921790b"
+      "sha256": "c618f893c31a69be1fc31e0060f81a91a91c3291251d96dfb8d448297dca54c9"
     },
     {
       "bytes": 5794,
@@ -589,6 +589,11 @@
       "bytes": 16502,
       "path": "tests/test_master_suite_operational.py",
       "sha256": "bd8bd1e6050664cb293300866a186e5b7b0f767c38740e246062024c66417682"
+    },
+    {
+      "bytes": 7393,
+      "path": "tests/test_numeric_domains.py",
+      "sha256": "e316d28778bd944192f273794ef7aa47301495035261b14c3f0b94a5729ba167"
     },
     {
       "bytes": 12862,

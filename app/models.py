@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -224,14 +224,18 @@ class ExemplarRecordResponse(BaseModel):
 
 
 class RiskControlRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
-    nonconformity_scores: list[float] = Field(min_length=1, max_length=100_000)
+    nonconformity_scores: list[Annotated[float, Field(ge=0.0, le=1.0, allow_inf_nan=False)]] = Field(
+        min_length=1, max_length=100_000
+    )
     alpha: float = Field(default=0.1, gt=0.0, lt=1.0)
     minimum_samples: int = Field(default=20, ge=1, le=100_000)
 
 
 class RiskControlResponse(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     threshold: float | None
     sample_count: int
     minimum_samples: int
