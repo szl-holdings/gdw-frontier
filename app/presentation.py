@@ -9,15 +9,16 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
-ASSET_TYPES = {
-    "szl-tokens.css": "text/css",
-    "gdw-native.css": "text/css",
-    "gdw-native.js": "text/javascript",
-    "szl-icon-32.svg": "image/svg+xml",
-    "szl-icon-16.svg": "image/svg+xml",
-    "SOURCE.json": "application/json",
-    "PROJECTION.json": "application/json",
+ASSET_SPECS = {
+    "szl-tokens.css": ("szl-tokens.css", "text/css"),
+    "gdw-native.css": ("gdw-native.css", "text/css"),
+    "gdw-native.js": ("gdw-native.js", "text/javascript"),
+    "szl-icon-32.svg": ("szl-icon-32.svg", "image/svg+xml"),
+    "szl-icon-16.svg": ("szl-icon-16.svg", "image/svg+xml"),
+    "SOURCE.json": ("SOURCE.json", "application/json"),
+    "PROJECTION.json": ("PROJECTION.json", "application/json"),
 }
+ASSET_TYPES = {name: spec[1] for name, spec in ASSET_SPECS.items()}
 PUBLIC_ASSET_PATHS = frozenset(f"/assets/gdw/{name}" for name in ASSET_TYPES)
 MAX_ASSET_BYTES = 128 * 1024
 MODULE_ROOT = Path(__file__).resolve().parent
@@ -25,36 +26,41 @@ router = APIRouter()
 
 
 def read_asset(name: str, module_root: Path = MODULE_ROOT) -> bytes:
-    if name not in ASSET_TYPES:
+    spec = ASSET_SPECS.get(name)
+    if spec is None:
         raise ValueError("unknown presentation asset")
-    descriptors: list[int] = []
+    filename = spec[0]
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    root = os.open(module_root, directory_flags)
     try:
-        directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
-        root = os.open(module_root, directory_flags)
-        descriptors.append(root)
         static = os.open("static", directory_flags, dir_fd=root)
-        descriptors.append(static)
-        native = os.open("native", directory_flags, dir_fd=static)
-        descriptors.append(native)
-        descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=native)
-        descriptors.append(descriptor)
-        info = os.fstat(descriptor)
-        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_ASSET_BYTES:
-            raise ValueError("presentation asset is not a bounded regular file")
-        chunks: list[bytes] = []
-        size = 0
-        while True:
-            chunk = os.read(descriptor, min(65536, MAX_ASSET_BYTES + 1 - size))
-            if not chunk:
-                break
-            chunks.append(chunk)
-            size += len(chunk)
-            if size > MAX_ASSET_BYTES:
-                raise ValueError("presentation asset exceeds display budget")
-        return b"".join(chunks)
+        try:
+            native = os.open("native", directory_flags, dir_fd=static)
+            try:
+                descriptor = os.open(filename, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=native)
+                try:
+                    info = os.fstat(descriptor)
+                    if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_ASSET_BYTES:
+                        raise ValueError("presentation asset is not a bounded regular file")
+                    chunks: list[bytes] = []
+                    size = 0
+                    while True:
+                        chunk = os.read(descriptor, min(65536, MAX_ASSET_BYTES + 1 - size))
+                        if not chunk:
+                            break
+                        chunks.append(chunk)
+                        size += len(chunk)
+                        if size > MAX_ASSET_BYTES:
+                            raise ValueError("presentation asset exceeds display budget")
+                    return b"".join(chunks)
+                finally:
+                    os.close(descriptor)
+            finally:
+                os.close(native)
+        finally:
+            os.close(static)
     finally:
-        for descriptor in reversed(descriptors):
-            os.close(descriptor)
+        os.close(root)
 
 
 @router.api_route("/assets/gdw/{name}", methods=["GET", "HEAD"], include_in_schema=False)

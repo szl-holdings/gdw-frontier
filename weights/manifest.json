@@ -121,9 +121,9 @@
       "sha256": "c5056ba3c364298c484f1728786733c3e9b1b88338de8bba2d695bceb8042eeb"
     },
     {
-      "bytes": 2766,
+      "bytes": 3178,
       "path": "app/presentation.py",
-      "sha256": "bb4611f39a40d771a8abb39464f436682706849607240d6432b2488808af7542"
+      "sha256": "bf79c52af4abff5b7330c1744f1299d24c42b32acc7eb602fadd0d3668df7572"
     },
     {
       "bytes": 1021,
@@ -341,9 +341,9 @@
       "sha256": "39051e3e4c94a56223cafe2c1a2fefb87946a1b4f9289436e194202000dc2798"
     },
     {
-      "bytes": 6529,
+      "bytes": 6750,
       "path": "docs/NATIVE_FRONTEND.md",
-      "sha256": "842cbb877f77c9df1fae9847ceacc178fc3984784f05ca201cab72eda52e38b8"
+      "sha256": "2e1224ce42cbe6d605d017af41f24cd6545ccfc002971299a4f776fbc899eb95"
     },
     {
       "bytes": 2339,
@@ -651,9 +651,9 @@
       "sha256": "bd8bd1e6050664cb293300866a186e5b7b0f767c38740e246062024c66417682"
     },
     {
-      "bytes": 3876,
+      "bytes": 5273,
       "path": "tests/test_native_presentation.py",
-      "sha256": "3193e0a6c9dd9938e974b5edfcda1746072d6ca1ea960d354effde2c7a91f8d1"
+      "sha256": "01d06aeb523ac11858f2f68434143b9de5ab14747d491432335700e1080b625e"
     },
     {
       "bytes": 7393,

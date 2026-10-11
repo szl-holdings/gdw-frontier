@@ -49,6 +49,9 @@ readiness claim through the visual system.
 `app/presentation.py` exposes exactly seven public asset paths. It accepts GET and
 HEAD only, fixes MIME types, and opens each bounded regular file using the same
 descriptor after no-follow checks for both parent directories and the file.
+Request names select fixed source-owned filename/MIME pairs. Each descriptor has
+its own finally scope, so a failed child open, read or close still releases its
+open parents; failure-injection tests exercise these paths.
 Unknown paths do not become filesystem reads. Existing startup/source validation
 still runs before these routes; existing operator paths remain bearer-protected.
 Only the seven literal static asset paths join the public-shell exemption set.

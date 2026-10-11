@@ -81,6 +81,41 @@ def test_native_read_closes_every_open_descriptor(tmp_path: Path, monkeypatch) -
     assert closed == list(reversed(opened))
 
 
+@pytest.mark.parametrize("failure", ["root", "static", "native", "SOURCE.json", "read", "close"])
+def test_native_read_closes_parents_after_failure(tmp_path: Path, monkeypatch, failure: str) -> None:
+    root = tmp_path / "app"
+    native = root / "static" / "native"
+    native.mkdir(parents=True)
+    (native / "SOURCE.json").write_text("{}")
+    actual_open, actual_close, actual_read = os.open, os.close, os.read
+    opened, closed = [], []
+
+    def track_open(path, *args, **kwargs):
+        if (failure == "root" and path == root) or path == failure:
+            raise OSError("fixture open failure")
+        descriptor = actual_open(path, *args, **kwargs)
+        opened.append(descriptor)
+        return descriptor
+
+    def track_read(*args, **kwargs):
+        if failure == "read":
+            raise OSError("fixture read failure")
+        return actual_read(*args, **kwargs)
+
+    def track_close(descriptor):
+        closed.append(descriptor)
+        actual_close(descriptor)
+        if failure == "close" and len(closed) == 1:
+            raise OSError("fixture close failure after descriptor release")
+
+    monkeypatch.setattr(os, "open", track_open)
+    monkeypatch.setattr(os, "read", track_read)
+    monkeypatch.setattr(os, "close", track_close)
+    with pytest.raises(OSError, match="fixture"):
+        read_asset("SOURCE.json", root)
+    assert closed == list(reversed(opened))
+
+
 def test_asset_package_rejects_missing_and_tampered_bytes(tmp_path: Path) -> None:
     import zipfile
     from ci.check_native_assets import FILES, ROOT
