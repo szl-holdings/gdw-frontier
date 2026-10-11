@@ -54,6 +54,7 @@ from .model_calibration_loop import propose_threshold_update
 from .policy_bundle import load_policy_bundle
 from .persistence import ReceiptLedger
 from .provenance import governance_envelope, subject_digest
+from .presentation import PUBLIC_ASSET_PATHS, router as presentation_router
 from .quant_core import release_score_breakdown
 from .risk_control import conformal_risk_threshold
 from .runtime import MasterSuiteProcessLease, governed_worker_count
@@ -88,7 +89,7 @@ AUTH_EXEMPT_PATHS = frozenset(
         "/metrics",
         "/readyz",
     }
-)
+).union(PUBLIC_ASSET_PATHS)
 TRUE_VALUES = frozenset({"1", "true", "yes"})
 logger = configure_logging()
 configure_tracing()
@@ -155,6 +156,7 @@ app = FastAPI(
 )
 app.include_router(calibration_router)
 app.include_router(master_suite_router)
+app.include_router(presentation_router)
 instrument_fastapi(app)
 app.state.source_revision_path = None
 app.state.source_revision_sha = None

@@ -1,508 +1,93 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-surface="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GDW-X Master Suite</title>
-  <style>
-    :root {
-      --ink: #10243f;
-      --muted: #607086;
-      --paper: #f6f2e8;
-      --panel: rgba(255, 255, 255, 0.76);
-      --line: rgba(16, 36, 63, 0.13);
-      --signal: #006f68;
-      --signal-soft: #c9ebe2;
-      --watch: #d17716;
-      --danger: #bb3e31;
-      --blue: #3067bd;
-      --shadow: 0 20px 60px rgba(24, 45, 72, 0.12);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 8% 4%, rgba(0, 111, 104, 0.15), transparent 26rem),
-        radial-gradient(circle at 86% 10%, rgba(209, 119, 22, 0.13), transparent 24rem),
-        linear-gradient(145deg, #f9f6ee 0%, #eef2ed 56%, #f7f0e3 100%);
-      font-family: "Aptos", "Segoe UI Variable", sans-serif;
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(16, 36, 63, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(16, 36, 63, 0.035) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, black, transparent 85%);
-    }
-
-    .shell {
-      width: min(1480px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 28px 0 60px;
-      position: relative;
-    }
-
-    header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: end;
-      gap: 24px;
-      padding: 22px 0 30px;
-      animation: rise 550ms ease both;
-    }
-
-    .eyebrow {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--signal);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    .pulse {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--watch);
-      box-shadow: 0 0 0 6px rgba(209, 119, 22, 0.13);
-    }
-
-    h1 {
-      margin: 10px 0 0;
-      font-family: "Bahnschrift", "Aptos Display", sans-serif;
-      font-size: clamp(40px, 7vw, 92px);
-      font-weight: 650;
-      line-height: 0.91;
-      letter-spacing: -0.055em;
-      max-width: 980px;
-    }
-
-    .header-meta {
-      text-align: right;
-      font-family: "Cascadia Mono", monospace;
-      font-size: 12px;
-      line-height: 1.8;
-      color: var(--muted);
-    }
-
-    .truth-rail {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      background: var(--ink);
-      color: white;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      animation: rise 620ms 80ms ease both;
-    }
-
-    .truth-cell {
-      padding: 17px 20px;
-      border-right: 1px solid rgba(255, 255, 255, 0.13);
-    }
-
-    .truth-cell:last-child { border-right: 0; }
-    .truth-cell span { display: block; color: #aebdd0; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
-    .truth-cell strong { display: block; margin-top: 6px; font-family: "Cascadia Mono", monospace; font-size: 13px; }
-    .truth-cell strong.watch { color: #ffbe70; }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(330px, .65fr);
-      gap: 18px;
-      margin-top: 18px;
-    }
-
-    .stack { display: grid; gap: 18px; }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.88);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(15px);
-      padding: 23px;
-      animation: rise 650ms ease both;
-    }
-
-    .panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin: 0;
-      font-family: "Bahnschrift", sans-serif;
-      font-size: 17px;
-      letter-spacing: -0.02em;
-    }
-
-    .tag {
-      padding: 6px 9px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      font: 700 10px "Cascadia Mono", monospace;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-
-    .tag.watch { color: var(--watch); border-color: rgba(209, 119, 22, .35); background: rgba(209, 119, 22, .08); }
-    .tag.unsafe, .tag.degraded { color: var(--danger); border-color: rgba(187, 62, 49, .3); background: rgba(187, 62, 49, .08); }
-    .tag.modeled { color: var(--blue); background: rgba(48, 103, 189, .08); }
-
-    .score-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .score {
-      min-height: 132px;
-      padding: 17px;
-      border: 1px solid var(--line);
-      border-radius: 17px;
-      background: rgba(255, 255, 255, .58);
-    }
-
-    .score label {
-      display: block;
-      min-height: 33px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.35;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-
-    .score strong {
-      display: block;
-      margin: 15px 0 4px;
-      font: 650 31px "Bahnschrift", sans-serif;
-      letter-spacing: -.04em;
-    }
-
-    .score small { color: var(--muted); font: 11px "Cascadia Mono", monospace; }
-
-    .chain {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 7px;
-      align-items: stretch;
-    }
-
-    .node {
-      padding: 15px 9px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.65);
-      text-align: center;
-      position: relative;
-    }
-
-    .node:not(:last-child)::after {
-      content: ">";
-      position: absolute;
-      right: -7px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      z-index: 2;
-      font-family: monospace;
-    }
-
-    .node b { display: block; font: 650 22px "Bahnschrift", sans-serif; }
-    .node span { display: block; margin-top: 7px; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
-
-    .drift-list { display: grid; gap: 13px; }
-    .drift-row { display: grid; grid-template-columns: 145px 1fr 48px; align-items: center; gap: 12px; }
-    .drift-row label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
-    .bar { height: 9px; background: #e1e5e1; border-radius: 999px; overflow: hidden; }
-    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--signal), var(--watch), var(--danger)); border-radius: inherit; transition: width 700ms cubic-bezier(.2,.8,.2,1); }
-    .drift-row output { font: 11px "Cascadia Mono", monospace; text-align: right; }
-
-    .control-list { display: grid; gap: 8px; }
-    .control {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--line);
-    }
-    .control:last-child { border-bottom: 0; }
-    .control strong { font-size: 12px; }
-    .control span { color: var(--muted); font: 10px "Cascadia Mono", monospace; }
-
-    .alerts { display: grid; gap: 10px; }
-    .alert {
-      border-left: 4px solid var(--watch);
-      background: rgba(209, 119, 22, .07);
-      border-radius: 5px 13px 13px 5px;
-      padding: 13px 14px;
-    }
-    .alert.unsafe, .alert.degraded { border-left-color: var(--danger); background: rgba(187, 62, 49, .07); }
-    .alert b { display: block; font-size: 12px; text-transform: uppercase; }
-    .alert p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
-    .empty { padding: 20px; color: var(--muted); text-align: center; font-size: 12px; border: 1px dashed var(--line); border-radius: 14px; }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      margin-top: 18px;
-      color: var(--muted);
-      font: 10px/1.6 "Cascadia Mono", monospace;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
-      .score-grid { grid-template-columns: repeat(2, 1fr); }
-      .truth-rail { grid-template-columns: repeat(2, 1fr); }
-      .truth-cell:nth-child(2) { border-right: 0; }
-      .truth-cell:nth-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.13); }
-      .chain { grid-template-columns: repeat(3, 1fr); }
-      .node:nth-child(3)::after { display: none; }
-    }
-
-    @media (max-width: 620px) {
-      .shell { width: min(100% - 24px, 1480px); padding-top: 10px; }
-      header { grid-template-columns: 1fr; align-items: start; }
-      .header-meta { text-align: left; }
-      h1 { font-size: 48px; }
-      .truth-rail { grid-template-columns: 1fr; }
-      .truth-cell { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.13); }
-      .score-grid { grid-template-columns: 1fr; }
-      .chain { grid-template-columns: repeat(2, 1fr); }
-      .node:nth-child(2n)::after { display: none; }
-      .drift-row { grid-template-columns: 105px 1fr 40px; }
-      .panel { padding: 18px; border-radius: 19px; }
-      .footer { display: block; }
-    }
-  </style>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Follow modeled proposals through simulation, governance, runtime acknowledgement, and outcome memory. One read-only observatory keeps the control boundaries visible alongside the reported state.">
+  <title>GDW-X Master Suite · SZL Holdings</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/gdw/szl-icon-16.svg">
+  <link rel="stylesheet" href="/assets/gdw/szl-tokens.css">
+  <link rel="stylesheet" href="/assets/gdw/gdw-native.css">
+  <script src="/assets/gdw/gdw-native.js" defer></script>
 </head>
-<body>
-  <main class="shell">
-    <header>
-      <div>
-        <div class="eyebrow"><i class="pulse"></i> Governed runtime observatory</div>
-        <h1>Control the edge.<br>Remember the evidence.</h1>
+<body data-console="master-suite">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/master-suite" aria-label="GDW-X Master Suite"><img src="/assets/gdw/szl-icon-32.svg" width="40" height="40" alt=""><span><strong>GDW-X</strong><small>SZL Holdings</small></span></a>
+    <nav class="site-nav" aria-label="GDW workspaces"><a href="/master-suite" aria-current="page">Master Suite</a><a href="/calibration">Calibration</a><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">Dark theme</button></nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="title"><div><p class="eyebrow">GDW-X Master Suite</p><h1 id="title">See the signal.<br><em>Keep the boundary.</em></h1><p class="hero-copy">Follow modeled proposals through simulation, governance, runtime acknowledgement, and outcome memory. One read-only observatory keeps the control boundaries visible alongside the reported state.</p></div><figure class="study">
+      <svg viewBox="0 0 320 210" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="signal-foil" x1="0" y1="0" x2="1" y2="1"><stop stop-color="currentColor"/><stop offset=".48" stop-color="currentColor" stop-opacity=".2"/><stop offset="1" stop-color="currentColor"/></linearGradient></defs>
+        <g fill="none" stroke="currentColor" stroke-opacity=".13"><path d="M24 38H296M24 82H296M24 126H296M24 170H296M52 20V194M106 20V194M160 20V194M214 20V194M268 20V194"/></g>
+        <g fill="none" stroke="url(#signal-foil)" stroke-width="1.4"><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(-27 160 105)"/><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(27 160 105)"/><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(90 160 105)"/><path d="M36 105H284M160 19V191" stroke-dasharray="2 6"/></g>
+        <circle cx="160" cy="105" r="5" fill="currentColor"/>
+      </svg>
+      <figcaption><span>CONTROL / CONTEXT / MEMORY</span><span>Illustrative study</span></figcaption>
+    </figure></section>
+    <dl class="bounds" aria-label="Source-defined authority boundaries">
+      <div class="bound"><dt>Suite truth status</dt><dd class="warning">MODELED</dd></div>
+      <div class="bound"><dt>Regulatory assessment</dt><dd>NOT_ASSESSED</dd></div>
+      <div class="bound"><dt>Broker / live authority</dt><dd>UNAVAILABLE</dd></div>
+      <div class="bound"><dt>Reported journal integrity</dt><dd id="integrity">UNAVAILABLE</dd></div>
+    </dl>
+    <noscript><p class="no-js">This read-only shell remains available without JavaScript. Enable JavaScript to request status and change the theme. No operator state has been loaded.</p></noscript>
+    <section class="observed" aria-labelledby="observed-title">
+      <div class="section-heading"><div><span class="section-index">01 / Observe</span><h2 id="observed-title">Read the current context.</h2></div><p class="section-note">Status is requested from this deployment. Page appearance does not confer authorization or readiness.</p></div>
+      <div class="read-controls">
+        <div class="read-state"><strong id="connection" role="status">Not loaded</strong><p id="updated">Select Read state. No automatic request or credential prompt runs on entry.</p></div>
+        <button class="primary" id="refresh" type="button">Read state</button>
+        <div class="session-controls"><button id="connect" type="button">Connect session</button><button id="disconnect" type="button" hidden>Clear session</button></div>
+        <label><input id="auto-refresh" type="checkbox">Auto-refresh every 15s</label>
       </div>
-      <div class="header-meta">
-        GDW-X / MASTER SUITE<br>
-        DASC + CONTROL ISOLATION<br>
-        <span id="updated">AWAITING STATE</span>
-      </div>
-    </header>
-
-    <section class="truth-rail">
-      <div class="truth-cell"><span>Truth status</span><strong class="watch" id="truth">MODELED</strong></div>
-      <div class="truth-cell"><span>Regulatory claim</span><strong id="regulatory">NOT_ASSESSED</strong></div>
-      <div class="truth-cell"><span>Execution authority</span><strong id="authority">UNAVAILABLE</strong></div>
-      <div class="truth-cell"><span>Journal integrity</span><strong id="integrity">EMPTY</strong></div>
+      <div class="state-note" id="state-note"><strong>Read-only view.</strong> The page requests status only; it does not create proposals, issue manifests, change risk controls, or submit orders.</div>
+      <div class="layout"><div class="stack">
+          <article class="panel"><div class="panel-head"><h3>Modeled control scorecard</h3><span class="pill" id="overall">UNAVAILABLE</span></div>
+            <dl class="metrics"><div class="metric"><dt>Valid, unexpired manifests</dt><dd data-field="signed" data-missing="true">UNAVAILABLE</dd><small>Server-reported percentage of manifests</small></div><div class="metric"><dt>Proposals simulated</dt><dd data-field="simulated" data-missing="true">UNAVAILABLE</dd><small>Server-reported percentage of proposals</small></div><div class="metric"><dt>Risk-gate rejection</dt><dd data-field="rejection" data-missing="true">UNAVAILABLE</dd><small>Reported rejection fraction × 100</small></div><div class="metric"><dt>Calibration abstention</dt><dd data-field="abstention" data-missing="true">UNAVAILABLE</dd><small>Reported abstention fraction × 100</small></div></dl>
+            <p class="small muted">The service reports zero for an empty denominator. A returned zero is distinct from missing or unavailable data. These values do not establish production performance.</p>
+          </article>
+          <article class="panel"><div class="panel-head"><h3>Mutation evidence chain</h3><span class="pill">REPORTED COUNTS</span></div><ol class="chain" id="chain"><li><strong data-missing="true">UNAVAILABLE</strong><span>Mutations</span></li><li><strong data-missing="true">UNAVAILABLE</strong><span>Simulations</span></li><li><strong data-missing="true">UNAVAILABLE</strong><span>Decisions</span></li><li><strong data-missing="true">UNAVAILABLE</strong><span>Manifests</span></li><li><strong data-missing="true">UNAVAILABLE</strong><span>Runtime acks</span></li><li><strong data-missing="true">UNAVAILABLE</strong><span>Outcomes</span></li></ol></article>
+          <article class="panel"><div class="panel-head"><h3>Localized drift dimensions</h3><span class="pill" id="drift-status">UNAVAILABLE</span></div><div class="drift-list" id="drift"><div class="empty">Localization state has not been loaded.</div></div><p class="small muted">Severity describes the supplied modeled window. DASC-style localization does not provide a formal coverage guarantee.</p></article>
+        </div><aside class="stack">
+          <article class="panel"><div class="panel-head"><h3>Control isolation</h3><span class="pill">REPORTED STATE</span></div><dl class="facts" id="controls"><div class="fact"><dt>Strategy writes risk controls</dt><dd data-field="strategy">UNAVAILABLE</dd></div><div class="fact"><dt>Risk-control owner</dt><dd data-field="owner">UNAVAILABLE</dd></div><div class="fact"><dt>Manifest signing source</dt><dd data-field="signing">UNAVAILABLE</dd></div><div class="fact"><dt>Paper / shadow apply</dt><dd data-field="apply">UNAVAILABLE</dd></div><div class="fact"><dt>Broker enforcement</dt><dd data-field="broker">UNAVAILABLE</dd></div><div class="fact"><dt>Kill switch</dt><dd data-field="kill">UNAVAILABLE</dd></div></dl></article>
+          <article class="panel"><div class="panel-head"><h3>Runtime alerts</h3><span class="pill" id="alert-count">UNAVAILABLE</span></div><div class="alert-list" id="alerts"><div class="empty">Alert state has not been loaded.</div></div></article>
+        </aside></div>
     </section>
-
-    <section class="layout">
-      <div class="stack">
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Estate scorecard</h2>
-            <span class="tag modeled" id="overall">MODELED</span>
-          </div>
-          <div class="score-grid">
-            <div class="score"><label>Signed runtime transitions</label><strong id="signed">0%</strong><small>valid + non-expired</small></div>
-            <div class="score"><label>Proposals simulated</label><strong id="simulated">0%</strong><small>modeled replay</small></div>
-            <div class="score"><label>Risk-gate rejection</label><strong id="rejection">0%</strong><small>fail-closed rate</small></div>
-            <div class="score"><label>Calibration abstention</label><strong id="abstention">0%</strong><small>insufficient / unsafe</small></div>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Mutation evidence chain</h2>
-            <span class="tag modeled">append-only</span>
-          </div>
-          <div class="chain" id="chain"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Localized drift surface</h2>
-            <span class="tag watch" id="drift-status">NO WINDOW</span>
-          </div>
-          <div class="drift-list" id="drift"></div>
-        </article>
+    <section class="reading" aria-labelledby="reading-title"><span class="section-index">02 / Interpret</span><div class="section-heading"><h2 id="reading-title">Know what the evidence can say.</h2></div><div class="reading-grid"><article><h3>Strategy proposes.</h3><p>Mutation evidence enters modeled localization and replay. Strategy identities have no control path for changing protected risk parameters.</p></article>
+        <article><h3>Governance decides.</h3><p>Local, expiring HMAC manifests qualify paper or shadow transitions. Invalid signatures, expiry, or parent mismatch fail closed within the modeled service.</p></article>
+        <article><h3>Authority stays bounded.</h3><p>Even a passing modeled risk gate does not submit to a broker. Regulatory assessment, market access, canary and live authority remain outside this suite.</p></article></div></section>
+    <details class="source-details" id="source-details">
+      <summary>Source declaration &amp; presentation attribution</summary>
+      <div class="source-body">
+        <p class="small muted">Build details are requested only when this section opens. They are a runtime declaration, separate from signed receipts, source acceptance, publication, or production readiness.</p>
+        <p class="small" id="source-status" role="status">Not loaded.</p>
+        <dl class="source-grid">
+          <div><dt>Declared source revision</dt><dd id="source-revision">UNAVAILABLE</dd></div>
+          <div><dt>Declared image digest</dt><dd id="source-image">UNAVAILABLE</dd></div>
+          <div><dt>Declared deployment mode</dt><dd id="source-mode">UNAVAILABLE</dd></div>
+          <div><dt>Declared receipt signing</dt><dd id="source-signing">UNAVAILABLE</dd></div>
+        </dl>
+        <button class="source-retry" type="button" id="source-retry">Read build details</button>
+        <div class="source-links small">
+          <a id="source-link" hidden rel="noreferrer" target="_blank">Open declared source commit</a>
+          <a href="/assets/gdw/PROJECTION.json">Presentation source record</a>
+        </div>
+        <p class="small muted">Native Orbit artwork © 2026 SZL Holdings / Stephen Lutar, CC BY 4.0. KANCHAY code: Apache-2.0. The local presentation record is unsigned observation metadata.</p>
       </div>
-
-      <aside class="stack">
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Control isolation</h2>
-            <span class="tag watch">paper / shadow</span>
-          </div>
-          <div class="control-list" id="controls"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Runtime alerts</h2>
-            <span class="tag watch" id="alert-count">0 active</span>
-          </div>
-          <div class="alerts" id="alerts"></div>
-        </article>
-      </aside>
-    </section>
-
-    <div class="footer">
-      <span>DASC-STYLE LOCALIZATION IS MODELED. NO FORMAL COVERAGE GUARANTEE.</span>
-      <span>NO BROKER CONNECTOR / NO CANARY OR LIVE AUTHORITY / NO COMPLIANCE CLAIM</span>
-    </div>
+    </details>
   </main>
-
-  <script>
-    const percent = value => `${(Number(value || 0) * (value > 1 ? 1 : 100)).toFixed(1)}%`;
-    const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-    })[char]);
-
-    function renderChain(counts = {}) {
-      const labels = [
-        ["mutations", "Mutations"], ["simulations", "Simulations"],
-        ["decisions", "Decisions"], ["manifests", "Manifests"],
-        ["acks", "Runtime acks"], ["outcomes", "Outcomes"]
-      ];
-      document.querySelector("#chain").innerHTML = labels.map(([key, label]) =>
-        `<div class="node"><b>${Number(counts[key] || 0)}</b><span>${label}</span></div>`
-      ).join("");
-    }
-
-    function renderDrift(latest) {
-      const container = document.querySelector("#drift");
-      const dimensions = latest?.dimensions || {};
-      const entries = Object.entries(dimensions);
-      if (!entries.length) {
-        container.innerHTML = '<div class="empty">No conformal reference window has been evaluated.</div>';
-        return;
-      }
-      container.innerHTML = entries.slice(0, 12).map(([name, item]) => {
-        const severity = Math.max(0, Math.min(1, Number(item.severity || 0)));
-        return `<div class="drift-row">
-          <label>${esc(name)}</label>
-          <div class="bar"><i style="width:${severity * 100}%"></i></div>
-          <output>${severity.toFixed(2)}</output>
-        </div>`;
-      }).join("");
-    }
-
-    function renderControls(state) {
-      const sections = state.sections || {};
-      const items = [
-        ["Strategy writes risk controls", sections.control_isolation?.strategy_write_path ? "AVAILABLE" : "BLOCKED"],
-        ["Risk control owner", sections.control_isolation?.risk_control_owner || "UNAVAILABLE"],
-        ["Signed manifest source", sections.receipt_validity?.signing_key_source || "UNAVAILABLE"],
-        ["Paper / shadow apply", sections.runtime_apply_ack?.paper_shadow_only ? "MODELED" : "UNAVAILABLE"],
-        ["Broker enforcement", sections.kill_switch_readiness?.broker_enforcement || "UNAVAILABLE"],
-        ["Kill switch", sections.kill_switch_readiness?.engaged ? "ENGAGED" : "MODELED / IDLE"]
-      ];
-      document.querySelector("#controls").innerHTML = items.map(([name, value]) =>
-        `<div class="control"><strong>${esc(name)}</strong><span>${esc(value)}</span></div>`
-      ).join("");
-    }
-
-    function renderAlerts(items = []) {
-      document.querySelector("#alert-count").textContent = `${items.length} active`;
-      document.querySelector("#alerts").innerHTML = items.length
-        ? items.slice(0, 8).map(item => `<div class="alert ${esc(item.severity)}">
-            <b>${esc(item.family)}</b>
-            <p>${esc(item.recommended_next_step)} / ${esc(item.truth_status)}</p>
-          </div>`).join("")
-        : '<div class="empty">No runtime alerts recorded.</div>';
-    }
-
-    let bearerToken = "";
-    let tokenPrompt = null;
-
-    async function requestBearerToken() {
-      if (!tokenPrompt) {
-        tokenPrompt = Promise.resolve()
-          .then(() => window.prompt("Enter the GDW bearer token for this page session."))
-          .then(value => (value || "").trim())
-          .finally(() => { tokenPrompt = null; });
-      }
-      return tokenPrompt;
-    }
-
-    async function apiFetch(path) {
-      const request = () => fetch(path, {
-        cache: "no-store",
-        headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}
-      });
-      let response = await request();
-      if (response.status !== 401) return response;
-      const supplied = await requestBearerToken();
-      if (!supplied) return response;
-      bearerToken = supplied;
-      return request();
-    }
-
-    async function refresh() {
-      try {
-        const [stateResponse, alertResponse] = await Promise.all([
-          apiFetch("/v1/dashboard/state"),
-          apiFetch("/v1/dashboard/alerts")
-        ]);
-        if (!stateResponse.ok || !alertResponse.ok) throw new Error("state unavailable");
-        const state = await stateResponse.json();
-        const alertState = await alertResponse.json();
-        document.querySelector("#truth").textContent = state.truth_status;
-        document.querySelector("#regulatory").textContent = state.regulatory_claim;
-        document.querySelector("#authority").textContent = state.execution_authority;
-        document.querySelector("#integrity").textContent = state.journal?.integrity_status || state.journal?.status;
-        document.querySelector("#overall").textContent = state.overall_status;
-        document.querySelector("#overall").className = `tag ${state.overall_status}`;
-        document.querySelector("#updated").textContent = new Date(state.generated_at).toLocaleString();
-        document.querySelector("#signed").textContent = `${Number(state.metrics.runtime_transitions_with_valid_signed_manifest_pct || 0).toFixed(1)}%`;
-        document.querySelector("#simulated").textContent = `${Number(state.metrics.proposals_with_simulation_pct || 0).toFixed(1)}%`;
-        document.querySelector("#rejection").textContent = percent(state.metrics.risk_gate_rejection_rate);
-        document.querySelector("#abstention").textContent = percent(state.metrics.abstention_rate);
-        const driftStatus = state.sections?.drift_localization?.status || "watch";
-        document.querySelector("#drift-status").textContent = driftStatus;
-        document.querySelector("#drift-status").className = `tag ${driftStatus}`;
-        renderChain(state.chain_counts);
-        renderDrift(state.sections?.drift_localization?.latest);
-        renderControls(state);
-        renderAlerts(alertState.alerts);
-      } catch (error) {
-        document.querySelector("#updated").textContent = "STATE UNAVAILABLE";
-        document.querySelector("#integrity").textContent = "UNAVAILABLE";
-        renderChain({});
-        renderDrift(null);
-        renderControls({ sections: {} });
-        renderAlerts([]);
-      }
-    }
-
-    refresh();
-    setInterval(refresh, 15000);
-  </script>
+  <footer class="site-footer"><p>GDW-X is a MODELED control-plane architecture. No production-safety, trading-edge, formal-coverage, or compliance claim is made by this presentation.</p><nav aria-label="SZL ecosystem"><a href="https://a-11-oy.com/" rel="noreferrer">Product</a><a href="https://a11oy.net/" rel="noreferrer">Proof</a><a href="https://github.com/szl-holdings/gdw-frontier" rel="noreferrer">Source</a></nav></footer>
+  <dialog id="session-dialog" aria-labelledby="session-title" aria-describedby="session-description">
+    <form id="session-form">
+      <h2 id="session-title">Connect this page</h2>
+      <p id="session-description">Use the bearer token for this GDW deployment. It stays in this page's memory and is sent only to this origin's fixed status endpoints. Clear the session or reload to remove it.</p>
+      <label for="session-token">GDW bearer token</label>
+      <input id="session-token" name="gdw-token" type="password" autocomplete="off" spellcheck="false" minlength="32" maxlength="4096" required>
+      <p class="small form-error" id="session-error" role="status"></p>
+      <div class="dialog-actions"><button type="button" id="session-cancel">Cancel</button><button class="primary" type="submit">Connect and read state</button></div>
+    </form>
+  </dialog>
 </body>
 </html>

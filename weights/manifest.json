@@ -21,6 +21,11 @@
       "sha256": "7ebae9edca4ad653e81f66c06022d38884bad476194aefbfb24e72f6c188cbc0"
     },
     {
+      "bytes": 2374,
+      "path": ".github/workflows/native-frontend.yml",
+      "sha256": "de0594c6585176bb216d885f16b5151d69427c17cf5b7b6fec2d6109036c51ec"
+    },
+    {
       "bytes": 1091,
       "path": "Dockerfile",
       "sha256": "de0a4fbc4d026b31c3cd4407f6c1c1584eea0db9edc2b2abbb27e09758021d67"
@@ -46,9 +51,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 26332,
+      "bytes": 26474,
       "path": "app/api.py",
-      "sha256": "ff4a781571e39a33326c95bbe905b4b0af9f4570c6be898cab61b2b7b0cea059"
+      "sha256": "89970f7af383f3c126bef92e640bb2e350014e70810cddf72ff27e7c6db5a5b1"
     },
     {
       "bytes": 5066,
@@ -116,6 +121,11 @@
       "sha256": "c5056ba3c364298c484f1728786733c3e9b1b88338de8bba2d695bceb8042eeb"
     },
     {
+      "bytes": 3178,
+      "path": "app/presentation.py",
+      "sha256": "bf79c52af4abff5b7330c1744f1299d24c42b32acc7eb602fadd0d3668df7572"
+    },
+    {
       "bytes": 1021,
       "path": "app/provenance.py",
       "sha256": "67c952350bf77855b2a7cf00f11142d31a32e108c0adac75864d3de958689db2"
@@ -146,14 +156,49 @@
       "sha256": "1e825acceb81439f3266a989ac3371ec2d5c18939b82fc147c05c8919b3773a0"
     },
     {
-      "bytes": 9178,
+      "bytes": 10206,
       "path": "app/static/calibration-console.html",
-      "sha256": "d0838a21f300c54f0ee263ed0c31c3f8c43c6886a03644f359f7487bb4d260a9"
+      "sha256": "f82ccb2ef9266738a27672577b19743f8a3116b210a57eff3c7970cfe6adfaad"
     },
     {
-      "bytes": 18348,
+      "bytes": 11542,
       "path": "app/static/master-suite.html",
-      "sha256": "ad5eb6cc6bdad071484546892df21b88f7d33f8ff410b00a53c13accea3fbf2b"
+      "sha256": "fe036a5165c108a2c039e586fb2613de162c6aa208bad73c9bb2e72b4e7e863f"
+    },
+    {
+      "bytes": 1858,
+      "path": "app/static/native/PROJECTION.json",
+      "sha256": "71a0563135cd5514d517f4ca601f67daa3988e895e3df02012828ebff948b490"
+    },
+    {
+      "bytes": 1695,
+      "path": "app/static/native/SOURCE.json",
+      "sha256": "967a77235227f1d75852fb61873e46336e67403cbc0e7e12b141e31c83fbd93d"
+    },
+    {
+      "bytes": 15934,
+      "path": "app/static/native/gdw-native.css",
+      "sha256": "174b40fbee33b86008a89461feb699667103205a3d9d8f76ade109394916f303"
+    },
+    {
+      "bytes": 19810,
+      "path": "app/static/native/gdw-native.js",
+      "sha256": "de42c65d5d70f91951d857f93409f4999dd368a7eb68bc608ca3ae441af3cddf"
+    },
+    {
+      "bytes": 1627,
+      "path": "app/static/native/szl-icon-16.svg",
+      "sha256": "6e2dc7c9794dc452fbccb44ffadbd168c2584361904e8bcaeba542427d9e1a3a"
+    },
+    {
+      "bytes": 2969,
+      "path": "app/static/native/szl-icon-32.svg",
+      "sha256": "6e2b7d72a3af3d9602b79de41df0194ede6496a9661f057108ec224c0efc92e6"
+    },
+    {
+      "bytes": 9559,
+      "path": "app/static/native/szl-tokens.css",
+      "sha256": "81f7c9baeef0b435e6e3f9d0c4e0d70e40fa17df5d1f30697f623cd3ef5f8eab"
     },
     {
       "bytes": 2176,
@@ -186,6 +231,11 @@
       "sha256": "a3813bf651e75d458298cf04caf27de3a0c8e5271ed34a63e055db20a652373c"
     },
     {
+      "bytes": 3684,
+      "path": "ci/check_native_assets.py",
+      "sha256": "156632fc33ea94d1b39982f4409dd998f18686146e9b15acabcf7b800c163f1d"
+    },
+    {
       "bytes": 4136,
       "path": "ci/gdw_gate.py",
       "sha256": "d1d1b8c5be6653967372a200e62081cd92ff10fbd47692000810e8ec9d0e1207"
@@ -206,6 +256,11 @@
       "sha256": "7e1ccb4965def134531a4e3a1f4356050a6d96c5e00d12e80a8df36d22206c06"
     },
     {
+      "bytes": 26292,
+      "path": "ci/qualify_native_frontend.mjs",
+      "sha256": "11631b5ebae48f7a16037cb480e4793015502bf85a9a4dcd5a7708d350b6e340"
+    },
+    {
       "bytes": 2163,
       "path": "ci/receipt_proof.py",
       "sha256": "22bef707d60d531ae7927f4deb8b58a88cfd0ea011ce5568e7a5ae4c80f01cce"
@@ -216,9 +271,9 @@
       "sha256": "fe91a0dfcae1b6f7e513fdb7a4f8c10349d525ded927eb3e2d3ad4a0a9e6f7bf"
     },
     {
-      "bytes": 4477,
+      "bytes": 4520,
       "path": "ci/update_weight_manifest.py",
-      "sha256": "3fd28ac4bbcb1130985dd7613cc962afac586d7b854b9d31b49499dfa9db47d3"
+      "sha256": "5d814adadfa4fe369c5061af0a3dcb71cb0ba45052f7a5fe840707f9bb2e4c7a"
     },
     {
       "bytes": 1985,
@@ -284,6 +339,11 @@
       "bytes": 5794,
       "path": "docs/MASTER_SUITE_DASC_15C3_5.md",
       "sha256": "39051e3e4c94a56223cafe2c1a2fefb87946a1b4f9289436e194202000dc2798"
+    },
+    {
+      "bytes": 6750,
+      "path": "docs/NATIVE_FRONTEND.md",
+      "sha256": "2e1224ce42cbe6d605d017af41f24cd6545ccfc002971299a4f776fbc899eb95"
     },
     {
       "bytes": 2339,
@@ -589,6 +649,11 @@
       "bytes": 16502,
       "path": "tests/test_master_suite_operational.py",
       "sha256": "bd8bd1e6050664cb293300866a186e5b7b0f767c38740e246062024c66417682"
+    },
+    {
+      "bytes": 5273,
+      "path": "tests/test_native_presentation.py",
+      "sha256": "01d06aeb523ac11858f2f68434143b9de5ab14747d491432335700e1080b625e"
     },
     {
       "bytes": 7393,
