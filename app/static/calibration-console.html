@@ -1,185 +1,94 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-surface="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SZL Calibration Intelligence Plane</title>
-  <style>
-    :root {
-      --ink: #17211c;
-      --muted: #667068;
-      --paper: #f2f0e8;
-      --panel: #fbfaf5;
-      --line: #c9cdc4;
-      --accent: #e75d3c;
-      --safe: #1e7555;
-      --warn: #a26a16;
-      --shadow: 0 14px 36px rgba(23, 33, 28, .08);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        linear-gradient(90deg, rgba(23,33,28,.035) 1px, transparent 1px) 0 0 / 32px 32px,
-        linear-gradient(rgba(23,33,28,.035) 1px, transparent 1px) 0 0 / 32px 32px,
-        var(--paper);
-      font-family: "Aptos Narrow", "Bahnschrift", sans-serif;
-    }
-    header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 24px;
-      padding: 28px 34px 22px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(242, 240, 232, .92);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 3;
-    }
-    h1 {
-      margin: 0;
-      font-family: "Rockwell Condensed", "Roboto Slab", serif;
-      font-size: clamp(28px, 4vw, 52px);
-      letter-spacing: -.035em;
-      line-height: .95;
-    }
-    .eyebrow { color: var(--accent); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-    .status { display: flex; align-items: center; gap: 10px; font-weight: 700; }
-    .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 6px rgba(30,117,85,.13); }
-    main { padding: 24px 34px 48px; }
-    .ribbon {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(130px, 1fr));
-      gap: 1px;
-      border: 1px solid var(--line);
-      background: var(--line);
-      box-shadow: var(--shadow);
-    }
-    .ribbon section, .card { background: var(--panel); }
-    .ribbon section { padding: 14px 16px; min-height: 78px; }
-    label { display: block; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-    strong { display: block; margin-top: 8px; font-size: 18px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
-      margin-top: 16px;
-    }
-    .card {
-      grid-column: span 3;
-      min-height: 142px;
-      padding: 17px;
-      border: 1px solid var(--line);
-      box-shadow: 0 8px 18px rgba(23,33,28,.04);
-      animation: rise .45s ease both;
-    }
-    .card.wide { grid-column: span 6; }
-    .card h2 { margin: 6px 0 12px; font-size: 21px; }
-    .metric { font-family: "Cascadia Mono", monospace; font-size: 30px; font-weight: 700; }
-    .sub { color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .bar { height: 7px; background: #e3e5de; margin-top: 17px; overflow: hidden; }
-    .bar span { display: block; height: 100%; width: var(--value, 0%); background: var(--accent); }
-    .modes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-    .chip { border: 1px solid var(--line); padding: 5px 8px; font: 700 11px "Cascadia Mono", monospace; text-transform: uppercase; }
-    .chip.off { color: var(--muted); text-decoration: line-through; }
-    .alert { color: var(--warn); }
-    footer { padding: 0 34px 30px; color: var(--muted); font-size: 12px; }
-    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
-    @media (max-width: 900px) {
-      header { position: static; grid-template-columns: 1fr; }
-      .ribbon { grid-template-columns: 1fr 1fr; }
-      .card, .card.wide { grid-column: span 6; }
-    }
-    @media (max-width: 580px) {
-      header, main, footer { padding-left: 18px; padding-right: 18px; }
-      .ribbon { grid-template-columns: 1fr; }
-      .card, .card.wide { grid-column: span 12; }
-    }
-  </style>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Read the proposal queue, local runtime state, and signing context before considering a calibration change. This modeled control plane supports paper and shadow transitions; it has no broker or live execution authority.">
+  <title>Calibration Intelligence Plane · SZL Holdings</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/gdw/szl-icon-16.svg">
+  <link rel="stylesheet" href="/assets/gdw/szl-tokens.css">
+  <link rel="stylesheet" href="/assets/gdw/gdw-native.css">
+  <script src="/assets/gdw/gdw-native.js" defer></script>
 </head>
-<body>
-  <header>
-    <div>
-      <div class="eyebrow">Governed control surface / MODELED</div>
-      <h1>Calibration Intelligence Plane</h1>
-    </div>
-    <div class="status"><span class="pulse"></span><span id="connection">Connecting</span></div>
+<body data-console="calibration">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/master-suite" aria-label="GDW-X Master Suite"><img src="/assets/gdw/szl-icon-32.svg" width="40" height="40" alt=""><span><strong>GDW-X</strong><small>SZL Holdings</small></span></a>
+    <nav class="site-nav" aria-label="GDW workspaces"><a href="/master-suite">Master Suite</a><a href="/calibration" aria-current="page">Calibration</a><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">Dark theme</button></nav>
   </header>
-  <main>
-    <div class="ribbon">
-      <section><label>Active mode</label><strong id="mode">-</strong></section>
-      <section><label>Runtime hash</label><strong id="runtime">-</strong></section>
-      <section><label>Policy</label><strong id="policy">-</strong></section>
-      <section><label>Signing source</label><strong id="signing">-</strong></section>
-      <section><label>Alert state</label><strong id="alert">-</strong></section>
-    </div>
-    <div class="grid">
-      <section class="card wide"><label>Promotion authority</label><h2>Paper and shadow only</h2><div class="modes"><span class="chip">Offline</span><span class="chip">Paper</span><span class="chip">Shadow</span><span class="chip off">Canary</span><span class="chip off">Live</span></div><p class="sub">No broker connectivity or order authority is present in this service.</p></section>
-      <section class="card wide"><label>Proposal state</label><h2>Governed queue</h2><div class="metric" id="proposal-count">0</div><p class="sub" id="proposal-mix">No proposals observed.</p></section>
-      <section class="card"><label>Input drift</label><h2>Telemetry band</h2><div class="metric">MODELED</div><div class="bar" style="--value: 18%"><span></span></div></section>
-      <section class="card"><label>Calibration drift</label><h2>Coverage state</h2><div class="metric">UNKNOWN</div><div class="bar" style="--value: 0%"><span></span></div></section>
-      <section class="card"><label>Execution drift</label><h2>Market boundary</h2><div class="metric">N/A</div><p class="sub">No execution adapter is implemented.</p></section>
-      <section class="card"><label>Regime novelty</label><h2>Episode support</h2><div class="metric" id="scenarios">0</div><p class="sub">Deterministic replay scenarios available.</p></section>
-      <section class="card wide"><label>Control doctrine</label><h2>Evolution proposes. The kernel disposes.</h2><p class="sub">Calibration can diagnose, retrieve, simulate, and propose. It cannot change protected risk parameters, issue orders, or promote itself into canary or live authority.</p></section>
-      <section class="card wide"><label>Truth boundary</label><h2>Evidence before color</h2><p class="sub" id="truth">Loading current boundary.</p></section>
-    </div>
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="title"><div><p class="eyebrow">Calibration Intelligence Plane</p><h1 id="title">Context before change.<br><em>Evidence before authority.</em></h1><p class="hero-copy">Read the proposal queue, local runtime state, and signing context before considering a calibration change. This modeled control plane supports paper and shadow transitions; it has no broker or live execution authority.</p></div><figure class="study">
+      <svg viewBox="0 0 320 210" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="signal-foil" x1="0" y1="0" x2="1" y2="1"><stop stop-color="currentColor"/><stop offset=".48" stop-color="currentColor" stop-opacity=".2"/><stop offset="1" stop-color="currentColor"/></linearGradient></defs>
+        <g fill="none" stroke="currentColor" stroke-opacity=".13"><path d="M24 38H296M24 82H296M24 126H296M24 170H296M52 20V194M106 20V194M160 20V194M214 20V194M268 20V194"/></g>
+        <g fill="none" stroke="url(#signal-foil)" stroke-width="1.4"><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(-27 160 105)"/><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(27 160 105)"/><ellipse cx="160" cy="105" rx="108" ry="54" transform="rotate(90 160 105)"/><path d="M36 105H284M160 19V191" stroke-dasharray="2 6"/></g>
+        <circle cx="160" cy="105" r="5" fill="currentColor"/>
+      </svg>
+      <figcaption><span>CONTROL / CONTEXT / MEMORY</span><span>Illustrative study</span></figcaption>
+    </figure></section>
+    <dl class="bounds" aria-label="Source-defined authority boundaries">
+      <div class="bound"><dt>Suite truth status</dt><dd class="warning">MODELED</dd></div>
+      <div class="bound"><dt>Regulatory assessment</dt><dd>NOT_ASSESSED</dd></div>
+      <div class="bound"><dt>Broker / live authority</dt><dd>UNAVAILABLE</dd></div>
+      <div class="bound"><dt>Dashboard connection</dt><dd id="integrity">UNAVAILABLE</dd></div>
+    </dl>
+    <noscript><p class="no-js">This read-only shell remains available without JavaScript. Enable JavaScript to request status and change the theme. No operator state has been loaded.</p></noscript>
+    <section class="observed" aria-labelledby="observed-title">
+      <div class="section-heading"><div><span class="section-index">01 / Observe</span><h2 id="observed-title">Read the current context.</h2></div><p class="section-note">Status is requested from this deployment. Page appearance does not confer authorization or readiness.</p></div>
+      <div class="read-controls">
+        <div class="read-state"><strong id="connection" role="status">Not loaded</strong><p id="updated">Select Read state. No automatic request or credential prompt runs on entry.</p></div>
+        <button class="primary" id="refresh" type="button">Read state</button>
+        <div class="session-controls"><button id="connect" type="button">Connect session</button><button id="disconnect" type="button" hidden>Clear session</button></div>
+        <label><input id="auto-refresh" type="checkbox">Auto-refresh every 15s</label>
+      </div>
+      <div class="state-note" id="state-note"><strong>Read-only view.</strong> The page requests status only; it does not create proposals, issue manifests, change risk controls, or submit orders.</div>
+      <div class="layout"><div class="stack">
+          <article class="panel"><div class="panel-head"><h3>Current calibration context</h3><span class="pill">REPORTED STATE</span></div>
+            <dl class="facts"><div class="fact"><dt>Active mode</dt><dd data-field="mode">UNAVAILABLE</dd></div><div class="fact"><dt>Full runtime hash</dt><dd data-field="runtime">UNAVAILABLE</dd></div><div class="fact"><dt>Policy revision</dt><dd data-field="policy">UNAVAILABLE</dd></div><div class="fact"><dt>Signing-key source</dt><dd data-field="signing">UNAVAILABLE</dd></div></dl>
+          </article>
+          <article class="panel"><div class="panel-head"><h3>Proposals &amp; replay support</h3><span class="pill">LOCAL CONTROL PLANE</span></div>
+            <dl class="metrics"><div class="metric"><dt>Proposals in reported queue</dt><dd data-field="proposal-count" data-missing="true">UNAVAILABLE</dd><small>Sum of the supplied state counts</small></div><div class="metric"><dt>Replay scenarios</dt><dd data-field="scenarios" data-missing="true">UNAVAILABLE</dd><small>Deterministic scenarios available</small></div></dl>
+            <p class="small muted" id="proposal-mix">Queue state has not been loaded.</p>
+          </article>
+        </div><aside class="stack">
+          <article class="panel"><div class="panel-head"><h3>Runtime alerts</h3><span class="pill" id="alert-count">UNAVAILABLE</span></div><div class="alert-list" id="alerts"><div class="empty">Alert state has not been loaded.</div></div></article>
+          <article class="panel"><div class="panel-head"><h3>Reported truth boundary</h3><span class="pill">MODELED</span></div><p class="small muted" id="reported-boundary">Load status to read the service's supplied boundary.</p></article>
+        </aside></div>
+    </section>
+    <section class="reading" aria-labelledby="reading-title"><span class="section-index">02 / Interpret</span><div class="section-heading"><h2 id="reading-title">Know what the evidence can say.</h2></div><div class="reading-grid"><article><h3>Diagnosis can propose.</h3><p>Calibration may diagnose, retrieve related episodes, simulate, and propose. It cannot authorize its own deployment or change protected risk limits.</p></article>
+        <article><h3>Paper and shadow only.</h3><p>The implemented ladder goes from offline simulation to approval, authenticated manifest, and runtime acknowledgement. Canary and live authority remain unavailable.</p></article>
+        <article><h3>Missing evidence stays visible.</h3><p>This status response does not supply a measured drift series or coverage result. No decorative progress bar is presented as telemetry. HMAC authentication remains local modeling.</p></article></div></section>
+    <details class="source-details" id="source-details">
+      <summary>Source declaration &amp; presentation attribution</summary>
+      <div class="source-body">
+        <p class="small muted">Build details are requested only when this section opens. They are a runtime declaration, separate from signed receipts, source acceptance, publication, or production readiness.</p>
+        <p class="small" id="source-status" role="status">Not loaded.</p>
+        <dl class="source-grid">
+          <div><dt>Declared source revision</dt><dd id="source-revision">UNAVAILABLE</dd></div>
+          <div><dt>Declared image digest</dt><dd id="source-image">UNAVAILABLE</dd></div>
+          <div><dt>Declared deployment mode</dt><dd id="source-mode">UNAVAILABLE</dd></div>
+          <div><dt>Declared receipt signing</dt><dd id="source-signing">UNAVAILABLE</dd></div>
+        </dl>
+        <button class="source-retry" type="button" id="source-retry">Read build details</button>
+        <div class="source-links small">
+          <a id="source-link" hidden rel="noreferrer" target="_blank">Open declared source commit</a>
+          <a href="/assets/gdw/PROJECTION.json">Presentation source record</a>
+        </div>
+        <p class="small muted">Native Orbit artwork © 2026 SZL Holdings / Stephen Lutar, CC BY 4.0. KANCHAY code: Apache-2.0. The local presentation record is unsigned observation metadata.</p>
+      </div>
+    </details>
   </main>
-  <footer>Refresh interval: 5 seconds. Hashes are truncated for display. Full governance records remain in the local append-only ledger.</footer>
-  <script>
-    const shortHash = value => value ? `${value.slice(0, 8)}...${value.slice(-6)}` : "none";
-    let bearerToken = "";
-    let tokenPrompt = null;
-
-    async function requestBearerToken() {
-      if (!tokenPrompt) {
-        tokenPrompt = Promise.resolve()
-          .then(() => window.prompt("Enter the GDW bearer token for this page session."))
-          .then(value => (value || "").trim())
-          .finally(() => { tokenPrompt = null; });
-      }
-      return tokenPrompt;
-    }
-
-    async function apiFetch(path) {
-      const request = () => fetch(path, {
-        cache: "no-store",
-        headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}
-      });
-      let response = await request();
-      if (response.status !== 401) return response;
-      const supplied = await requestBearerToken();
-      if (!supplied) return response;
-      bearerToken = supplied;
-      return request();
-    }
-
-    async function refresh() {
-      try {
-        const response = await apiFetch("/v1/calibration/status");
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        document.querySelector("#connection").textContent = "Control plane reachable";
-        document.querySelector("#mode").textContent = data.runtime.active_mode.toUpperCase();
-        document.querySelector("#runtime").textContent = shortHash(data.runtime.active_runtime_hash);
-        document.querySelector("#policy").textContent = data.policy_version;
-        document.querySelector("#signing").textContent = data.signing_key_source;
-        document.querySelector("#alert").textContent = data.alerts.length ? data.alerts.join(", ") : "CLEAR";
-        document.querySelector("#alert").className = data.alerts.length ? "alert" : "";
-        const counts = data.proposal_state_counts;
-        document.querySelector("#proposal-count").textContent = Object.values(counts).reduce((a, b) => a + b, 0);
-        document.querySelector("#proposal-mix").textContent = Object.entries(counts).map(([k, v]) => `${k}: ${v}`).join(" / ") || "No proposals observed.";
-        document.querySelector("#scenarios").textContent = data.scenario_count;
-        document.querySelector("#truth").textContent = data.truth_boundary;
-      } catch (error) {
-        document.querySelector("#connection").textContent = "Control plane unavailable";
-        document.querySelector("#alert").textContent = String(error);
-        document.querySelector("#alert").className = "alert";
-      }
-    }
-    refresh();
-    setInterval(refresh, 5000);
-  </script>
+  <footer class="site-footer"><p>GDW-X is a MODELED control-plane architecture. No production-safety, trading-edge, formal-coverage, or compliance claim is made by this presentation.</p><nav aria-label="SZL ecosystem"><a href="https://a-11-oy.com/" rel="noreferrer">Product</a><a href="https://a11oy.net/" rel="noreferrer">Proof</a><a href="https://github.com/szl-holdings/gdw-frontier" rel="noreferrer">Source</a></nav></footer>
+  <dialog id="session-dialog" aria-labelledby="session-title" aria-describedby="session-description">
+    <form id="session-form">
+      <h2 id="session-title">Connect this page</h2>
+      <p id="session-description">Use the bearer token for this GDW deployment. It stays in this page's memory and is sent only to this origin's fixed status endpoints. Clear the session or reload to remove it.</p>
+      <label for="session-token">GDW bearer token</label>
+      <input id="session-token" name="gdw-token" type="password" autocomplete="off" spellcheck="false" minlength="32" maxlength="4096" required>
+      <p class="small form-error" id="session-error" role="status"></p>
+      <div class="dialog-actions"><button type="button" id="session-cancel">Cancel</button><button class="primary" type="submit">Connect and read state</button></div>
+    </form>
+  </dialog>
 </body>
 </html>

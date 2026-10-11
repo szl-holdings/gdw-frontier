@@ -1,0 +1,60 @@
+name: Native Frontend
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gdw-native-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Bind exact candidate
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Build and verify installed native package
+        run: |
+          python -m pip wheel --no-deps --wheel-dir "$RUNNER_TEMP/gdw-native-wheel" .
+          python -m pip install ".[test]"
+          python ci/check_native_assets.py --wheel "$RUNNER_TEMP/gdw-native-wheel/gdw_frontier-0.3.0-py3-none-any.whl"
+      - name: Install isolated browser tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/gdw-browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.62.0
+          node "$RUNNER_TEMP/gdw-browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Render installed read-only front doors
+        env:
+          GDW_QA_OUT: ${{ runner.temp }}/gdw-native-observations
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/gdw-browser-tools/node_modules/playwright
+        run: node ci/qualify_native_frontend.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: gdw-native-frontend-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/gdw-native-observations/**/results.json
+            ${{ runner.temp }}/gdw-native-observations/**/*.png
+            ${{ runner.temp }}/gdw-native-observations/**/server.log
+          if-no-files-found: warn
+          retention-days: 30
