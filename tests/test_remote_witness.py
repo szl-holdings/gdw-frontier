@@ -81,7 +81,7 @@ def test_production_witness_executes_only_trusted_default_branch_code() -> None:
         "Install verifier",
         "Materialize protected witness credential",
         "Verify exact public production identity and signed receipt",
-        "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+        "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
     ]
     checkout = steps[0]
     assert checkout == {
