@@ -13,17 +13,17 @@
     {
       "bytes": 3343,
       "path": ".github/workflows/gdw-production-witness.yml",
-      "sha256": "059263ead9e766045bf577d296a5197ad91c79d5891bead355ebe0a2e6ff91c7"
+      "sha256": "ae1de0797966922e453779ad96158c76ede8235d7474ba5fe3d6f87a0a6a859a"
     },
     {
       "bytes": 6167,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "7ebae9edca4ad653e81f66c06022d38884bad476194aefbfb24e72f6c188cbc0"
+      "sha256": "5f8de8f7d4d8b85bb5dc57ae5b7827af16b66985f473bdf95d85b56140411826"
     },
     {
       "bytes": 2374,
       "path": ".github/workflows/native-frontend.yml",
-      "sha256": "de0594c6585176bb216d885f16b5151d69427c17cf5b7b6fec2d6109036c51ec"
+      "sha256": "60a4e825bf8b1f7e46cd818dd052509d3d971af1e3cd70487178681b745e4d6a"
     },
     {
       "bytes": 1091,
@@ -31,9 +31,9 @@
       "sha256": "de0a4fbc4d026b31c3cd4407f6c1c1584eea0db9edc2b2abbb27e09758021d67"
     },
     {
-      "bytes": 17370,
+      "bytes": 17945,
       "path": "README.md",
-      "sha256": "479d53b22692c7aada1f0a26dec2b6cdfd63d606bf6326e54925d21c1d21bb7d"
+      "sha256": "6be8066306dd441fa932b0eed9b9283ea3d50ce06faf1b27184f4a8b34c3ae8d"
     },
     {
       "bytes": 112,
@@ -668,7 +668,7 @@
     {
       "bytes": 8858,
       "path": "tests/test_remote_witness.py",
-      "sha256": "818e6a9c830c7b5763b8f16aa1696363e80d6a6f8298d4789fb9685a9198f61e"
+      "sha256": "f124ce8305c49b7ad27e4012bf37d949c057e58a67f240a4282a4de352a1c089"
     },
     {
       "bytes": 7973,
