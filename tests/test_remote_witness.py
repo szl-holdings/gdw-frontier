@@ -77,7 +77,7 @@ def test_production_witness_executes_only_trusted_default_branch_code() -> None:
     assert [step.get("name", step.get("uses")) for step in steps] == [
         "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
         "Verify trusted default-branch workflow source",
-        "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+        "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
         "Install verifier",
         "Materialize protected witness credential",
         "Verify exact public production identity and signed receipt",

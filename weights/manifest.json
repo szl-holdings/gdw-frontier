@@ -13,22 +13,22 @@
     {
       "bytes": 3343,
       "path": ".github/workflows/gdw-production-witness.yml",
-      "sha256": "ae1de0797966922e453779ad96158c76ede8235d7474ba5fe3d6f87a0a6a859a"
+      "sha256": "a48ffde3babcf899bc93c851171ca844b1d782451ca0261dddda1ad7df31bb8a"
     },
     {
       "bytes": 6167,
       "path": ".github/workflows/gdw-verify.yml",
-      "sha256": "5f8de8f7d4d8b85bb5dc57ae5b7827af16b66985f473bdf95d85b56140411826"
+      "sha256": "7b2e091075e0184972fb81f12fb9bcb6b73311a19bf5174f942ee597d2d717b0"
     },
     {
       "bytes": 2374,
       "path": ".github/workflows/native-frontend.yml",
-      "sha256": "60a4e825bf8b1f7e46cd818dd052509d3d971af1e3cd70487178681b745e4d6a"
+      "sha256": "ab10e8cb8d14ad62ddd46d261fe70dc576c144a40c6f2ce03920d7644e9d68a1"
     },
     {
       "bytes": 1091,
       "path": "Dockerfile",
-      "sha256": "de0a4fbc4d026b31c3cd4407f6c1c1584eea0db9edc2b2abbb27e09758021d67"
+      "sha256": "836ee906494623d9c91642723fa6202dda6591269af1e4ebd5bf35320ae32989"
     },
     {
       "bytes": 17945,
@@ -568,7 +568,7 @@
     {
       "bytes": 927,
       "path": "pyproject.toml",
-      "sha256": "d0e3cf8f87e4ed44af68c0fb934198ee4d450c99848b9370652ce8c6c49928f0"
+      "sha256": "d324cd8b71230aad81aa8088bd5a3867301f458a88cae62a5506fd6b7597a2fd"
     },
     {
       "bytes": 1708,
@@ -668,7 +668,7 @@
     {
       "bytes": 8858,
       "path": "tests/test_remote_witness.py",
-      "sha256": "f124ce8305c49b7ad27e4012bf37d949c057e58a67f240a4282a4de352a1c089"
+      "sha256": "a397b07ace04eb576ca710a31f9fd75f4e3326cfcfbb8bbfdd6f9829314a0bf6"
     },
     {
       "bytes": 7973,
