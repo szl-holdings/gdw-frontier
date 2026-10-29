@@ -1,4 +1,4 @@
-FROM python:3.15.0-slim-bookworm
+FROM python:3.15.0-slim-bookworm@sha256:0e019bbdfb5d9874cb2389f1c2884b64aa2ac97c99960b5bc521cef978c0617d
 
 ARG GDW_SOURCE_SHA=UNAVAILABLE
 LABEL org.opencontainers.image.revision="${GDW_SOURCE_SHA}" \
