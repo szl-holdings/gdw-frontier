@@ -568,7 +568,7 @@
     {
       "bytes": 927,
       "path": "pyproject.toml",
-      "sha256": "d324cd8b71230aad81aa8088bd5a3867301f458a88cae62a5506fd6b7597a2fd"
+      "sha256": "0b103609689ead776a994f10acd57ab7aa7654538e1fc1d6a3eb26a83c4e5668"
     },
     {
       "bytes": 1708,
@@ -676,9 +676,9 @@
       "sha256": "afad6f0914259a278f6d82377a86a5fdde518bba21524bbd408675531604107b"
     },
     {
-      "bytes": 666,
+      "bytes": 2969,
       "path": "tests/test_weight_manifest.py",
-      "sha256": "ca415276d230f72e3c728eb30ffb8008bfd94c5803b2d7c2d2119b705498fed0"
+      "sha256": "ab26c47a3b9f629cc3b87ab38715093f1855dc9af97d6bee1b1fde1616e44cb5"
     },
     {
       "bytes": 1307,
