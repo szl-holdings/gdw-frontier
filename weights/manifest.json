@@ -76,9 +76,9 @@
       "sha256": "09b545871442d755c991ca855fef6a0964ee3d8e981e71ac8c56221834c34b52"
     },
     {
-      "bytes": 350,
+      "bytes": 866,
       "path": "app/hybrid_scheduler.py",
-      "sha256": "f4179ffc9489d9fb65352d7b01c7725d106c9580c7a4548bbfe55c9404e2093a"
+      "sha256": "fdc89739b1e3fdae42391ce48b8dafae255dd5bafbfaafdb5ad747212421b870"
     },
     {
       "bytes": 2837,
@@ -646,9 +646,9 @@
       "sha256": "82f309968506acd65c895c9d7b8a24533964257c62b732f77b22c294a3ec917d"
     },
     {
-      "bytes": 6353,
+      "bytes": 7666,
       "path": "tests/test_log_integrity.py",
-      "sha256": "18aee5cea7a6b92e09a676ec8c5daf9ba16e06ba8a3915256381ea52bc24c226"
+      "sha256": "7a9777f444a91d69cfe54acbf6c19c86291029b062bc8221a60c8f84b8cd8cf9"
     },
     {
       "bytes": 16502,

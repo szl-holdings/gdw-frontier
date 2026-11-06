@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 """Log-record integrity for CodeQL py/log-injection.
 
-Every structured record is exactly one physical line under the strictest splitter
-(``str.splitlines()``), and ``json.loads`` gives back the exact original values.
+Two properties together close the flow without rewriting evidence:
+
+* every structured record is exactly one physical line under the strictest splitter
+  (``str.splitlines()``), and ``json.loads`` gives back the exact original values;
+* the scheduler mode that reaches logs, receipts and metric labels is a server-defined
+  constant, not the caller's object.
 """
 from __future__ import annotations
 
@@ -11,11 +15,13 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, get_args
 
 import pytest
 
 from app import logging_setup
+from app.hybrid_scheduler import ALLOWED_MODES, validate_mode
+from app.models import SchedulerMode
 
 # Every line boundary that str.splitlines() honours.
 LINE_BOUNDARIES = {
@@ -165,3 +171,30 @@ def test_configure_logging_renders_every_text_handler_as_one_json_line(
             logger.removeHandler(handler)
             handler.close()
 
+
+def test_allowed_modes_are_exactly_the_scheduler_mode_literal() -> None:
+    assert ALLOWED_MODES == frozenset(get_args(SchedulerMode))
+
+
+@pytest.mark.parametrize("mode", get_args(SchedulerMode))
+def test_validate_mode_returns_the_server_constant_not_the_callers_object(mode: str) -> None:
+    class CallerString(str):
+        """Request-derived text that compares equal to an allowed mode."""
+
+    supplied = CallerString(mode)
+
+    accepted = validate_mode(supplied)
+
+    assert accepted == mode
+    assert accepted is not supplied
+    assert type(accepted) is str
+    assert accepted is next(constant for constant in get_args(SchedulerMode) if constant == mode)
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["", "Balanced", " balanced", "balanced ", "balanced\n", "balanced\r\n", "balanced\u2028", "throughput\x00"],
+)
+def test_validate_mode_rejects_anything_but_an_exact_allowed_mode(mode: str) -> None:
+    with pytest.raises(ValueError, match="unsupported scheduler mode"):
+        validate_mode(mode)
