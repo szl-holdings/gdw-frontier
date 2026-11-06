@@ -76,9 +76,9 @@
       "sha256": "09b545871442d755c991ca855fef6a0964ee3d8e981e71ac8c56221834c34b52"
     },
     {
-      "bytes": 350,
+      "bytes": 866,
       "path": "app/hybrid_scheduler.py",
-      "sha256": "f4179ffc9489d9fb65352d7b01c7725d106c9580c7a4548bbfe55c9404e2093a"
+      "sha256": "fdc89739b1e3fdae42391ce48b8dafae255dd5bafbfaafdb5ad747212421b870"
     },
     {
       "bytes": 2837,
@@ -91,9 +91,9 @@
       "sha256": "b87560609efda3b2891748d71cd7aa3c56c8885fde9587b7a1f75ebb85baf2a9"
     },
     {
-      "bytes": 2875,
+      "bytes": 3537,
       "path": "app/logging_setup.py",
-      "sha256": "218cbfe745e15df12135981f7467909c6684d496fcfc1fc7a3e8a4cc105a7e38"
+      "sha256": "4ae18c17f3258b48f46a7a29c4c5d15c0ae22c6890e69e163b7c89e1f9dc715a"
     },
     {
       "bytes": 1240,
@@ -644,6 +644,11 @@
       "bytes": 605,
       "path": "tests/test_live_environment_template.py",
       "sha256": "82f309968506acd65c895c9d7b8a24533964257c62b732f77b22c294a3ec917d"
+    },
+    {
+      "bytes": 7666,
+      "path": "tests/test_log_integrity.py",
+      "sha256": "7a9777f444a91d69cfe54acbf6c19c86291029b062bc8221a60c8f84b8cd8cf9"
     },
     {
       "bytes": 16502,
