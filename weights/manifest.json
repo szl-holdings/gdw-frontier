@@ -91,9 +91,9 @@
       "sha256": "b87560609efda3b2891748d71cd7aa3c56c8885fde9587b7a1f75ebb85baf2a9"
     },
     {
-      "bytes": 2875,
+      "bytes": 3537,
       "path": "app/logging_setup.py",
-      "sha256": "218cbfe745e15df12135981f7467909c6684d496fcfc1fc7a3e8a4cc105a7e38"
+      "sha256": "4ae18c17f3258b48f46a7a29c4c5d15c0ae22c6890e69e163b7c89e1f9dc715a"
     },
     {
       "bytes": 1240,
@@ -644,6 +644,11 @@
       "bytes": 605,
       "path": "tests/test_live_environment_template.py",
       "sha256": "82f309968506acd65c895c9d7b8a24533964257c62b732f77b22c294a3ec917d"
+    },
+    {
+      "bytes": 6353,
+      "path": "tests/test_log_integrity.py",
+      "sha256": "18aee5cea7a6b92e09a676ec8c5daf9ba16e06ba8a3915256381ea52bc24c226"
     },
     {
       "bytes": 16502,

@@ -14,8 +14,21 @@ from .tracing import current_trace_fields
 LOGGER_NAME = "gdw"
 _configured = False
 
+# json.dumps escapes every C0 control character (CR, LF, VT, FF, FS, GS, RS, ...), but
+# with ensure_ascii=False it writes these three line boundaries raw, and str.splitlines()
+# and many log viewers break records on them. They can only occur inside JSON strings, so
+# the \uXXXX escape is lossless: json.loads returns the original character.
+_RAW_LINE_BOUNDARY_ESCAPES = str.maketrans({"\u0085": "\\u0085", "\u2028": "\\u2028", "\u2029": "\\u2029"})
+
 
 class JsonFormatter(logging.Formatter):
+    """Render one record as exactly one physical line of JSON (CodeQL py/log-injection).
+
+    Values are encoded, never rewritten: a field that contains CR, LF or any other line
+    boundary is escaped by the encoding and decodes back to exactly the logged value, so
+    request data can neither forge or split a record nor be altered in the evidence.
+    """
+
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
             "time": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(timespec="milliseconds"),
@@ -29,7 +42,8 @@ class JsonFormatter(logging.Formatter):
         payload.update({key: value for key, value in current_trace_fields().items() if key not in payload})
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
-        return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        line = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return line.translate(_RAW_LINE_BOUNDARY_ESCAPES)
 
 
 class MetricCountingHandler(logging.Handler):
@@ -68,18 +82,11 @@ def configure_logging() -> logging.Logger:
     return logger
 
 
-def _neutralize(value: Any) -> Any:
-    """Strip line breaks from user-influenced strings before they reach a log record.
-
-    The JSON formatter already escapes control characters, but neutralizing here also
-    covers any plain-text handler (CodeQL py/log-injection).
-    """
-    if isinstance(value, str):
-        return value.replace("\r", "\\r").replace("\n", "\\n")
-    return value
-
-
 def log_event(logger: logging.Logger, level: int, message: str, **fields: Any) -> None:
-    safe_fields = {key: _neutralize(value) for key, value in fields.items()}
-    logger.log(level, _neutralize(message), extra={"fields": safe_fields})
+    """Emit a structured event; every text handler of the service logger is a JsonFormatter.
+
+    Fields are passed through unchanged on purpose: pre-escaping them here would make
+    a real line feed and a literal backslash-n indistinguishable in the logged evidence.
+    """
+    logger.log(level, message, extra={"fields": fields})
 
