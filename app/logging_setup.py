@@ -68,6 +68,18 @@ def configure_logging() -> logging.Logger:
     return logger
 
 
+def _neutralize(value: Any) -> Any:
+    """Strip line breaks from user-influenced strings before they reach a log record.
+
+    The JSON formatter already escapes control characters, but neutralizing here also
+    covers any plain-text handler (CodeQL py/log-injection).
+    """
+    if isinstance(value, str):
+        return value.replace("\r", "\\r").replace("\n", "\\n")
+    return value
+
+
 def log_event(logger: logging.Logger, level: int, message: str, **fields: Any) -> None:
-    logger.log(level, message, extra={"fields": fields})
+    safe_fields = {key: _neutralize(value) for key, value in fields.items()}
+    logger.log(level, _neutralize(message), extra={"fields": safe_fields})
 
