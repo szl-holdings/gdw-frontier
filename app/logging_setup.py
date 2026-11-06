@@ -68,6 +68,17 @@ def configure_logging() -> logging.Logger:
     return logger
 
 
+def _one_line(value: Any) -> Any:
+    """Neutralise CR/LF in request-derived strings so a value can never forge a log record.
+
+    The JSON formatter already escapes newlines, but the sanitiser keeps the guarantee even
+    if a plain-text handler is attached (CodeQL py/log-injection).
+    """
+    if isinstance(value, str):
+        return value.replace("\r", " ").replace("\n", " ")
+    return value
+
+
 def log_event(logger: logging.Logger, level: int, message: str, **fields: Any) -> None:
-    logger.log(level, message, extra={"fields": fields})
+    logger.log(level, _one_line(message), extra={"fields": {k: _one_line(v) for k, v in fields.items()}})
 

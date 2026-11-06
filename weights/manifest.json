@@ -91,9 +91,9 @@
       "sha256": "b87560609efda3b2891748d71cd7aa3c56c8885fde9587b7a1f75ebb85baf2a9"
     },
     {
-      "bytes": 2389,
+      "bytes": 2841,
       "path": "app/logging_setup.py",
-      "sha256": "5f476be0b0a43d58272b0a69b3cdbbb453a95fd96d39e8aff78b2dfaa13ee338"
+      "sha256": "21d658bfd1a6a564bdcf072b0f0bb5eaa431d89345b0155362f31db16af103c4"
     },
     {
       "bytes": 1240,
