@@ -288,3 +288,9 @@ Storage is not a substitute for fixing unbounded labels. See [docs/SCALING.md](d
 - [Grafana alerting with Terraform](https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/terraform-provisioning/)
 - [Grafana Tempo signal correlations](https://grafana.com/docs/grafana/latest/datasources/tempo/configure-tempo-data-source/)
 - [Loki release notes documenting Promtail removal](https://grafana.com/docs/loki/latest/release-notes/v3-7/)
+
+Estate on Hugging Face: models, datasets and Spaces are published under the [SZLHOLDINGS](https://huggingface.co/SZLHOLDINGS) org.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
