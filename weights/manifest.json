@@ -51,9 +51,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 26474,
+      "bytes": 27150,
       "path": "app/api.py",
-      "sha256": "89970f7af383f3c126bef92e640bb2e350014e70810cddf72ff27e7c6db5a5b1"
+      "sha256": "9b0c94d29d195ef1ebd8430187c23aefc64be118b2140103777a3234745215c0"
     },
     {
       "bytes": 5066,
@@ -74,6 +74,11 @@
       "bytes": 2709,
       "path": "app/exemplar_store.py",
       "sha256": "09b545871442d755c991ca855fef6a0964ee3d8e981e71ac8c56221834c34b52"
+    },
+    {
+      "bytes": 7828,
+      "path": "app/frontpage.py",
+      "sha256": "af21504de9c6984f1ce5640fc5644b57a9cb738e05dd4ecaaa312181fd3483ea"
     },
     {
       "bytes": 866,
@@ -634,6 +639,11 @@
       "bytes": 1726,
       "path": "tests/test_exemplar_store.py",
       "sha256": "884f71dfc745af1b858d2aa0d3e92660ab0cb79ba2ca29c6559a36709fedf0dd"
+    },
+    {
+      "bytes": 1417,
+      "path": "tests/test_frontpage.py",
+      "sha256": "1e06c14db7dcd697bb2be59ad2e87a00b5a3befc165620aceb8d80fea1d03498"
     },
     {
       "bytes": 5509,

@@ -724,7 +724,7 @@ async def opcal_benchmark(payload: CalibrationRequest) -> dict:
 # (AUTH_EXEMPT_PATHS) but previously had no handler, so the governed surface
 # answered 404 at the landing route. This serves an honest, responsive,
 # desktop+mobile front page; it exposes no governed API surface.
-from frontpage import attach_frontpage  # noqa: E402
+from app.frontpage import attach_frontpage  # noqa: E402
 
 attach_frontpage(
     app,
