@@ -718,3 +718,20 @@ async def decoder_benchmark() -> dict:
 async def opcal_benchmark(payload: CalibrationRequest) -> dict:
     calibration = run_calibration(payload.snapshot, exemplar_store.load(), k=payload.k)
     return op_cal_eval(payload.snapshot, calibration["actions"])
+
+
+# SZL public front page (szl.frontpage/v1). "/" is auth-exempt by design
+# (AUTH_EXEMPT_PATHS) but previously had no handler, so the governed surface
+# answered 404 at the landing route. This serves an honest, responsive,
+# desktop+mobile front page; it exposes no governed API surface.
+from frontpage import attach_frontpage  # noqa: E402
+
+attach_frontpage(
+    app,
+    TITLE="GDW-X Governed Decision Workspace",
+    TAGLINE="MODELED modular control plane for governed operational intelligence.",
+    VERTICAL="governed-operations",
+    SPACE_ID="SZLHOLDINGS/gdw-frontier",
+    SOURCE_REPO="https://github.com/szl-holdings/gdw-frontier",
+    HEALTH_PATH="/healthz",
+)
