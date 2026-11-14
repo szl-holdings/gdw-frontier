@@ -84,6 +84,7 @@ AUTH_EXEMPT_PATHS = frozenset(
         "/",
         "/build-info",
         "/calibration",
+        "/front",
         "/healthz",
         "/master-suite",
         "/metrics",

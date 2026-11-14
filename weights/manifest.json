@@ -31,9 +31,9 @@
       "sha256": "54b48d05075cd6c406bfecd9a85f44590df6e0d95e8e68d33e320ef976b36728"
     },
     {
-      "bytes": 17945,
+      "bytes": 18129,
       "path": "README.md",
-      "sha256": "6be8066306dd441fa932b0eed9b9283ea3d50ce06faf1b27184f4a8b34c3ae8d"
+      "sha256": "1ee085ade39beaf96e3b0bbacbcac6a8e027e1e98b6c5cd125dc5fc6bb49a0d5"
     },
     {
       "bytes": 112,
@@ -51,9 +51,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 27150,
+      "bytes": 27168,
       "path": "app/api.py",
-      "sha256": "9b0c94d29d195ef1ebd8430187c23aefc64be118b2140103777a3234745215c0"
+      "sha256": "a3e824aad9d3b548a778a7a29c1a5626971627fadaad982b94e852f937e8ff87"
     },
     {
       "bytes": 5066,
@@ -546,9 +546,9 @@
       "sha256": "0cc8f5a4e5f552ebf50dc85f865e714718181bf063e6fea3b032e0ac8c6c91c5"
     },
     {
-      "bytes": 7157,
+      "bytes": 7197,
       "path": "monitoring/metric-policy.json",
-      "sha256": "665335449d8e220800f92d00ea094352d5a154c95741d7b12b64da3ae151a265"
+      "sha256": "bc359c70e5339de8d4e1bf17616bc7a38c684ed7837cb372b993be7da1b752bf"
     },
     {
       "bytes": 505,
@@ -641,9 +641,9 @@
       "sha256": "884f71dfc745af1b858d2aa0d3e92660ab0cb79ba2ca29c6559a36709fedf0dd"
     },
     {
-      "bytes": 1417,
+      "bytes": 1507,
       "path": "tests/test_frontpage.py",
-      "sha256": "1e06c14db7dcd697bb2be59ad2e87a00b5a3befc165620aceb8d80fea1d03498"
+      "sha256": "706c338999707108992da788813718ab94b60b083032a2f434b19b624fd1999f"
     },
     {
       "bytes": 5509,
