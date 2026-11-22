@@ -683,7 +683,7 @@
     {
       "bytes": 2544,
       "path": "tests/test_readiness_http_status_stdlib.py",
-      "sha256": "10cc7dc83d44802819c3ae6b6a00f52ea900124395b4873e95a6f"
+      "sha256": "10cc7dc83d44802819c3ae6b6a2aca8948b6a00f52ea900124395b4873e95a6f"
     },
     {
       "bytes": 8858,
