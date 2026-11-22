@@ -51,9 +51,9 @@
       "sha256": "b0bfbfe80e2e42fd9c3804aeeb7fedae925001843c4837cbdf0f99b0d70234c9"
     },
     {
-      "bytes": 27168,
+      "bytes": 27309,
       "path": "app/api.py",
-      "sha256": "a3e824aad9d3b548a778a7a29c1a5626971627fadaad982b94e852f937e8ff87"
+      "sha256": "70b3bbefe776d00377e95a904d9f73e69c3620c3db26e9ea25e2cf35d1f171fb"
     },
     {
       "bytes": 5066,
@@ -679,6 +679,11 @@
       "bytes": 12862,
       "path": "tests/test_persistence.py",
       "sha256": "35177bf9451b89be532e8edf34a3404ee225e691479181ede9cf2c8cdead475f"
+    },
+    {
+      "bytes": 2544,
+      "path": "tests/test_readiness_http_status_stdlib.py",
+      "sha256": "10cc7dc83d44802819c3ae6b6a2aca8948b6a00f52ea900124395b4873e95a6f"
     },
     {
       "bytes": 8858,
