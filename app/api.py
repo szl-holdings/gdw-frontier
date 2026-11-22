@@ -349,11 +349,17 @@ async def healthz() -> ReadinessResponse:
     return ReadinessResponse(status="ready", service="gdw")
 
 
-@app.get("/readyz", response_model=ReadinessResponse)
-async def readyz() -> ReadinessResponse:
+@app.get(
+    "/readyz",
+    response_model=ReadinessResponse,
+    responses={503: {"model": ReadinessResponse}},
+)
+async def readyz(response: Response) -> ReadinessResponse:
     valid = ledger.audit().valid
     memory_valid, _ = exemplar_store.verify()
     status = "ready" if valid and memory_valid else "not_ready"
+    if status != "ready":
+        response.status_code = 503
     return ReadinessResponse(status=status, service="gdw")
 
 
