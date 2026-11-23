@@ -151,6 +151,7 @@ def test_build_info_reports_exact_runtime_identity(tmp_path: Path, monkeypatch) 
     with TestClient(api.app) as client:
         response = client.get("/build-info")
         assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
         assert response.json() == {
             "service": "gdw",
             "version": "0.3.0",
