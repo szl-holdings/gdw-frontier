@@ -364,7 +364,8 @@ async def readyz(response: Response) -> ReadinessResponse:
 
 
 @app.get("/build-info", response_model=BuildInfoResponse)
-async def build_info() -> BuildInfoResponse:
+async def build_info(response: Response) -> BuildInfoResponse:
+    response.headers["Cache-Control"] = "no-store"
     signing_algorithm, signing_key_id = ledger.signing_identity()
     return BuildInfoResponse(
         version=__version__,
