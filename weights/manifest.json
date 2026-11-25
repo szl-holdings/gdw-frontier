@@ -366,6 +366,11 @@
       "sha256": "51612c408cfc2ea2293b6c0486db31d33fa8fcf60101b40becb41d5e876f75e7"
     },
     {
+      "bytes": 3313,
+      "path": "docs/leader-study-r1.md",
+      "sha256": "58021cfc66bff26f0e7ef64b72bc177d3a90f1534d48eb2b7f27e2e4704178f8"
+    },
+    {
       "bytes": 91,
       "path": "gdw_x/__init__.py",
       "sha256": "7c1b009555f23a621f8f7d5a02baeaec9af81d457198a27cf9573c50c847c91e"
